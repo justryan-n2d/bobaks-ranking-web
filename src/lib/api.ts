@@ -1,15 +1,4 @@
-import {
-  getDemoGameProfile,
-  getDemoHistory,
-  getDemoPeak,
-  getDemoRankHistory,
-  getDemoRankings,
-  getDemoSocialFeed,
-  isDemoModeEnabled,
-  searchDemoGames,
-} from "@/lib/demo-data";
-
-import {\n  getDemoGameProfile,\n  getDemoHistory,\n  getDemoPeak,\n  getDemoRankHistory,\n  getDemoRankings,\n  getDemoSocialFeed,\n  isDemoModeEnabled,\n  searchDemoGames,\n} from "@/lib/demo-data";\n\nexport type RankingPeriod = "live" | "weekly" | "monthly" | "yearly";
+export type RankingPeriod = "live" | "weekly" | "monthly" | "yearly";
 
 export type RankingGame = {
   id?: string | number;
