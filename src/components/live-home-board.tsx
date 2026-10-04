@@ -31,7 +31,7 @@ function Movement({ value }: { value?: number | null }) {
   if (!numeric) return <span className="text-[11px] text-muted-foreground">No move</span>;
   const rising = numeric > 0;
   return (
-    <span className={cn("inline-flex items-center gap-0.5 text-[11px] font-bold", rising ? "text-emerald-600" : "text-rose-600")}>
+    <span className={cn("inline-flex items-center gap-0.5 text-[11px] font-bold", rising ? "text-[color:var(--signal-rise)]" : "text-[color:var(--signal-drop)]")}>
       {rising ? <ArrowUp className="size-3" aria-hidden="true" /> : <ArrowDown className="size-3" aria-hidden="true" />}
       {Math.abs(numeric)}
     </span>
@@ -47,9 +47,7 @@ function GameRow({ game, changed }: { game: RankingGame; changed: boolean }) {
         changed && "border-border bg-accent/70 shadow-sm",
       )}
     >
-      <div className="w-7 shrink-0 text-center text-sm font-black tabular-nums text-muted-foreground">
-        #{game.rank}
-      </div>
+      <div className="w-8 shrink-0 text-center"><span className="bobaks-rank-pill" data-rank={game.rank <= 3 ? game.rank : undefined}>#{game.rank}</span></div>
       {game.game?.iconUrl ? (
         <img
           src={game.game.iconUrl}
@@ -83,17 +81,14 @@ function GameRow({ game, changed }: { game: RankingGame; changed: boolean }) {
 
 function SpotCard({ game, changed }: { game: RankingGame; changed: boolean }) {
   return (
-    <Card className={cn(
-      "overflow-hidden transition-all duration-500",
-      changed && "ring-2 ring-foreground/10",
-    )}>
+    <Card className={cn("bobaks-spotlight overflow-hidden transition-all duration-500", changed && "ring-2 ring-primary/20")} data-rank={game.rank}>
       <Link
         href={`/game/${encodeURIComponent(game.gameId)}`}
         className="group block p-4"
       >
         <div className="flex items-center gap-3">
           <div className={cn(
-            "flex size-8 shrink-0 items-center justify-center rounded-xl bg-foreground text-xs font-black text-background transition-transform duration-500 group-hover:scale-105",
+            "bobaks-rank-pill",
             changed && "animate-pulse",
           )}>
             #{game.rank}
@@ -145,6 +140,7 @@ function HighlightCard({
   const numericMove = Number(game?.rankChange ?? 0);
   return (
     <Link
+      data-signal={mode === "up" ? "rise" : mode === "down" ? "drop" : "new"}
       href={game ? `/game/${encodeURIComponent(game.gameId)}` : "/rankings/live"}
       className="group rounded-2xl border border-border bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent/60"
     >
@@ -251,10 +247,7 @@ export function LiveHomeBoard({
         <div className="mb-3 flex items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              <span className="relative flex size-2.5" aria-hidden="true">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-60" />
-                <span className="relative inline-flex size-2.5 rounded-full bg-emerald-500" />
-              </span>
+              <span className="bobaks-live-dot" aria-hidden="true" />
               Live now
               <span className="text-[10px] font-normal tracking-normal">{formatAge(updatedAt, now)}</span>
             </div>
@@ -281,12 +274,7 @@ export function LiveHomeBoard({
           </div>
         </div>
 
-        <div className="mb-3 h-1 overflow-hidden rounded-full bg-muted" aria-hidden="true">
-          <div className={cn(
-            "h-full origin-left rounded-full bg-foreground transition-all duration-1000",
-            refreshing ? "w-2/3" : "w-full",
-          )} />
-        </div>
+        <div className="bobaks-live-strip mb-3" aria-hidden="true"><span style={{ width: refreshing ? "66%" : "100%" }} /></div>
 
         {error ? (
           <div className="mb-3 rounded-2xl border border-dashed border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
