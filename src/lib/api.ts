@@ -96,6 +96,39 @@ export type SearchGame = {
   isActive?: boolean | null;
 };
 
+export type SocialFeedItem = {
+  rank?: number;
+  gameId: string;
+  name: string;
+  creator?: string;
+  score: number;
+  rankChange?: number | null;
+  peakPlayers?: number;
+  peakAt?: string | null;
+  url?: string;
+};
+
+export type SocialFeed = {
+  generatedAt: string;
+  source: string;
+  period: string;
+  ranking: {
+    title: string;
+    path: string;
+    items: SocialFeedItem[];
+  };
+  trending: {
+    title: string;
+    path: string;
+    items: SocialFeedItem[];
+  };
+  peaks: {
+    title: string;
+    items: SocialFeedItem[];
+    recentItems: SocialFeedItem[];
+  };
+};
+
 const DEFAULT_API_ORIGIN = "https://bobaks-ranking-api-service.ryan-oledan0.workers.dev";
 
 function getApiOrigin() {
@@ -154,6 +187,15 @@ export async function getRankings(period: RankingPeriod): Promise<RankingRespons
     nextRefreshAt:
       typeof candidate.nextRefreshAt === "string" ? candidate.nextRefreshAt : null,
   };
+}
+
+export async function getSocialFeed(period: RankingPeriod = "live"): Promise<SocialFeed> {
+  const candidate = await fetchJson(`/api/social/feed?period=${encodeURIComponent(period)}`);
+  if (!candidate.ranking || typeof candidate.ranking !== "object") {
+    throw new Error("Bobaks API social feed payload is missing ranking");
+  }
+
+  return candidate as SocialFeed;
 }
 
 export async function getGame(id: string): Promise<GameProfile> {
