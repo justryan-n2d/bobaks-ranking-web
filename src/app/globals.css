@@ -87,6 +87,49 @@ a {
   box-shadow: var(--shadow-soft);
 }
 
+.bobaks-search-form {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 48rem;
+}
+
+.bobaks-search-input {
+  background: rgb(255 255 255 / 0.96);
+  color: #0a1526;
+  border-color: rgb(255 255 255 / 0.08);
+}
+
+.bobaks-search-input::placeholder {
+  color: #5d7187;
+}
+
+.bobaks-search-button {
+  color: #ffffff;
+  background: #0b63f6;
+}
+
+@media (prefers-color-scheme: dark) {
+  .bobaks-search-input {
+    background: rgb(7 17 31 / 0.78);
+    color: #edf5ff;
+    border-color: rgb(255 255 255 / 0.14);
+  }
+
+  .bobaks-search-input::placeholder {
+    color: #8ea6bf;
+  }
+}
+
+@media (max-width: 640px) {
+  .bobaks-search-form {
+    flex-direction: column;
+  }
+
+  .bobaks-search-button {
+    width: 100%;
+  }
+}
+
 .bobaks-hero::after {
   content: "";
   position: absolute;
