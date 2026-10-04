@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { getRankings } from "@/lib/api";
 import {
   getDemoGameProfile,
   getDemoHistory,
@@ -42,20 +43,60 @@ describe("preview demo data", () => {
     expect(searchDemoGames("cafe").some((result) => result.name === "Cozy Cafe")).toBe(true);
   });
 
+  it("routes the API client to fixtures only in Preview demo mode", async () => {
+    const previousDemoMode = process.env.BOBAKS_UI_DEMO_MODE;
+    const previousEnvironment = process.env.BOBAKS_DEPLOYMENT_ENV;
+
+    try {
+      process.env.BOBAKS_UI_DEMO_MODE = "true";
+      process.env.BOBAKS_DEPLOYMENT_ENV = "preview";
+
+      const demoResponse = await getRankings("live");
+      expect(demoResponse.data[0]?.gameId).toBe("demo-001");
+
+      process.env.BOBAKS_DEPLOYMENT_ENV = "production";
+
+      const previousFetch = globalThis.fetch;
+      let fetchCalls = 0;
+      globalThis.fetch = async () => {
+        fetchCalls += 1;
+        return Response.json(
+          { period: "live", data: [], updatedAt: null },
+          { status: 200 },
+        );
+      };
+
+      try {
+        const productionResponse = await getRankings("live");
+        expect(productionResponse.data).toEqual([]);
+        expect(fetchCalls).toBe(1);
+      } finally {
+        globalThis.fetch = previousFetch;
+      }
+    } finally {
+      if (previousDemoMode === undefined) delete process.env.BOBAKS_UI_DEMO_MODE;
+      else process.env.BOBAKS_UI_DEMO_MODE = previousDemoMode;
+      if (previousEnvironment === undefined) delete process.env.BOBAKS_DEPLOYMENT_ENV;
+      else process.env.BOBAKS_DEPLOYMENT_ENV = previousEnvironment;
+    }
+  });
+
   it("does not enable demo mode unless explicitly configured", () => {
     const previousDemoMode = process.env.BOBAKS_UI_DEMO_MODE;
     const previousEnvironment = process.env.BOBAKS_DEPLOYMENT_ENV;
 
-    process.env.BOBAKS_UI_DEMO_MODE = "true";
-    process.env.BOBAKS_DEPLOYMENT_ENV = "preview";
-    expect(isDemoModeEnabled()).toBe(true);
+    try {
+      process.env.BOBAKS_UI_DEMO_MODE = "true";
+      process.env.BOBAKS_DEPLOYMENT_ENV = "preview";
+      expect(isDemoModeEnabled()).toBe(true);
 
-    process.env.BOBAKS_DEPLOYMENT_ENV = "production";
-    expect(isDemoModeEnabled()).toBe(false);
-
-    if (previousDemoMode === undefined) delete process.env.BOBAKS_UI_DEMO_MODE;
-    else process.env.BOBAKS_UI_DEMO_MODE = previousDemoMode;
-    if (previousEnvironment === undefined) delete process.env.BOBAKS_DEPLOYMENT_ENV;
-    else process.env.BOBAKS_DEPLOYMENT_ENV = previousEnvironment;
+      process.env.BOBAKS_DEPLOYMENT_ENV = "production";
+      expect(isDemoModeEnabled()).toBe(false);
+    } finally {
+      if (previousDemoMode === undefined) delete process.env.BOBAKS_UI_DEMO_MODE;
+      else process.env.BOBAKS_UI_DEMO_MODE = previousDemoMode;
+      if (previousEnvironment === undefined) delete process.env.BOBAKS_DEPLOYMENT_ENV;
+      else process.env.BOBAKS_DEPLOYMENT_ENV = previousEnvironment;
+    }
   });
 });
