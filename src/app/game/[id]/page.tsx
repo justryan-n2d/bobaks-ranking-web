@@ -52,7 +52,7 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
     return (
       <div className="mx-auto max-w-2xl py-20">
         <h1 className="text-2xl font-black">Game data unavailable</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Bobaks could not load this experience right now.</p>
+        <p className="text-sm text-sky-100/80">Bobaks could not load this experience right now.</p>
       </div>
     );
   }
@@ -86,19 +86,19 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
         Home
       </Link>
 
-      <header className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+      <header className="bobaks-hero overflow-hidden rounded-3xl border shadow-sm">
         <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-start sm:p-8">
           {game.iconUrl ? (
-            <img src={game.iconUrl} alt="" width={96} height={96} className="size-24 shrink-0 rounded-3xl border border-border object-cover" />
+            <img src={game.iconUrl} alt="" width={96} height={96} className="size-24 shrink-0 rounded-3xl border border-white/15 object-cover shadow-lg shadow-black/20" />
           ) : (
             <div className="size-24 shrink-0 rounded-3xl bg-muted" aria-hidden="true" />
           )}
           <div className="min-w-0 flex-1">
-            <div className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Game profile</div>
-            <h1 className="mt-1 truncate text-3xl font-black tracking-tight sm:text-4xl">{game.name || `Experience ${id}`}</h1>
+            <div className="relative z-[1] text-xs font-semibold uppercase tracking-[0.14em] text-sky-100/80">Game profile</div>
+            <h1 className="relative z-[1] mt-1 truncate text-3xl font-black tracking-tight text-white sm:text-4xl">{game.name || `Experience ${id}`}</h1>
             <p className="mt-2 text-sm text-muted-foreground">By {game.creatorName || "Unknown creator"}</p>
             <div className="mt-5 flex flex-wrap gap-2">
-              <a href={`https://www.roblox.com/games/${encodeURIComponent(String(game.placeId || id))}`} target="_blank" rel="noreferrer noopener" className="inline-flex h-10 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-semibold text-background hover:opacity-90">
+              <a href={`https://www.roblox.com/games/${encodeURIComponent(String(game.placeId || id))}`} target="_blank" rel="noreferrer noopener" className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:brightness-105">
                 Open on Roblox
                 <ExternalLink className="size-4" aria-hidden="true" />
               </a>
