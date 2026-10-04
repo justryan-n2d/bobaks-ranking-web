@@ -28,7 +28,9 @@ The server-side API client defaults to the production Bobaks API. Set `BOBAKS_AP
 
 Cloudflare Worker Previews use deterministic frontend fixtures so the UI can be tested even when the production ranking dataset is empty. Preview deployments set `BOBAKS_DEPLOYMENT_ENV=preview` and `BOBAKS_UI_DEMO_MODE=true`; production explicitly sets both values to disable demo data.
 
-Demo fixtures never write to Supabase or the production API. They cover rankings, social feed, search, game profiles, history, rank history, and peak records.
+Run `npx wrangler preview` from the feature branch to create or update the isolated Preview. Demo fixtures never write to Supabase or the production API. They cover rankings, social feed, search, game profiles, history, rank history, peak records, rank movement, and a new-entry case.
+
+The Preview shell shows a visible demo-mode banner so QA cannot mistake fixtures for live Bobaks data. The demo source is also used by the same-origin `/api/rankings/live` refresh route, so the Home live board stays populated during testing.
 
 ## Product boundary
 
