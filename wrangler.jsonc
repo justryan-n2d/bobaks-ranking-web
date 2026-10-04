@@ -6,27 +6,15 @@
   "main": "vinext/server/fetch-handler",
   "preview_urls": true,
   "vars": {
-    "BOBAKS_UI_DEMO_MODE": "false",
-    "BOBAKS_DEPLOYMENT_ENV": "production"
-  },
-  "previews": {
-    "vars": {
-      "BOBAKS_UI_DEMO_MODE": "true",
-      "BOBAKS_DEPLOYMENT_ENV": "preview"
-    }
+    "BOBAKS_UI_DEMO_MODE": "false"
   },
   "assets": {
     "directory": "dist/client",
     "not_found_handling": "none",
     "binding": "ASSETS"
   },
-  "vars": {
-    "BOBAKS_DEPLOYMENT_ENV": "production",
-    "BOBAKS_UI_DEMO_MODE": "false"
-  },
   "previews": {
     "vars": {
-      "BOBAKS_DEPLOYMENT_ENV": "preview",
       "BOBAKS_UI_DEMO_MODE": "true"
     }
   }
