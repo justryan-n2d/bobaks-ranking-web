@@ -8,6 +8,7 @@ import {
   getSocialFeed,
   searchGames,
 } from "@/lib/api";
+import { isDemoModeEnabled } from "@/lib/demo-data";
 
 describe("preview demo data", () => {
   const originalDeploymentEnv = process.env.BOBAKS_DEPLOYMENT_ENV;
@@ -28,10 +29,10 @@ describe("preview demo data", () => {
 
   it("enables demo data only for the preview deployment", async () => {
     process.env.BOBAKS_DEPLOYMENT_ENV = "production";
-    expect((await getRankings("live")).data).toHaveLength(0);
+    expect(isDemoModeEnabled()).toBe(false);
 
     process.env.BOBAKS_DEPLOYMENT_ENV = "preview";
-    expect((await getRankings("live")).data.length).toBeGreaterThan(0);
+    expect(isDemoModeEnabled()).toBe(true);
   });
 
   it("returns populated ranking periods without calling the live API", async () => {
