@@ -4,7 +4,7 @@ The frontend has an isolated deterministic demo-data mode for QA when the produc
 
 ## Enable it
 
-Set these environment variables **only on the Cloudflare Worker Preview environment**:
+Set these environment variables in the Cloudflare Worker Preview configuration:
 
 ```text
 BOBAKS_DEPLOYMENT_ENV=preview
