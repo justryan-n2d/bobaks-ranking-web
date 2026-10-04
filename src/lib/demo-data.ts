@@ -256,17 +256,19 @@ function gameProfile(game: DemoGame): GameProfile {
     rankings: Object.fromEntries(
       (["live", "weekly", "monthly", "yearly"] as RankingPeriod[]).map((period) => {
         const summary = rankingFor(period).data.find((item) => item.gameId === game.id);
+        if (!summary) {
+          throw new Error(`Demo ranking missing for ${game.id} in ${period}`);
+        }
+
         return [
           period,
-          summary
-            ? {
-                rank: summary.rank,
-                score: summary.score,
-                previousRank: summary.previousRank,
-                rankChange: summary.rankChange,
-                calculatedAt: DEMO_UPDATED_AT,
-              }
-            : undefined,
+          {
+            rank: summary.rank,
+            score: summary.score,
+            previousRank: summary.previousRank,
+            rankChange: summary.rankChange,
+            calculatedAt: DEMO_UPDATED_AT,
+          },
         ];
       }),
     ),
