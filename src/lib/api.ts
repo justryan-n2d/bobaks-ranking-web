@@ -1,3 +1,14 @@
+import {
+  getDemoGameProfile,
+  getDemoHistory,
+  getDemoPeak,
+  getDemoRankHistory,
+  getDemoRankings,
+  getDemoSocialFeed,
+  isDemoModeEnabled,
+  searchDemoGames,
+} from "@/lib/demo-data";
+
 export type RankingPeriod = "live" | "weekly" | "monthly" | "yearly";
 
 export type RankingGame = {
