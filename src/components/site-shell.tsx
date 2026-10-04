@@ -160,7 +160,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           <button
             type="button"
             aria-label="Close navigation overlay"
-            className="absolute inset-y-0 right-0 left-[min(18rem,85vw)] bg-black/15"
+            className="absolute inset-y-0 right-0 left-[min(18rem,85vw)] bg-black"
             onClick={close}
           />
 
