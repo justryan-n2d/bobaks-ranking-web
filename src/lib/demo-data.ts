@@ -218,7 +218,7 @@ function socialFeed(period: RankingPeriod = "live"): SocialFeed {
     },
     trending: {
       title: "Trending",
-      path: "/live",
+      path: `/rankings/${period}`,
       items: [...items].reverse(),
     },
     peaks: {
