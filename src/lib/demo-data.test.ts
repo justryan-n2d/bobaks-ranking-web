@@ -40,7 +40,7 @@ describe("preview demo data", () => {
       const response = await getRankings(period);
       expect(response.period).toBe(period);
       expect(response.data.length).toBeGreaterThanOrEqual(5);
-      expect(response.data[0]?.game.name).toBeTruthy();
+      expect(response.data[0]?.game?.name).toBeTruthy();
       expect(response.data[0]?.score).toBeGreaterThan(0);
     }
   });
