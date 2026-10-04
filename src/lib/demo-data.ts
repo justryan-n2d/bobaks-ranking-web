@@ -9,7 +9,7 @@ import type {
   RankingResponse,
   SearchGame,
   SocialFeed,
-} from "@/lib/api";
+} from "./api";
 
 const DEMO_UPDATED_AT = "2026-10-05T00:00:00.000Z";
 
