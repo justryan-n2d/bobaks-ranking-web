@@ -76,19 +76,72 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {open && (
-        <button
-          type="button"
-          aria-label="Close navigation overlay"
-          className="fixed inset-0 z-40 bg-black/40 md:hidden"
+        <div className="fixed inset-0 z-50 md:hidden">
+          <button
+            type="button"
+            aria-label="Close navigation overlay"
+            className="absolute inset-0 z-0 bg-black/40"
+            onClick={() => setOpen(false)}
+          />
+                <aside
+        className={cn(
+          "absolute inset-y-0 left-0 z-10 flex w-64 flex-col border-r border-border bg-card/95 p-4 shadow-xl backdrop-blur transition-transform duration-200",
+          open ? "translate-x-0" : "-translate-x-full",
+        )}
+      >
+        <div className="flex items-center justify-between px-2 pb-5 pt-2">
+          <Link href="/" onClick={() => setOpen(false)}>
+            <div className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Bobaks</div>
+            <div className="text-xl font-black tracking-tight">Ranking</div>
+          </Link>
+          <button
+            type="button"
+            className="inline-flex size-10 items-center justify-center rounded-xl hover:bg-accent md:hidden"
+            onClick={() => setOpen(false)}
+            aria-label="Close navigation"
+          >
+            <X className="size-5" aria-hidden="true" />
+          </button>
+        </div>
+
+        <Link
+          href="/account"
           onClick={() => setOpen(false)}
-        />
+          className="mb-6 rounded-2xl border border-border bg-background/75 p-3 hover:bg-accent"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent">
+              <UserCircle2 className="size-5 text-muted-foreground" aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold">Account</div>
+              <div className="truncate text-xs text-muted-foreground">Optional. Sign in to save across devices.</div>
+            </div>
+          </div>
+        </Link>
+
+        <nav aria-label="Primary navigation" className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
+          {main.map((item) => (
+            <NavLink key={item.href} item={item} onNavigate={() => setOpen(false)} />
+          ))}
+          <div className="mt-5 px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            Information
+          </div>
+          {info.map((item) => (
+            <NavLink key={item.href} item={item} onNavigate={() => setOpen(false)} />
+          ))}
+        </nav>
+
+        <div className="border-t border-border px-2 pt-4 text-xs leading-5 text-muted-foreground">
+          <div>Independent fan-made analytics site.</div>
+          <div>Not affiliated with Roblox Corporation.</div>
+        </div>
+      </aside>
+        </div>
       )}
 
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-card/95 p-4 shadow-xl backdrop-blur transition-transform duration-200 md:translate-x-0 md:shadow-none",
-          open ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-        )}
+            <aside
+        className="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-border bg-card/95 p-4 shadow-xl backdrop-blur md:flex"
       >
         <div className="flex items-center justify-between px-2 pb-5 pt-2">
           <Link href="/" onClick={() => setOpen(false)}>
