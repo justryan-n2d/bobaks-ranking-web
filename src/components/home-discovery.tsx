@@ -1,5 +1,15 @@
 import Link from "next/link";
-import { ArrowRight, Flame, Search, Sparkles, TrendingUp, Trophy, Users } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowRight,
+  ArrowUp,
+  Flame,
+  Search,
+  Sparkles,
+  Trophy,
+  UserPlus,
+  Users,
+} from "lucide-react";
 
 import type { RankingGame, SocialFeed } from "@/lib/api";
 import { Card } from "@/components/ui/card";
@@ -25,7 +35,7 @@ function GameLink({
   return (
     <Link
       href={`/game/${encodeURIComponent(game.gameId)}`}
-      className={`group flex items-center gap-3 rounded-2xl border border-transparent p-3 transition-colors hover:border-border hover:bg-accent/60 ${prominent ? "p-4" : ""}`}
+      className={`group flex items-center gap-3 rounded-2xl border border-transparent transition-colors hover:border-border hover:bg-accent/60 ${prominent ? "p-4" : "p-3"}`}
     >
       <div className={`shrink-0 text-center font-black tabular-nums text-muted-foreground ${prominent ? "w-8 text-lg" : "w-7 text-sm"}`}>
         #{game.rank}
@@ -73,7 +83,11 @@ function SocialItem({
       className="group flex items-center gap-3 rounded-2xl border border-transparent p-3 transition-colors hover:border-border hover:bg-accent/60"
     >
       <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-        {kind === "trending" ? <TrendingUp className="size-4" aria-hidden="true" /> : <Trophy className="size-4" aria-hidden="true" />}
+        {kind === "trending" ? (
+          <TrendingIcon />
+        ) : (
+          <Trophy className="size-4" aria-hidden="true" />
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-semibold group-hover:underline">{item.name}</div>
@@ -96,6 +110,39 @@ function SocialItem({
   );
 }
 
+function TrendingIcon() {
+  return <ArrowUp className="size-4" aria-hidden="true" />;
+}
+
+function Highlight({
+  label,
+  value,
+  note,
+  icon,
+  href,
+}: {
+  label: string;
+  value: string;
+  note: string;
+  icon: React.ReactNode;
+  href?: string;
+}) {
+  const body = (
+    <div className="flex h-full items-start gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition-colors hover:bg-accent/60">
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</div>
+        <div className="mt-1 truncate text-base font-black">{value}</div>
+        <div className="mt-1 text-xs text-muted-foreground">{note}</div>
+      </div>
+    </div>
+  );
+
+  return href ? <Link href={href}>{body}</Link> : body;
+}
+
 export function HomeDiscovery({
   liveGames,
   feed,
@@ -103,8 +150,17 @@ export function HomeDiscovery({
   liveGames: RankingGame[];
   feed: SocialFeed | null;
 }) {
-  const liveTop = liveGames.slice(0, 5);
-  const heroGames = liveTop.slice(0, 3);
+  const liveTop = liveGames.slice(0, 10);
+  const spotlights = liveTop.slice(0, 3);
+  const rising = [...liveGames]
+    .filter((game) => Number(game.rankChange ?? 0) > 0)
+    .sort((a, b) => Number(b.rankChange ?? 0) - Number(a.rankChange ?? 0))
+    .slice(0, 3);
+  const drops = [...liveGames]
+    .filter((game) => Number(game.rankChange ?? 0) < 0)
+    .sort((a, b) => Number(a.rankChange ?? 0) - Number(b.rankChange ?? 0))
+    .slice(0, 3);
+  const newEntries = liveGames.filter((game) => game.previousRank == null).slice(0, 3);
   const trending = feed?.trending.items.slice(0, 5) ?? [];
   const peaks = feed?.peaks.items.slice(0, 5) ?? [];
 
@@ -142,18 +198,10 @@ export function HomeDiscovery({
         </form>
 
         <div className="mt-7 flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <Link href="/rankings/live" className="rounded-full border border-border bg-background px-3 py-2 hover:bg-accent">
-            Live Top 100
-          </Link>
-          <Link href="/rankings/weekly" className="rounded-full border border-border bg-background px-3 py-2 hover:bg-accent">
-            This Week
-          </Link>
-          <Link href="/rankings/monthly" className="rounded-full border border-border bg-background px-3 py-2 hover:bg-accent">
-            This Month
-          </Link>
-          <Link href="/rankings/yearly" className="rounded-full border border-border bg-background px-3 py-2 hover:bg-accent">
-            This Year
-          </Link>
+          <Link href="/rankings/live" className="rounded-full border border-border bg-background px-3 py-2 hover:bg-accent">Live Top 100</Link>
+          <Link href="/rankings/weekly" className="rounded-full border border-border bg-background px-3 py-2 hover:bg-accent">This Week</Link>
+          <Link href="/rankings/monthly" className="rounded-full border border-border bg-background px-3 py-2 hover:bg-accent">This Month</Link>
+          <Link href="/rankings/yearly" className="rounded-full border border-border bg-background px-3 py-2 hover:bg-accent">This Year</Link>
         </div>
       </section>
 
@@ -172,18 +220,44 @@ export function HomeDiscovery({
         </div>
 
         <div className="grid gap-3 lg:grid-cols-3">
-          {heroGames.map((game) => (
-            <GameLink key={game.gameId} game={game} prominent />
+          {spotlights.map((game) => (
+            <Card key={game.gameId} className="overflow-hidden">
+              <GameLink game={game} prominent />
+            </Card>
           ))}
         </div>
 
-        <Card className="mt-3">
-          <div className="divide-y divide-border sm:divide-y-0 sm:divide-x sm:grid sm:grid-cols-2 lg:grid-cols-5">
-            {liveTop.slice(0, 5).map((game) => (
-              <GameLink key={game.gameId} game={game} />
-            ))}
-          </div>
-        </Card>
+        {liveTop.length > 3 ? (
+          <Card className="mt-3 overflow-hidden">
+            <div className="divide-y divide-border">
+              {liveTop.slice(3, 10).map((game) => <GameLink key={game.gameId} game={game} />)}
+            </div>
+          </Card>
+        ) : null}
+      </section>
+
+      <section className="grid gap-3 sm:grid-cols-3">
+        <Highlight
+          label="Rising"
+          value={rising[0]?.game?.name || "No mover yet"}
+          note={rising[0] ? `Up ${rising[0].rankChange} ranks to #${rising[0].rank}` : "Positive rank movement will appear here."}
+          icon={<ArrowUp className="size-4" aria-hidden="true" />}
+          href={rising[0] ? `/game/${encodeURIComponent(rising[0].gameId)}` : "/rankings/live"}
+        />
+        <Highlight
+          label="New entries"
+          value={newEntries[0]?.game?.name || "No new entries"}
+          note={newEntries[0] ? `Entered at #${newEntries[0].rank}` : "Newly ranked games will appear here."}
+          icon={<UserPlus className="size-4" aria-hidden="true" />}
+          href={newEntries[0] ? `/game/${encodeURIComponent(newEntries[0].gameId)}` : "/rankings/live"}
+        />
+        <Highlight
+          label="Biggest drop"
+          value={drops[0]?.game?.name || "No major drops"}
+          note={drops[0] ? `${Math.abs(Number(drops[0].rankChange))} ranks to #${drops[0].rank}` : "Negative rank movement will appear here."}
+          icon={<ArrowDown className="size-4" aria-hidden="true" />}
+          href={drops[0] ? `/game/${encodeURIComponent(drops[0].gameId)}` : "/rankings/live"}
+        />
       </section>
 
       <section className="grid gap-5 lg:grid-cols-2">
@@ -194,9 +268,7 @@ export function HomeDiscovery({
               Trending
             </div>
             <h2 className="mt-1 text-xl font-black">Biggest positive movers</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Games moving up the live ranking.
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground">Games moving up the live ranking.</p>
           </div>
           <div className="divide-y divide-border p-2">
             {trending.length ? trending.map((item) => <SocialItem key={item.gameId} item={item} kind="trending" />) : (
@@ -214,8 +286,11 @@ export function HomeDiscovery({
             <h2 className="mt-1 text-xl font-black">Highest recorded peaks</h2>
             <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
               Bobaks-recorded player peaks
-              <span title="A Recorded Peak reflects the period Bobaks has been recording the game." aria-label="Recorded Peak information" className="inline-flex cursor-help">
-                <span className="sr-only">Info</span>
+              <span
+                title="A Recorded Peak reflects the period Bobaks has been recording the game."
+                aria-label="Recorded Peak information"
+                className="inline-flex cursor-help"
+              >
                 ⓘ
               </span>
             </p>
@@ -233,25 +308,19 @@ export function HomeDiscovery({
           <div className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Compare</div>
           <h2 className="mt-2 text-lg font-black">Put two games side by side</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">Compare players, rankings, peaks, and trends.</p>
-          <div className="mt-4 inline-flex items-center gap-1 text-sm font-semibold group-hover:underline">
-            Compare games <ArrowRight className="size-4" aria-hidden="true" />
-          </div>
+          <div className="mt-4 inline-flex items-center gap-1 text-sm font-semibold group-hover:underline">Compare games <ArrowRight className="size-4" aria-hidden="true" /></div>
         </Link>
         <Link href="/saved" className="group rounded-2xl border border-border bg-card p-5 shadow-sm hover:bg-accent/60">
           <div className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Watchlist</div>
           <h2 className="mt-2 text-lg font-black">Keep the games you care about</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">A simple return loop for favorites and alerts.</p>
-          <div className="mt-4 inline-flex items-center gap-1 text-sm font-semibold group-hover:underline">
-            Open watchlist <ArrowRight className="size-4" aria-hidden="true" />
-          </div>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Save games on this device without an account.</p>
+          <div className="mt-4 inline-flex items-center gap-1 text-sm font-semibold group-hover:underline">Open watchlist <ArrowRight className="size-4" aria-hidden="true" /></div>
         </Link>
         <Link href="/methodology" className="group rounded-2xl border border-border bg-card p-5 shadow-sm hover:bg-accent/60">
           <div className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Transparency</div>
           <h2 className="mt-2 text-lg font-black">See how Bobaks ranks games</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">Understand freshness, eligibility, coverage, and ranking rules.</p>
-          <div className="mt-4 inline-flex items-center gap-1 text-sm font-semibold group-hover:underline">
-            View methodology <ArrowRight className="size-4" aria-hidden="true" />
-          </div>
+          <div className="mt-4 inline-flex items-center gap-1 text-sm font-semibold group-hover:underline">View methodology <ArrowRight className="size-4" aria-hidden="true" /></div>
         </Link>
       </section>
 
