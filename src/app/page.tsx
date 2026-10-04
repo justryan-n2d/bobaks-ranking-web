@@ -9,8 +9,9 @@ export default async function HomePage() {
     getSocialFeed("live"),
   ]);
 
-  const liveGames = liveResult.status === "fulfilled" ? liveResult.value.data : [];
+  const liveResponse = liveResult.status === "fulfilled" ? liveResult.value : null;
+  const liveGames = liveResponse?.data ?? [];
   const feed = feedResult.status === "fulfilled" ? feedResult.value : null;
 
-  return <HomeDiscovery liveGames={liveGames} feed={feed} />;
+  return <HomeDiscovery liveGames={liveGames} liveUpdatedAt={liveResponse?.updatedAt ?? null} feed={feed} />;
 }
