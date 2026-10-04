@@ -52,7 +52,7 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
     return (
       <div className="mx-auto max-w-2xl py-20">
         <h1 className="text-2xl font-black">Game data unavailable</h1>
-        <p className="text-sm text-sky-100/80">Bobaks could not load this experience right now.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Bobaks could not load this experience right now.</p>
       </div>
     );
   }
