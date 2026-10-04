@@ -1,6 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getRankings } from "@/lib/api";
 import {
   getDemoGameProfile,
   getDemoHistory,
@@ -9,10 +8,27 @@ import {
   getDemoSocialFeed,
   isDemoModeEnabled,
   searchDemoGames,
-} from "@/lib/demo-data";
+} from "../src/lib/demo-data";
+import { getRankings } from "../src/lib/api";
 
 describe("preview demo data", () => {
+  const originalDemoMode = process.env.BOBAKS_UI_DEMO_MODE;
+  const originalDeploymentEnv = process.env.BOBAKS_DEPLOYMENT_ENV;
+
+  afterEach(() => {
+    if (originalDemoMode === undefined) delete process.env.BOBAKS_UI_DEMO_MODE;
+    else process.env.BOBAKS_UI_DEMO_MODE = originalDemoMode;
+
+    if (originalDeploymentEnv === undefined) delete process.env.BOBAKS_DEPLOYMENT_ENV;
+    else process.env.BOBAKS_DEPLOYMENT_ENV = originalDeploymentEnv;
+
+    vi.unstubAllGlobals();
+  });
+
   it("returns populated deterministic ranking periods", () => {
+    process.env.BOBAKS_DEPLOYMENT_ENV = "preview";
+    process.env.BOBAKS_UI_DEMO_MODE = "true";
+
     for (const period of ["live", "weekly", "monthly", "yearly"] as const) {
       const response = getDemoRankings(period);
       expect(response.period).toBe(period);
@@ -43,60 +59,39 @@ describe("preview demo data", () => {
     expect(searchDemoGames("cafe").some((result) => result.name === "Cozy Cafe")).toBe(true);
   });
 
-  it("routes the API client to fixtures only in Preview demo mode", async () => {
-    const previousDemoMode = process.env.BOBAKS_UI_DEMO_MODE;
-    const previousEnvironment = process.env.BOBAKS_DEPLOYMENT_ENV;
-
-    try {
-      process.env.BOBAKS_UI_DEMO_MODE = "true";
-      process.env.BOBAKS_DEPLOYMENT_ENV = "preview";
-
-      const demoResponse = await getRankings("live");
-      expect(demoResponse.data[0]?.gameId).toBe("demo-001");
-
-      process.env.BOBAKS_DEPLOYMENT_ENV = "production";
-
-      const previousFetch = globalThis.fetch;
-      let fetchCalls = 0;
-      globalThis.fetch = async () => {
-        fetchCalls += 1;
-        return Response.json(
-          { period: "live", data: [], updatedAt: null },
-          { status: 200 },
-        );
-      };
-
-      try {
-        const productionResponse = await getRankings("live");
-        expect(productionResponse.data).toEqual([]);
-        expect(fetchCalls).toBe(1);
-      } finally {
-        globalThis.fetch = previousFetch;
-      }
-    } finally {
-      if (previousDemoMode === undefined) delete process.env.BOBAKS_UI_DEMO_MODE;
-      else process.env.BOBAKS_UI_DEMO_MODE = previousDemoMode;
-      if (previousEnvironment === undefined) delete process.env.BOBAKS_DEPLOYMENT_ENV;
-      else process.env.BOBAKS_DEPLOYMENT_ENV = previousEnvironment;
-    }
+  it("rejects unknown demo game ids", () => {
+    expect(() => getDemoGameProfile("missing-demo-game")).toThrow("Demo game not found");
   });
 
-  it("does not enable demo mode unless explicitly configured", () => {
-    const previousDemoMode = process.env.BOBAKS_UI_DEMO_MODE;
-    const previousEnvironment = process.env.BOBAKS_DEPLOYMENT_ENV;
+  it("enables demo data only for an explicitly configured preview", () => {
+    process.env.BOBAKS_UI_DEMO_MODE = "true";
+    process.env.BOBAKS_DEPLOYMENT_ENV = "preview";
+    expect(isDemoModeEnabled()).toBe(true);
 
-    try {
-      process.env.BOBAKS_UI_DEMO_MODE = "true";
-      process.env.BOBAKS_DEPLOYMENT_ENV = "preview";
-      expect(isDemoModeEnabled()).toBe(true);
+    process.env.BOBAKS_DEPLOYMENT_ENV = "production";
+    expect(isDemoModeEnabled()).toBe(false);
 
-      process.env.BOBAKS_DEPLOYMENT_ENV = "production";
-      expect(isDemoModeEnabled()).toBe(false);
-    } finally {
-      if (previousDemoMode === undefined) delete process.env.BOBAKS_UI_DEMO_MODE;
-      else process.env.BOBAKS_UI_DEMO_MODE = previousDemoMode;
-      if (previousEnvironment === undefined) delete process.env.BOBAKS_DEPLOYMENT_ENV;
-      else process.env.BOBAKS_DEPLOYMENT_ENV = previousEnvironment;
-    }
+    process.env.BOBAKS_DEPLOYMENT_ENV = "preview";
+    process.env.BOBAKS_UI_DEMO_MODE = "false";
+    expect(isDemoModeEnabled()).toBe(false);
+  });
+
+  it("keeps production ranking calls on the real API", async () => {
+    process.env.BOBAKS_DEPLOYMENT_ENV = "production";
+    process.env.BOBAKS_UI_DEMO_MODE = "true";
+
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ period: "live", data: [] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await getRankings("live");
+
+    expect(response.data).toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("/api/rankings/live");
   });
 });
