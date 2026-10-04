@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-
-const DRAWER_EXIT_MS = 260;
 import {
   BarChart3,
   Bookmark,
@@ -20,6 +18,8 @@ import {
 
 import { NAV_ITEMS, type NavItem } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
+
+const DRAWER_EXIT_MS = 260;
 
 const ICONS = {
   home: Home,
@@ -117,7 +117,7 @@ function SidebarContent({ close }: { close: () => void }) {
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
-  const [closing, setClosing] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -126,7 +126,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") close();
+      if (event.key === "Escape") setOpen(false);
     };
 
     document.body.style.overflow = "hidden";
@@ -138,25 +138,22 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     };
   }, [open]);
 
-  const openSidebar = () => {
-    setClosing(false);
-    setOpen(true);
-  };
-
-  const close = () => {
-    if (open) setClosing(true);
-  };
-
   useEffect(() => {
-    if (!closing) return;
+    if (open || !mounted) return;
 
     const timer = window.setTimeout(() => {
-      setOpen(false);
-      setClosing(false);
+      setMounted(false);
     }, DRAWER_EXIT_MS);
 
     return () => window.clearTimeout(timer);
-  }, [closing]);
+  }, [open, mounted]);
+
+  const openSidebar = () => {
+    setMounted(true);
+    setOpen(true);
+  };
+
+  const close = () => setOpen(false);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -176,15 +173,14 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         </Link>
       </div>
 
-      {open ? (
+      {mounted ? (
         <div className="fixed inset-0 z-[100] md:hidden">
-
           <button
             type="button"
             aria-label="Close navigation overlay"
             className={cn(
               "absolute inset-y-0 right-0 left-[min(18rem,85vw)] bg-black/65",
-              closing ? "bobaks-backdrop-exit" : "bobaks-backdrop-enter",
+              open ? "bobaks-backdrop-enter" : "bobaks-backdrop-exit",
             )}
             onClick={close}
           />
@@ -195,14 +191,8 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
             aria-modal="true"
             className={cn(
               "absolute inset-y-0 left-0 z-10 flex w-72 max-w-[85vw] flex-col border-r border-white/20 bg-card/75 p-4 shadow-2xl backdrop-blur-2xl saturate-150",
-              closing ? "bobaks-drawer-exit" : "bobaks-drawer-enter",
+              open ? "bobaks-drawer-enter" : "bobaks-drawer-exit",
             )}
-            onAnimationEnd={(event) => {
-              if (event.animationName === "bobaks-drawer-out") {
-                setOpen(false);
-                setClosing(false);
-              }
-            }}
           >
             <SidebarContent close={close} />
           </aside>
