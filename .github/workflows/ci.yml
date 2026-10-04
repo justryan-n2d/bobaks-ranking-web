@@ -55,7 +55,7 @@ jobs:
           npx --yes playwright screenshot --device="Desktop Chrome" "$PREVIEW_URL/" preview-home.png
           npx --yes playwright screenshot --device="Desktop Chrome" "$PREVIEW_URL/rankings/live" preview-live.png
           npx --yes playwright screenshot --device="Desktop Chrome" "$PREVIEW_URL/game/1001" preview-game.png
-          npx --yes playwright screenshot --device="iPhone 13" "$PREVIEW_URL/" preview-home-mobile.png
+          npx --yes playwright screenshot --browser=chromium --viewport-size="390,844" "$PREVIEW_URL/" preview-home-mobile.png
 
       - name: Upload Cloudflare Preview evidence
         uses: actions/upload-artifact@v4
