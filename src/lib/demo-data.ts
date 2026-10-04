@@ -313,8 +313,8 @@ export function getDemoRankings(period: RankingPeriod) {
   return rankingFor(period);
 }
 
-export function getDemoSocialFeed() {
-  return socialFeed();
+export function getDemoSocialFeed(period: RankingPeriod = "live") {
+  return socialFeed(period);
 }
 
 export function getDemoGameProfile(id: string) {
