@@ -165,7 +165,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {open ? (
-        <div className={cn("fixed inset-0 z-[100] md:hidden", closing ? "bobaks-menu-closing" : "bobaks-menu-opening")}>
+        <div className="fixed inset-0 z-[100] md:hidden">
 
           <button
             type="button"
