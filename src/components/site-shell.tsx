@@ -160,7 +160,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           <button
             type="button"
             aria-label="Close navigation overlay"
-            className="absolute inset-0 bg-black/65 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/30"
             onClick={close}
           />
 
@@ -168,7 +168,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
             id="mobile-navigation"
             aria-label="Mobile navigation"
             aria-modal="true"
-            className="absolute inset-y-0 left-0 z-10 flex w-72 max-w-[85vw] flex-col border-r border-white/15 bg-card/65 p-4 shadow-2xl backdrop-blur-2xl saturate-150"
+            className="absolute inset-y-0 left-0 z-10 flex w-72 max-w-[85vw] flex-col border-r border-border bg-card p-4 shadow-2xl"
           >
             <SidebarContent close={close} />
           </aside>
