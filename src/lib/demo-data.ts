@@ -203,7 +203,7 @@ function socialFeed(period: RankingPeriod = "live"): SocialFeed {
       rankChange: item.rankChange,
       peakPlayers: game.peakPlayers,
       peakAt: game.peakAt,
-      url: "/games/" + encodeURIComponent(game.id),
+      url: "/game/" + encodeURIComponent(game.id),
     };
   });
 
@@ -236,7 +236,6 @@ function getDemoGame(id: string): DemoGame {
 }
 
 function gameProfile(game: DemoGame): GameProfile {
-  const liveRank = rankingFor("live").data.find((item) => item.gameId === game.id);
   return {
     id: game.id,
     universeId: game.universeId,
