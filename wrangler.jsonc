@@ -9,7 +9,8 @@
   "preview_urls": true,
   "vars": {
     "BOBAKS_DEPLOYMENT_ENV": "production",
-    "BOBAKS_UI_DEMO_MODE": "false"
+    "BOBAKS_UI_DEMO_MODE": "false",
+    "BOBAKS_DEPLOYMENT_ENV": "production"
   },
   "assets": {
     "directory": "dist/client",
@@ -19,7 +20,8 @@
   "previews": {
     "vars": {
       "BOBAKS_DEPLOYMENT_ENV": "preview",
-      "BOBAKS_UI_DEMO_MODE": "true"
+      "BOBAKS_UI_DEMO_MODE": "true",
+      "BOBAKS_DEPLOYMENT_ENV": "preview"
     }
   }
 }
