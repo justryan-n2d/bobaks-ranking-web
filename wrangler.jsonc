@@ -3,7 +3,7 @@
   "name": "bobaks-ranking-web",
   "compatibility_date": "2026-10-04",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "dist/server/index.js",
+  "main": "vinext/server/fetch-handler",
   "preview_urls": true,
   "assets": {
     "directory": "dist/client",
