@@ -28,3 +28,57 @@ jobs:
         run: npm run build
       - name: Build Cloudflare preview
         run: npm run build:vinext
+
+      - name: Install Playwright Chromium
+        run: npx --yes playwright install --with-deps chromium
+
+      - name: Inspect live Cloudflare Preview
+        env:
+          PREVIEW_URL: https://feat-gaming-analytics-ui-20261005-bobaks-ranking-web.ryan-oledan0.workers.dev
+        run: |
+          for i in $(seq 1 36); do
+            if curl --fail --silent --show-error "$PREVIEW_URL" | grep -q "See what gamers are playing right now."; then
+              break
+            fi
+            sleep 5
+          done
+
+          cat > preview-smoke.mjs <<'EOF'
+          import { chromium } from "playwright";
+
+          const base = process.env.PREVIEW_URL;
+          const browser = await chromium.launch({ headless: true });
+          const desktop = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+          const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
+
+          const pages = [
+            ["home", "/", "See what gamers are playing right now."],
+            ["live", "/rankings/live", "Live rankings"],
+            ["game", "/game/1001", "Game profile"],
+          ];
+
+          for (const [name, path, expected] of pages) {
+            await desktop.goto(base + path, { waitUntil: "networkidle" });
+            await desktop.getByText(expected, { exact: false }).first().waitFor();
+            await desktop.screenshot({ path: "preview-" + name + ".png", fullPage: true });
+          }
+
+          await mobile.goto(base + "/", { waitUntil: "networkidle" });
+          await mobile.getByText("See what gamers are playing right now.", { exact: false }).first().waitFor();
+          await mobile.screenshot({ path: "preview-home-mobile.png", fullPage: true });
+
+          await browser.close();
+          EOF
+
+          node preview-smoke.mjs
+
+      - name: Upload Cloudflare Preview evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloudflare-preview-browser-evidence
+          path: |
+            preview-home.png
+            preview-live.png
+            preview-game.png
+            preview-home-mobile.png
+          retention-days: 7
