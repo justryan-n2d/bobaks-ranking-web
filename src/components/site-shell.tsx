@@ -64,7 +64,7 @@ function SidebarContent({ close }: { close: () => void }) {
     <>
       <div className="flex items-center justify-between px-2 pb-5 pt-2">
         <Link href="/" onClick={close}>
-          <div className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Bobaks</div>
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground"><span className="bobaks-live-dot" aria-hidden="true" />Bobaks</div>
           <div className="text-xl font-black tracking-tight">Ranking</div>
         </Link>
         <button
