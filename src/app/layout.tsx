@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { SiteShell } from "@/components/site-shell";
+import { isDemoModeEnabled } from "@/lib/demo-data";
 import "./globals.css";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bobaksranking.com"),
@@ -19,7 +22,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body>
-        <SiteShell>{children}</SiteShell>
+        <SiteShell demoMode={isDemoModeEnabled()}>{children}</SiteShell>
       </body>
     </html>
   );
