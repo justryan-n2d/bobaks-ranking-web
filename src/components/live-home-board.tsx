@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowDown, ArrowRight, ArrowUp, Circle, RefreshCw, Users } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUp, Circle, RefreshCw } from "lucide-react";
 
 import type { RankingGame, RankingResponse } from "@/lib/api";
 import { Card } from "@/components/ui/card";
@@ -175,7 +175,7 @@ export function LiveHomeBoard({
   const [error, setError] = useState(false);
   const [changedIds, setChangedIds] = useState<string[]>([]);
   const previousScores = useRef(new Map(initialGames.map((game) => [game.gameId, Number(game.score)])));
-  const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const refreshTimer = useRef<number | null>(null);
 
   const sync = async () => {
     setRefreshing(true);
@@ -229,7 +229,7 @@ export function LiveHomeBoard({
     return () => {
       window.clearInterval(clock);
       document.removeEventListener("visibilitychange", visibility);
-      if (refreshTimer.current) window.clearTimeout(refreshTimer.current);
+      if (refreshTimer.current !== null) window.clearTimeout(refreshTimer.current);
     };
   }, []);
 
@@ -319,7 +319,7 @@ export function LiveHomeBoard({
 
       <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground" aria-live="polite">
         <Circle className="size-2 fill-current" aria-hidden="true" />
-        {refreshing ? "Updating live rankings..." : `Next check in about 30 seconds`}
+        {refreshing ? "Updating live rankings..." : "Next check in about 30 seconds"}
       </div>
     </div>
   );
