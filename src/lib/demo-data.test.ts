@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   getGame,
   getGameHistory,
@@ -10,12 +10,28 @@ import {
 } from "@/lib/api";
 
 describe("preview demo data", () => {
+  const originalDeploymentEnv = process.env.BOBAKS_DEPLOYMENT_ENV;
+  const originalDemoMode = process.env.BOBAKS_UI_DEMO_MODE;
+
   beforeEach(() => {
+    process.env.BOBAKS_DEPLOYMENT_ENV = "preview";
     process.env.BOBAKS_UI_DEMO_MODE = "true";
   });
 
   afterEach(() => {
-    delete process.env.BOBAKS_UI_DEMO_MODE;
+    if (originalDeploymentEnv === undefined) delete process.env.BOBAKS_DEPLOYMENT_ENV;
+    else process.env.BOBAKS_DEPLOYMENT_ENV = originalDeploymentEnv;
+
+    if (originalDemoMode === undefined) delete process.env.BOBAKS_UI_DEMO_MODE;
+    else process.env.BOBAKS_UI_DEMO_MODE = originalDemoMode;
+  });
+
+  it("enables demo data only for the preview deployment", async () => {
+    process.env.BOBAKS_DEPLOYMENT_ENV = "production";
+    expect((await getRankings("live")).data).toHaveLength(0);
+
+    process.env.BOBAKS_DEPLOYMENT_ENV = "preview";
+    expect((await getRankings("live")).data.length).toBeGreaterThan(0);
   });
 
   it("returns populated ranking periods without calling the live API", async () => {
