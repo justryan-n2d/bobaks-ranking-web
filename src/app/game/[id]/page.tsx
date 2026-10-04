@@ -10,6 +10,7 @@ import {
   getGameRankHistory,
 } from "@/lib/api";
 import { PlayerHistoryChart, RankHistoryChart } from "@/components/history-charts";
+import { WatchlistButton } from "@/components/watchlist-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +22,9 @@ function formatPlayers(value: number | null | undefined) {
 function formatDate(value: string | null | undefined) {
   if (!value) return "Unavailable";
   const timestamp = Date.parse(value);
-  return Number.isFinite(timestamp) ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(timestamp)) : "Unavailable";
+  return Number.isFinite(timestamp)
+    ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(timestamp))
+    : "Unavailable";
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -40,8 +43,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function GamePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-
   let game;
+
   try {
     game = await getGame(id);
   } catch (error) {
@@ -69,6 +72,13 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
   const monthly = game.rankings?.month || game.rankings?.monthly;
   const yearly = game.rankings?.year || game.rankings?.yearly;
 
+  const watchlistGame = {
+    id: String(game.id || id),
+    name: game.name || `Experience ${id}`,
+    creatorName: game.creatorName || "Unknown creator",
+    iconUrl: game.iconUrl || null,
+  };
+
   return (
     <div className="space-y-6">
       <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
@@ -86,22 +96,13 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
           <div className="min-w-0 flex-1">
             <div className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Game profile</div>
             <h1 className="mt-1 truncate text-3xl font-black tracking-tight sm:text-4xl">{game.name || `Experience ${id}`}</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              By {game.creatorName || "Unknown creator"}
-            </p>
+            <p className="mt-2 text-sm text-muted-foreground">By {game.creatorName || "Unknown creator"}</p>
             <div className="mt-5 flex flex-wrap gap-2">
-              <a
-                href={`https://www.roblox.com/games/${encodeURIComponent(String(game.placeId || id))}`}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="inline-flex h-10 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-semibold text-background hover:opacity-90"
-              >
+              <a href={`https://www.roblox.com/games/${encodeURIComponent(String(game.placeId || id))}`} target="_blank" rel="noreferrer noopener" className="inline-flex h-10 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-semibold text-background hover:opacity-90">
                 Open on Roblox
                 <ExternalLink className="size-4" aria-hidden="true" />
               </a>
-              <div className="inline-flex h-10 items-center rounded-xl border border-border px-4 text-sm text-muted-foreground">
-                {game.isActive === false ? "Inactive" : "Active"}
-              </div>
+              <WatchlistButton game={watchlistGame} />
             </div>
           </div>
         </div>
@@ -125,9 +126,7 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
       {game.description ? (
         <Card>
           <CardHeader><CardTitle>About this experience</CardTitle></CardHeader>
-          <CardContent className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">
-            {game.description}
-          </CardContent>
+          <CardContent className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">{game.description}</CardContent>
         </Card>
       ) : null}
 
@@ -138,7 +137,7 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
             {history ? `365-day history · ${history.resolution} resolution` : "Historical player data is unavailable right now."}
           </p>
         </CardHeader>
-        <CardContent>{history ? <PlayerHistoryChart data={history.data} /> : null}</CardContent>
+        <CardContent>{history ? <PlayerHistoryChart data={history.data} /> : <div className="py-10 text-center text-sm text-muted-foreground">Historical player data is unavailable.</div>}</CardContent>
       </Card>
 
       <Card>
