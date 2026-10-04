@@ -9,8 +9,7 @@ import {
   getDemoSocialFeed,
   isDemoModeEnabled,
   searchDemoGames,
-} from "../src/lib/demo-data";
-import { getRankings } from "../src/lib/api";
+} from "@/lib/demo-data";
 
 describe("preview demo data", () => {
   const originalDemoMode = process.env.BOBAKS_UI_DEMO_MODE;
@@ -37,6 +36,13 @@ describe("preview demo data", () => {
       expect(response.data[0]?.game?.name).toBeTruthy();
       expect(response.data.every((item) => item.score > 0)).toBe(true);
     }
+  });
+
+  it("provides ranking states needed by the live QA board", () => {
+    const live = getDemoRankings("live").data;
+    expect(live.some((item) => item.previousRank == null)).toBe(true);
+    expect(live.some((item) => Number(item.rankChange) > 0)).toBe(true);
+    expect(live.some((item) => Number(item.rankChange) < 0)).toBe(true);
   });
 
   it("provides discovery feed content", () => {
