@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+
+const DRAWER_EXIT_MS = 260;
 import {
   BarChart3,
   Bookmark,
@@ -145,6 +147,17 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   const close = () => {
     if (open) setClosing(true);
   };
+
+  useEffect(() => {
+    if (!closing) return;
+
+    const timer = window.setTimeout(() => {
+      setOpen(false);
+      setClosing(false);
+    }, DRAWER_EXIT_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [closing]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
