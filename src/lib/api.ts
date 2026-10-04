@@ -146,17 +146,6 @@ function usePreviewDemoData() {
   return process.env.BOBAKS_UI_DEMO_MODE === "true" && process.env.BOBAKS_DEPLOYMENT_ENV === "preview";
 }
 
-import {
-  getDemoGameProfile,
-  getDemoHistory,
-  getDemoPeak,
-  getDemoRankHistory,
-  getDemoRankings,
-  getDemoSocialFeed,
-  isDemoModeEnabled,
-  searchDemoGames,
-} from "@/lib/demo-data";
-
 function getApiOrigin() {
   return process.env.BOBAKS_API_ORIGIN?.replace(/\/$/, "") || DEFAULT_API_ORIGIN;
 }
