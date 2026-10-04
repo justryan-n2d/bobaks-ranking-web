@@ -84,6 +84,47 @@ body {
 button,
 a { -webkit-tap-highlight-color: transparent; }
 
+
+@media (prefers-reduced-motion: no-preference) {
+  button:not(:disabled) {
+    transition:
+      transform 140ms ease,
+      opacity 140ms ease,
+      box-shadow 140ms ease;
+  }
+
+  button:not(:disabled):hover {
+    transform: translateY(-1px);
+  }
+
+  button:not(:disabled):active {
+    transform: translateY(1px) scale(0.97);
+  }
+
+  button[aria-busy="true"] {
+    cursor: progress;
+    pointer-events: none;
+    opacity: 0.8;
+  }
+
+  button[aria-busy="true"]::after {
+    content: "";
+    display: inline-block;
+    width: 0.8rem;
+    height: 0.8rem;
+    margin-left: 0.5rem;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 9999px;
+    animation: bobaks-button-spin 700ms linear infinite;
+    vertical-align: -0.1em;
+  }
+}
+
+@keyframes bobaks-button-spin {
+  to { transform: rotate(360deg); }
+}
+
 ::selection {
   background: var(--foreground);
   color: var(--background);
