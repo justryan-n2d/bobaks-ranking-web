@@ -131,6 +131,17 @@ export type SocialFeed = {
 
 const DEFAULT_API_ORIGIN = "https://bobaks-ranking-api-service.ryan-oledan0.workers.dev";
 
+import {
+  getDemoGameProfile,
+  getDemoHistory,
+  getDemoPeak,
+  getDemoRankHistory,
+  getDemoRankings,
+  getDemoSocialFeed,
+  isDemoModeEnabled,
+  searchDemoGames,
+} from "@/lib/demo-data";
+
 function getApiOrigin() {
   return process.env.BOBAKS_API_ORIGIN?.replace(/\/$/, "") || DEFAULT_API_ORIGIN;
 }
@@ -171,6 +182,8 @@ const RANKING_PATHS: Record<RankingPeriod, string> = {
 };
 
 export async function getRankings(period: RankingPeriod): Promise<RankingResponse> {
+  if (isDemoModeEnabled()) return getDemoRankings(period);
+
   const candidate = await fetchJson(RANKING_PATHS[period]);
   if (!Array.isArray(candidate.data)) {
     throw new Error("Bobaks API ranking payload is missing data");
@@ -190,6 +203,8 @@ export async function getRankings(period: RankingPeriod): Promise<RankingRespons
 }
 
 export async function getSocialFeed(period: RankingPeriod = "live"): Promise<SocialFeed> {
+  if (isDemoModeEnabled()) return getDemoSocialFeed();
+
   const candidate = await fetchJson(`/api/social/feed?period=${encodeURIComponent(period)}`);
   if (!candidate.ranking || typeof candidate.ranking !== "object") {
     throw new Error("Bobaks API social feed payload is missing ranking");
@@ -199,6 +214,8 @@ export async function getSocialFeed(period: RankingPeriod = "live"): Promise<Soc
 }
 
 export async function getGame(id: string): Promise<GameProfile> {
+  if (isDemoModeEnabled()) return getDemoGameProfile(id);
+
   const candidate = await fetchJson(`/api/games/${encodeURIComponent(id)}`);
   if (!candidate.data || typeof candidate.data !== "object") {
     throw new Error("Bobaks API game payload is missing data");
@@ -207,6 +224,8 @@ export async function getGame(id: string): Promise<GameProfile> {
 }
 
 export async function getGameHistory(id: string, days = 365): Promise<HistoryResponse> {
+  if (isDemoModeEnabled()) return getDemoHistory(id, days);
+
   const candidate = await fetchJson(
     `/api/games/${encodeURIComponent(id)}/history?days=${encodeURIComponent(days)}`,
   );
@@ -226,6 +245,8 @@ export async function getGameHistory(id: string, days = 365): Promise<HistoryRes
 }
 
 export async function getGameRankHistory(id: string, days = 31): Promise<RankHistoryPoint[]> {
+  if (isDemoModeEnabled()) return getDemoRankHistory(id, days);
+
   const candidate = await fetchJson(
     `/api/games/${encodeURIComponent(id)}/rank-history?days=${encodeURIComponent(days)}`,
   );
@@ -236,6 +257,8 @@ export async function getGameRankHistory(id: string, days = 31): Promise<RankHis
 }
 
 export async function getGamePeak(id: string): Promise<PeakResponse> {
+  if (isDemoModeEnabled()) return getDemoPeak(id);
+
   const candidate = await fetchJson(`/api/games/${encodeURIComponent(id)}/peak`);
   if (!candidate.data || typeof candidate.data !== "object") {
     throw new Error("Bobaks API peak payload is missing data");
@@ -244,6 +267,8 @@ export async function getGamePeak(id: string): Promise<PeakResponse> {
 }
 
 export async function searchGames(query: string): Promise<SearchGame[]> {
+  if (isDemoModeEnabled()) return searchDemoGames(query);
+
   const candidate = await fetchJson(`/api/search?q=${encodeURIComponent(query)}`);
   if (!Array.isArray(candidate.data)) {
     throw new Error("Bobaks API search payload is missing data");
