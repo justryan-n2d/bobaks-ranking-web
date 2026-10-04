@@ -24,7 +24,7 @@ jobs:
       - name: Use npm 11
         run: npm install --global npm@11
       - name: Install
-        run: npm install
+        run: npm install --legacy-peer-deps --no-audit --no-fund
       - name: Test
         run: npm test
       - name: Build
