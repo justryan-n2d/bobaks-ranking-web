@@ -74,9 +74,21 @@ describe("preview demo data", () => {
 
     expect(game.name).toBe("Filipino Hangout");
     expect(game.isActive).toBe(true);
+    expect(game.rankings?.live?.rank).toBeGreaterThan(0);
+    expect(game.rankings?.weekly?.rank).toBeGreaterThan(0);
+    expect(game.rankings?.monthly?.rank).toBeGreaterThan(0);
+    expect(game.rankings?.yearly?.rank).toBeGreaterThan(0);
     expect(history.data.length).toBeGreaterThan(0);
     expect(rankHistory.length).toBeGreaterThan(0);
     expect(peak.peakPlayers).toBeGreaterThan(game.currentPlayers ?? 0);
+  });
+
+  it("includes a new-entry case for live movement QA", async () => {
+    const response = await getRankings("live");
+    const newEntry = response.data.find((game) => game.previousRank == null);
+
+    expect(newEntry?.gameId).toBe("demo-008");
+    expect(newEntry?.rank).toBeGreaterThan(0);
   });
 
   it("rejects unknown demo game ids", async () => {
