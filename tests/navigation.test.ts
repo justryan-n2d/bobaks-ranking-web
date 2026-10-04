@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NAV_ITEMS } from "@/lib/navigation";
+import { NAV_ITEMS } from "../src/lib/navigation";
 
 describe("Bobaks navigation contract", () => {
   it("contains the locked primary routes in order", () => {
