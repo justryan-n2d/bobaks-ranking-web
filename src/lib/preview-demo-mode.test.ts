@@ -32,6 +32,7 @@ describe("preview demo data mode", () => {
     expect(weekly.period).toBe("weekly");
     expect(monthly.period).toBe("monthly");
     expect(yearly.period).toBe("yearly");
+    expect(live.data.find((game) => game.previousRank == null)?.gameId).toBe("demo-008");
   });
 
   it("serves the complete game-profile data surface from fixtures", async () => {
@@ -49,6 +50,10 @@ describe("preview demo data mode", () => {
     expect(feed.source).toBe("preview-demo");
     expect(feed.trending.items.length).toBeGreaterThan(0);
     expect(game.name).toBe("Island Builders");
+    expect(game.rankings?.live?.rank).toBeGreaterThan(0);
+    expect(game.rankings?.weekly?.rank).toBeGreaterThan(0);
+    expect(game.rankings?.monthly?.rank).toBeGreaterThan(0);
+    expect(game.rankings?.yearly?.rank).toBeGreaterThan(0);
     expect(history.data).toHaveLength(14);
     expect(rankHistory).toHaveLength(14);
     expect(peak.peakPlayers).toBe(19880);
