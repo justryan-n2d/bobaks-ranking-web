@@ -126,7 +126,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") close();
     };
 
     document.body.style.overflow = "hidden";
