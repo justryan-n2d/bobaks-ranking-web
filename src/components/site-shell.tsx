@@ -115,6 +115,7 @@ function SidebarContent({ close }: { close: () => void }) {
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [closing, setClosing] = useState(false);
 
   useEffect(() => {
@@ -124,7 +125,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") close();
     };
 
     document.body.style.overflow = "hidden";
@@ -169,7 +170,10 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           <button
             type="button"
             aria-label="Close navigation overlay"
-            className="bobaks-backdrop-enter absolute inset-y-0 right-0 left-[min(18rem,85vw)] bg-black/65"
+            className={cn(
+              "absolute inset-y-0 right-0 left-[min(18rem,85vw)] bg-black/65",
+              open ? "bobaks-backdrop-enter" : "bobaks-backdrop-exit",
+            )}
             onClick={close}
           />
 
