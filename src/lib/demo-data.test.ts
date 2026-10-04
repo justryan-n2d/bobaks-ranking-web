@@ -11,27 +11,27 @@ import {
 import { isDemoModeEnabled } from "@/lib/demo-data";
 
 describe("preview demo data", () => {
-  const originalDeploymentEnv = process.env.BOBAKS_UI_ENV;
+  const originalDeploymentEnv = process.env.BOBAKS_DEPLOYMENT_ENV;
   const originalDemoMode = process.env.BOBAKS_UI_DEMO_MODE;
 
   beforeEach(() => {
-    process.env.BOBAKS_UI_ENV = "preview";
+    process.env.BOBAKS_DEPLOYMENT_ENV = "preview";
     process.env.BOBAKS_UI_DEMO_MODE = "true";
   });
 
   afterEach(() => {
-    if (originalDeploymentEnv === undefined) delete process.env.BOBAKS_UI_ENV;
-    else process.env.BOBAKS_UI_ENV = originalDeploymentEnv;
+    if (originalDeploymentEnv === undefined) delete process.env.BOBAKS_DEPLOYMENT_ENV;
+    else process.env.BOBAKS_DEPLOYMENT_ENV = originalDeploymentEnv;
 
     if (originalDemoMode === undefined) delete process.env.BOBAKS_UI_DEMO_MODE;
     else process.env.BOBAKS_UI_DEMO_MODE = originalDemoMode;
   });
 
   it("enables demo data only for the preview deployment", async () => {
-    process.env.BOBAKS_UI_ENV = "production";
+    process.env.BOBAKS_DEPLOYMENT_ENV = "production";
     expect(isDemoModeEnabled()).toBe(false);
 
-    process.env.BOBAKS_UI_ENV = "preview";
+    process.env.BOBAKS_DEPLOYMENT_ENV = "preview";
     expect(isDemoModeEnabled()).toBe(true);
   });
 
