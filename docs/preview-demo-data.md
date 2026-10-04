@@ -7,13 +7,13 @@ The frontend has an isolated deterministic demo-data mode for QA when the produc
 Set these environment variables **only on the Cloudflare Worker Preview environment**:
 
 ```text
-BOBAKS_UI_ENV=preview
+BOBAKS_DEPLOYMENT_ENV=preview
 BOBAKS_UI_DEMO_MODE=true
 ```
 
 Do not set either value for the production `main` deployment.
 
-The mode is intentionally guarded by both variables. Setting `BOBAKS_UI_DEMO_MODE=true` without `BOBAKS_UI_ENV=preview` does not enable demo data.
+The mode is intentionally guarded by both variables. Setting `BOBAKS_UI_DEMO_MODE=true` without `BOBAKS_DEPLOYMENT_ENV=preview` does not enable demo data.
 
 ## What it covers
 
