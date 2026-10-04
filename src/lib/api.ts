@@ -1,14 +1,3 @@
-import {
-  getDemoGameProfile,
-  getDemoHistory,
-  getDemoPeak,
-  getDemoRankHistory,
-  getDemoRankings,
-  getDemoSocialFeed,
-  isDemoModeEnabled,
-  searchDemoGames,
-} from "@/lib/demo-data";
-
 export type RankingPeriod = "live" | "weekly" | "monthly" | "yearly";
 
 export type RankingGame = {
@@ -140,6 +129,17 @@ export type SocialFeed = {
   };
 };
 
+import {
+  getDemoGameProfile,
+  getDemoHistory,
+  getDemoPeak,
+  getDemoRankHistory,
+  getDemoRankings,
+  getDemoSocialFeed,
+  isDemoModeEnabled,
+  searchDemoGames,
+} from "./demo-data";
+
 const DEFAULT_API_ORIGIN = "https://bobaks-ranking-api-service.ryan-oledan0.workers.dev";
 
 function getApiOrigin() {
@@ -182,7 +182,9 @@ const RANKING_PATHS: Record<RankingPeriod, string> = {
 };
 
 export async function getRankings(period: RankingPeriod): Promise<RankingResponse> {
-  if (isDemoModeEnabled()) return getDemoRankings(period);
+  if (isDemoModeEnabled()) {
+    return getDemoRankings(period);
+  }
 
   const candidate = await fetchJson(RANKING_PATHS[period]);
   if (!Array.isArray(candidate.data)) {
@@ -197,13 +199,14 @@ export async function getRankings(period: RankingPeriod): Promise<RankingRespons
       typeof candidate.refreshIntervalSeconds === "number" ? candidate.refreshIntervalSeconds : null,
     nextCollectionAt:
       typeof candidate.nextCollectionAt === "string" ? candidate.nextCollectionAt : null,
-    nextRefreshAt:
-      typeof candidate.nextRefreshAt === "string" ? candidate.nextRefreshAt : null,
+    nextRefreshAt: typeof candidate.nextRefreshAt === "string" ? candidate.nextRefreshAt : null,
   };
 }
 
 export async function getSocialFeed(period: RankingPeriod = "live"): Promise<SocialFeed> {
-  if (isDemoModeEnabled()) return getDemoSocialFeed(period);
+  if (isDemoModeEnabled()) {
+    return getDemoSocialFeed(period);
+  }
 
   const candidate = await fetchJson(`/api/social/feed?period=${encodeURIComponent(period)}`);
   if (!candidate.ranking || typeof candidate.ranking !== "object") {
@@ -214,7 +217,9 @@ export async function getSocialFeed(period: RankingPeriod = "live"): Promise<Soc
 }
 
 export async function getGame(id: string): Promise<GameProfile> {
-  if (isDemoModeEnabled()) return getDemoGameProfile(id);
+  if (isDemoModeEnabled()) {
+    return getDemoGameProfile(id);
+  }
 
   const candidate = await fetchJson(`/api/games/${encodeURIComponent(id)}`);
   if (!candidate.data || typeof candidate.data !== "object") {
@@ -224,7 +229,9 @@ export async function getGame(id: string): Promise<GameProfile> {
 }
 
 export async function getGameHistory(id: string, days = 365): Promise<HistoryResponse> {
-  if (isDemoModeEnabled()) return getDemoHistory(id, days);
+  if (isDemoModeEnabled()) {
+    return getDemoHistory(id, days);
+  }
 
   const candidate = await fetchJson(
     `/api/games/${encodeURIComponent(id)}/history?days=${encodeURIComponent(days)}`,
@@ -245,7 +252,9 @@ export async function getGameHistory(id: string, days = 365): Promise<HistoryRes
 }
 
 export async function getGameRankHistory(id: string, days = 31): Promise<RankHistoryPoint[]> {
-  if (isDemoModeEnabled()) return getDemoRankHistory(id, days);
+  if (isDemoModeEnabled()) {
+    return getDemoRankHistory(id, days);
+  }
 
   const candidate = await fetchJson(
     `/api/games/${encodeURIComponent(id)}/rank-history?days=${encodeURIComponent(days)}`,
@@ -257,7 +266,9 @@ export async function getGameRankHistory(id: string, days = 31): Promise<RankHis
 }
 
 export async function getGamePeak(id: string): Promise<PeakResponse> {
-  if (isDemoModeEnabled()) return getDemoPeak(id);
+  if (isDemoModeEnabled()) {
+    return getDemoPeak(id);
+  }
 
   const candidate = await fetchJson(`/api/games/${encodeURIComponent(id)}/peak`);
   if (!candidate.data || typeof candidate.data !== "object") {
@@ -267,7 +278,9 @@ export async function getGamePeak(id: string): Promise<PeakResponse> {
 }
 
 export async function searchGames(query: string): Promise<SearchGame[]> {
-  if (isDemoModeEnabled()) return searchDemoGames(query);
+  if (isDemoModeEnabled()) {
+    return searchDemoGames(query);
+  }
 
   const candidate = await fetchJson(`/api/search?q=${encodeURIComponent(query)}`);
   if (!Array.isArray(candidate.data)) {
