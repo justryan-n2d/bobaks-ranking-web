@@ -13,6 +13,7 @@ import {
 
 import type { RankingGame, SocialFeed } from "@/lib/api";
 import { Card } from "@/components/ui/card";
+import { LiveHomeBoard } from "@/components/live-home-board";
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.max(0, value));
@@ -145,9 +146,11 @@ function Highlight({
 
 export function HomeDiscovery({
   liveGames,
+  liveUpdatedAt,
   feed,
 }: {
   liveGames: RankingGame[];
+  liveUpdatedAt?: string | null;
   feed: SocialFeed | null;
 }) {
   const liveTop = liveGames.slice(0, 10);
@@ -201,62 +204,9 @@ export function HomeDiscovery({
           <Link href="/rankings/live" className="rounded-full border border-border bg-background px-3 py-2 hover:bg-accent">Live Top 100</Link>
           <Link href="/rankings/weekly" className="rounded-full border border-border bg-background px-3 py-2 hover:bg-accent">This Week</Link>
           <Link href="/rankings/monthly" className="rounded-full border border-border bg-background px-3 py-2 hover:bg-accent">This Month</Link>
-          <Link href="/rankings/yearly" className="rounded-full border border-border bg-background px-3 py-2 hover:bg-accent">This Year</Link>
-        </div>
-      </section>
+          <Link href="/rankings/yearly" className="rounded-full border border-border bg-background px-3 py-2 hover      <LiveHomeBoard initialGames={liveGames} initialUpdatedAt={liveUpdatedAt} />
 
-      <section aria-labelledby="live-heading">
-        <div className="mb-3 flex items-end justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              <Users className="size-3.5" aria-hidden="true" />
-              Live now
-            </div>
-            <h2 id="live-heading" className="mt-1 text-2xl font-black tracking-tight">Top games right now</h2>
-          </div>
-          <Link href="/rankings/live" className="inline-flex items-center gap-1 text-sm font-semibold hover:underline">
-            View Top 100 <ArrowRight className="size-4" aria-hidden="true" />
-          </Link>
-        </div>
-
-        <div className="grid gap-3 lg:grid-cols-3">
-          {spotlights.map((game) => (
-            <Card key={game.gameId} className="overflow-hidden">
-              <GameLink game={game} prominent />
-            </Card>
-          ))}
-        </div>
-
-        {liveTop.length > 3 ? (
-          <Card className="mt-3 overflow-hidden">
-            <div className="divide-y divide-border">
-              {liveTop.slice(3, 10).map((game) => <GameLink key={game.gameId} game={game} />)}
-            </div>
-          </Card>
-        ) : null}
-      </section>
-
-      <section className="grid gap-3 sm:grid-cols-3">
-        <Highlight
-          label="Rising"
-          value={rising[0]?.game?.name || "No mover yet"}
-          note={rising[0] ? `Up ${rising[0].rankChange} ranks to #${rising[0].rank}` : "Positive rank movement will appear here."}
-          icon={<ArrowUp className="size-4" aria-hidden="true" />}
-          href={rising[0] ? `/game/${encodeURIComponent(rising[0].gameId)}` : "/rankings/live"}
-        />
-        <Highlight
-          label="New entries"
-          value={newEntries[0]?.game?.name || "No new entries"}
-          note={newEntries[0] ? `Entered at #${newEntries[0].rank}` : "Newly ranked games will appear here."}
-          icon={<UserPlus className="size-4" aria-hidden="true" />}
-          href={newEntries[0] ? `/game/${encodeURIComponent(newEntries[0].gameId)}` : "/rankings/live"}
-        />
-        <Highlight
-          label="Biggest drop"
-          value={drops[0]?.game?.name || "No major drops"}
-          note={drops[0] ? `${Math.abs(Number(drops[0].rankChange))} ranks to #${drops[0].rank}` : "Negative rank movement will appear here."}
-          icon={<ArrowDown className="size-4" aria-hidden="true" />}
-          href={drops[0] ? `/game/${encodeURIComponent(drops[0].gameId)}` : "/rankings/live"}
+0].gameId)}` : "/rankings/live"}
         />
       </section>
 
