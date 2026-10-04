@@ -202,7 +202,7 @@ export function SiteShell({
         </div>
       ) : null}
 
-      <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-border bg-card p-4 shadow-xl md:flex">
+      <aside className="bobaks-sidebar fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-border bg-card p-4 shadow-xl md:flex">
         <SidebarContent close={close} />
       </aside>
 
