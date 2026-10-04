@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { RankingTable } from "@/components/ranking-table";
-import { getRankings, type RankingPeriod } from "@/lib/api";
+import { getRankings, type RankingPeriod, type RankingResponse } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ period: s
         description: `${label} Roblox experience rankings, player counts, and rank movement from Bobaks Ranking.`,
       }
     : { title: "Rankings" };
-}
+};
 
 export default async function RankingPeriodPage({ params }: { params: Promise<{ period: string }> }) {
   const { period: rawPeriod } = await params;
@@ -38,7 +38,7 @@ export default async function RankingPeriodPage({ params }: { params: Promise<{ 
   }
 
   const period = rawPeriod as RankingPeriod;
-  let response = { data: [], updatedAt: null as string | null };
+  let response: RankingResponse = { data: [], updatedAt: null, nextCollectionAt: null };
 
   try {
     response = await getRankings(period);
