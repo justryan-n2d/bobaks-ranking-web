@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bobaks-ranking-web",
+  "compatibility_date": "2026-10-04",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "vinext/server/fetch-handler",
+  "preview_urls": true,
+  "vars": {
+    "BOBAKS_DEPLOYMENT_ENV": "production",
+    "BOBAKS_UI_DEMO_MODE": "false"
+  },
+  "assets": {
+    "directory": "dist/client",
+    "not_found_handling": "none",
+    "binding": "ASSETS"
+  },
+  "previews": {
+    "vars": {
+      "BOBAKS_DEPLOYMENT_ENV": "preview",
+      "BOBAKS_UI_DEMO_MODE": "true"
+    }
+  }
+}

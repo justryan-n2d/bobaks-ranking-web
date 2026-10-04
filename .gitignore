@@ -1,0 +1,15 @@
+.git/
+node_modules/
+next-env.d.ts.tmp
+.next/
+out/
+dist/
+.cloudflare/
+.vinext/
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
