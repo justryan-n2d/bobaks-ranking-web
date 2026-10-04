@@ -24,6 +24,12 @@ Node.js 22.12 or newer is required by the frontend toolchain.
 
 The server-side API client defaults to the production Bobaks API. Set `BOBAKS_API_ORIGIN` for another environment.
 
+### Preview demo data
+
+Cloudflare Worker Previews use deterministic frontend fixtures so the UI can be tested even when the production ranking dataset is empty. Preview deployments set `BOBAKS_DEPLOYMENT_ENV=preview` and `BOBAKS_UI_DEMO_MODE=true`; production explicitly sets both values to disable demo data.
+
+Demo fixtures never write to Supabase or the production API. They cover rankings, social feed, search, game profiles, history, rank history, and peak records.
+
 ## Product boundary
 
 Core rankings, search, historical data, collection, and ranking methodology remain owned by the production API. This website consumes those public JSON contracts rather than duplicating backend logic.
