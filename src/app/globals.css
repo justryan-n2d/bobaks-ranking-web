@@ -61,6 +61,22 @@ body {
   to { opacity: 0; }
 }
 
+@keyframes bobaks-drawer-out {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-22px) scale(0.985);
+  }
+}
+
+@keyframes bobaks-backdrop-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .bobaks-drawer-enter {
     animation: bobaks-drawer-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -69,6 +85,15 @@ body {
 
   .bobaks-backdrop-enter {
     animation: bobaks-backdrop-in 220ms ease-out both;
+  }
+
+  .bobaks-drawer-exit {
+    animation: bobaks-drawer-out 220ms cubic-bezier(0.55, 0, 0.78, 0) both;
+    transform-origin: left center;
+  }
+
+  .bobaks-backdrop-exit {
+    animation: bobaks-backdrop-out 180ms ease-in both;
   }
 
   .bobaks-drawer-exit {
