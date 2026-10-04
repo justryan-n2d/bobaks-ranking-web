@@ -115,6 +115,7 @@ function SidebarContent({ close }: { close: () => void }) {
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -135,7 +136,14 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     };
   }, [open]);
 
-  const close = () => setOpen(false);
+  const openSidebar = () => {
+    setClosing(false);
+    setOpen(true);
+  };
+
+  const close = () => {
+    if (open) setClosing(true);
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -143,7 +151,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         <button
           type="button"
           className="inline-flex size-10 items-center justify-center rounded-xl hover:bg-accent"
-          onClick={() => setOpen(true)}
+          onClick={openSidebar}
           aria-label="Open navigation"
           aria-expanded={open}
           aria-controls="mobile-navigation"
@@ -156,7 +164,8 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {open ? (
-        <div className="fixed inset-0 z-[100] md:hidden">
+        <div className={cn("fixed inset-0 z-[100] md:hidden", closing ? "bobaks-menu-closing" : "bobaks-menu-opening")}>
+
           <button
             type="button"
             aria-label="Close navigation overlay"
@@ -168,7 +177,16 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
             id="mobile-navigation"
             aria-label="Mobile navigation"
             aria-modal="true"
-            className="bobaks-drawer-enter absolute inset-y-0 left-0 z-10 flex w-72 max-w-[85vw] flex-col border-r border-white/20 bg-card/75 p-4 shadow-2xl backdrop-blur-2xl saturate-150"
+            className={cn(
+              "absolute inset-y-0 left-0 z-10 flex w-72 max-w-[85vw] flex-col border-r border-white/20 bg-card/75 p-4 shadow-2xl backdrop-blur-2xl saturate-150",
+              closing ? "bobaks-drawer-exit" : "bobaks-drawer-enter",
+            )}
+            onAnimationEnd={(event) => {
+              if (event.animationName === "bobaks-drawer-out") {
+                setOpen(false);
+                setClosing(false);
+              }
+            }}
           >
             <SidebarContent close={close} />
           </aside>
