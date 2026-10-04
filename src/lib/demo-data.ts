@@ -1,5 +1,6 @@
 import type {
   GameProfile,
+  GameRankingSummary,
   HistoryPoint,
   HistoryResponse,
   PeakResponse,
