@@ -2,10 +2,7 @@ name: Frontend CI
 
 on:
   push:
-    branches:
-      - main
-      - "feat/**"
-      - "fix/**"
+    branches: [main, "feat/**", "fix/**"]
   pull_request:
 
 permissions:
@@ -20,7 +17,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 22
       - name: Use npm 11
         run: npm install --global npm@11
       - name: Install

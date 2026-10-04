@@ -18,17 +18,9 @@ This repository contains only the web application. The production API, collector
 
 ## Development
 
-```bash
-npm install
-npm run dev
-```
+Install and run locally with `npm install` and `npm run dev`. Verify with `npm test` and `npm run build`.
 
-Verification:
-
-```bash
-npm test
-npm run build
-```
+Node.js 22.12 or newer is required by the frontend toolchain.
 
 The server-side API client defaults to the production Bobaks API. Set `BOBAKS_API_ORIGIN` for another environment.
 
