@@ -1,4 +1,5 @@
 /** Cloudflare Worker entry point that delegates to vinext. */
+import type { ExecutionContext, Fetcher } from "@cloudflare/workers-types";
 import handler from "vinext/server/fetch-handler";
 
 interface Env {
