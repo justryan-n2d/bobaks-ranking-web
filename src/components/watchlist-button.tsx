@@ -15,9 +15,10 @@ import {
 type WatchlistButtonProps = {
   game: Omit<WatchlistGame, "savedAt">;
   compact?: boolean;
+  variant?: "default" | "hero";
 };
 
-export function WatchlistButton({ game, compact = false }: WatchlistButtonProps) {
+export function WatchlistButton({ game, compact = false, variant = "default" }: WatchlistButtonProps) {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -48,9 +49,11 @@ export function WatchlistButton({ game, compact = false }: WatchlistButtonProps)
       aria-label={saved ? `Remove ${game.name} from watchlist` : `Save ${game.name} to watchlist`}
       title={saved ? "Remove from watchlist" : "Save to watchlist"}
       className={
-        compact
-          ? "inline-flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-background hover:bg-accent"
-          : "inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold hover:bg-accent"
+        variant === "hero"
+          ? "inline-flex h-10 items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur-sm hover:bg-white/15"
+          : compact
+            ? "inline-flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-background hover:bg-accent"
+            : "inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold hover:bg-accent"
       }
     >
       {saved ? <Check className="size-4" aria-hidden="true" /> : <Bookmark className="size-4" aria-hidden="true" />}
