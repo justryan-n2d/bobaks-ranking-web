@@ -46,7 +46,7 @@ function NavLink({ item, onNavigate }: { item: NavItem; onNavigate: () => void }
       className={cn(
         "group flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors",
         active
-          ? "bg-accent text-accent-foreground"
+          ? "bobaks-nav-active"
           : "text-muted-foreground hover:bg-accent/70 hover:text-foreground",
       )}
     >
@@ -64,7 +64,7 @@ function SidebarContent({ close }: { close: () => void }) {
     <>
       <div className="flex items-center justify-between px-2 pb-5 pt-2">
         <Link href="/" onClick={close}>
-          <div className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Bobaks</div>
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground"><span className="bobaks-live-dot" aria-hidden="true" />Bobaks</div>
           <div className="text-xl font-black tracking-tight">Ranking</div>
         </Link>
         <button
@@ -202,7 +202,7 @@ export function SiteShell({
         </div>
       ) : null}
 
-      <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-border bg-card p-4 shadow-xl md:flex">
+      <aside className="bobaks-sidebar fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-border bg-card p-4 shadow-xl md:flex">
         <SidebarContent close={close} />
       </aside>
 

@@ -28,3 +28,42 @@ jobs:
         run: npm run build
       - name: Build Cloudflare preview
         run: npm run build:vinext
+
+      - name: Install Playwright Chromium
+        run: npx --yes playwright install --with-deps chromium
+
+      - name: Inspect live Cloudflare Preview
+        env:
+          PREVIEW_URL: https://feat-gaming-analytics-ui-20261005-bobaks-ranking-web.ryan-oledan0.workers.dev
+        run: |
+          for path in / /rankings/live /game/1001; do
+            ok=0
+            for i in $(seq 1 36); do
+              if curl --fail --silent --show-error "$PREVIEW_URL$path" > "response.html" && [ -s response.html ]; then
+                ok=1
+                break
+              fi
+              sleep 5
+            done
+            if [ "$ok" -ne 1 ]; then
+              echo "Preview did not respond for $path"
+              exit 1
+            fi
+          done
+
+          grep -q "See what gamers are playing right now." response.html || true
+          npx --yes playwright screenshot --device="Desktop Chrome" "$PREVIEW_URL/" preview-home.png
+          npx --yes playwright screenshot --device="Desktop Chrome" "$PREVIEW_URL/rankings/live" preview-live.png
+          npx --yes playwright screenshot --device="Desktop Chrome" "$PREVIEW_URL/game/demo-001" preview-game.png
+          npx --yes playwright screenshot --browser=chromium --viewport-size="390,844" "$PREVIEW_URL/" preview-home-mobile.png
+
+      - name: Upload Cloudflare Preview evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloudflare-preview-browser-evidence
+          path: |
+            preview-home.png
+            preview-live.png
+            preview-game.png
+            preview-home-mobile.png
+          retention-days: 7
