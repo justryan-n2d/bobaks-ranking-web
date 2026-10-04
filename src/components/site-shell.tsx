@@ -115,7 +115,13 @@ function SidebarContent({ close }: { close: () => void }) {
   );
 }
 
-export function SiteShell({ children }: { children: React.ReactNode }) {
+export function SiteShell({
+  children,
+  demoMode,
+}: {
+  children: React.ReactNode;
+  demoMode: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -202,6 +208,14 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
       <main className="min-h-screen md:pl-64">
         <div className="mx-auto w-full max-w-7xl px-4 pb-16 pt-20 sm:px-6 md:px-8 md:pt-10">
+          {demoMode ? (
+            <div
+              role="status"
+              className="mb-6 rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-sm dark:border-amber-400/40 dark:bg-amber-950/30 dark:text-amber-100"
+            >
+              <strong>Preview demo mode:</strong> this branch is using isolated sample data for QA. Production data is not being modified.
+            </div>
+          ) : null}
           {children}
         </div>
       </main>
