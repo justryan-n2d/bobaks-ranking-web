@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { SiteShell } from "@/components/site-shell";
 import "./globals.css";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://bobaksranking.com"),
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Bobaks Ranking",
     template: "%s | Bobaks Ranking",
