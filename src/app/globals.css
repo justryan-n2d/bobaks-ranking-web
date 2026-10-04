@@ -1,32 +1,273 @@
 @import "tailwindcss";
 
 :root {
-  --background: oklch(0.985 0 0);
-  --foreground: oklch(0.18 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0 0);
-  --primary: oklch(0.22 0 0);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.94 0 0);
-  --secondary-foreground: oklch(0.22 0 0);
-  --muted: oklch(0.95 0 0);
-  --muted-foreground: oklch(0.48 0 0);
-  --accent: oklch(0.94 0 0);
-  --accent-foreground: oklch(0.18 0 0);
-  --border: oklch(0.89 0 0);
-  --ring: oklch(0.57 0 0);
+  --background: #f5f8fc;
+  --foreground: #0a1526;
+  --card: #ffffff;
+  --card-foreground: #0a1526;
+  --primary: #0b63f6;
+  --primary-foreground: #ffffff;
+  --secondary: #eaf1f8;
+  --secondary-foreground: #16314d;
+  --muted: #edf2f7;
+  --muted-foreground: #5d7187;
+  --accent: #eaf4ff;
+  --accent-foreground: #0b4fbf;
+  --border: #d7e2ed;
+  --ring: #0b63f6;
+  --brand: #0b2f66;
+  --brand-soft: #e8f1ff;
+  --surface-2: #f9fbfe;
+  --signal-live: #18a66a;
+  --signal-rise: #0e9f71;
+  --signal-drop: #dc5a70;
+  --signal-peak: #b78312;
+  --signal-new: #7557cc;
+  --shadow-soft: 0 10px 34px rgb(18 44 74 / 0.07);
+  --shadow-hover: 0 16px 42px rgb(18 44 74 / 0.11);
 }
 
-* { box-sizing: border-box; }
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #07111f;
+    --foreground: #edf5ff;
+    --card: #0c1929;
+    --card-foreground: #edf5ff;
+    --primary: #43a5ff;
+    --primary-foreground: #061321;
+    --secondary: #132338;
+    --secondary-foreground: #d9e8f8;
+    --muted: #102035;
+    --muted-foreground: #8ea6bf;
+    --accent: #112944;
+    --accent-foreground: #a9d5ff;
+    --border: #1e334b;
+    --ring: #43a5ff;
+    --brand: #0c2850;
+    --brand-soft: #102b4b;
+    --surface-2: #0a1625;
+    --signal-live: #49d59a;
+    --signal-rise: #4ed9a0;
+    --signal-drop: #ff8797;
+    --signal-peak: #f1c95f;
+    --signal-new: #b69cff;
+    --shadow-soft: 0 12px 36px rgb(0 0 0 / 0.22);
+    --shadow-hover: 0 18px 44px rgb(0 0 0 / 0.28);
+  }
+}
 
-html { scroll-behavior: smooth; }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
 
 body {
   margin: 0;
   min-width: 320px;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: -0.01em;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bobaks-hero {
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--primary) 20%, var(--border));
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--brand) 98%, var(--primary) 2%), color-mix(in srgb, var(--brand) 82%, var(--primary) 18%));
+  box-shadow: var(--shadow-soft);
+}
+
+.bobaks-hero::after {
+  content: "";
+  position: absolute;
+  width: 34rem;
+  height: 34rem;
+  right: -14rem;
+  top: -19rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgb(67 165 255 / 0.20), transparent 68%);
+  pointer-events: none;
+}
+
+.bobaks-spotlight {
+  border-color: color-mix(in srgb, var(--primary) 20%, var(--border));
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  position: relative;
+  overflow: hidden;
+}
+
+.bobaks-spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--border);
+}
+
+.bobaks-spotlight[data-rank="1"]::before {
+  background: var(--primary);
+}
+
+.bobaks-spotlight[data-rank="2"]::before {
+  background: color-mix(in srgb, var(--foreground) 24%, var(--border));
+}
+
+.bobaks-spotlight[data-rank="3"]::before {
+  background: var(--signal-peak);
+}
+
+.bobaks-live-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  display: inline-block;
+  border-radius: 999px;
+  background: var(--signal-live);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--signal-live) 35%, transparent);
+  animation: bobaks-live-pulse 1.9s infinite;
+}
+
+.bobaks-live-strip {
+  height: 0.28rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 11%, var(--muted));
+}
+
+.bobaks-live-strip > span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 52%, #7dd3fc));
+  transform-origin: left center;
+  transition: width 500ms ease;
+}
+
+.bobaks-signal-card {
+  border-color: var(--border);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+.bobaks-signal-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+  box-shadow: var(--shadow-hover);
+}
+
+.bobaks-signal-card[data-signal="rise"] {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--signal-rise) 6%, var(--card)), var(--card));
+}
+
+.bobaks-signal-card[data-signal="drop"] {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--signal-drop) 5%, var(--card)), var(--card));
+}
+
+.bobaks-signal-card[data-signal="new"] {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--signal-new) 5%, var(--card)), var(--card));
+}
+
+.bobaks-rank-pill {
+  min-width: 2rem;
+  height: 2rem;
+  display: inline-grid;
+  place-items: center;
+  padding-inline: 0.4rem;
+  border-radius: 0.7rem;
+  border: 1px solid var(--border);
+  background: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.bobaks-rank-pill[data-rank="1"] {
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--border));
+  background: color-mix(in srgb, var(--primary) 12%, var(--card));
+  color: var(--primary);
+}
+
+.bobaks-rank-pill[data-rank="2"] {
+  background: color-mix(in srgb, var(--foreground) 5%, var(--card));
+}
+
+.bobaks-rank-pill[data-rank="3"] {
+  border-color: color-mix(in srgb, var(--signal-peak) 30%, var(--border));
+  background: color-mix(in srgb, var(--signal-peak) 9%, var(--card));
+  color: var(--signal-peak);
+}
+
+.bobaks-sidebar {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--card) 96%, var(--brand) 4%), var(--card));
+}
+
+.bobaks-nav-active {
+  background: color-mix(in srgb, var(--primary) 10%, var(--card));
+  color: var(--accent-foreground);
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.bobaks-metric {
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+}
+
+.bobaks-metric[data-state="live"]::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--signal-live);
+}
+
+.bobaks-metric[data-state="rank"]::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--primary);
+}
+
+.bobaks-metric[data-state="peak"]::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--signal-peak);
+}
+
+.bobaks-chart {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--card) 96%, var(--primary) 4%);
+}
+
+@keyframes bobaks-live-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--signal-live) 30%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--signal-live) 0%, transparent);
+  }
 }
 
 @keyframes bobaks-drawer-in {
@@ -60,21 +301,6 @@ body {
   .bobaks-drawer-exit {
     animation: bobaks-drawer-out 260ms cubic-bezier(0.55, 0, 0.78, 0) both;
     transform-origin: left center;
-  }
-
-}
-
-button,
-a { -webkit-tap-highlight-color: transparent; }
-
-
-@media (prefers-reduced-motion: no-preference) {
-  .bobaks-menu-overlay,
-  .bobaks-menu-overlay:hover,
-  .bobaks-menu-overlay:active {
-    animation: none !important;
-    transition: none !important;
-    transform: none !important;
   }
 
   button:not(:disabled) {
@@ -112,11 +338,21 @@ a { -webkit-tap-highlight-color: transparent; }
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 @keyframes bobaks-button-spin {
   to { transform: rotate(360deg); }
 }
 
 ::selection {
-  background: var(--foreground);
-  color: var(--background);
+  background: var(--primary);
+  color: var(--primary-foreground);
 }
