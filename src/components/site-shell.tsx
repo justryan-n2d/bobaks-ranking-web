@@ -156,22 +156,23 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {open ? (
-        <>
+        <div className="fixed inset-0 z-[100] md:hidden">
           <button
             type="button"
             aria-label="Close navigation overlay"
-            className="fixed inset-0 z-[60] bg-black/20 backdrop-blur-none md:hidden"
+            className="absolute inset-0 bg-black/65 backdrop-blur-sm"
             onClick={close}
           />
 
           <aside
             id="mobile-navigation"
             aria-label="Mobile navigation"
-            className="fixed inset-y-0 left-0 z-[70] flex w-72 max-w-[85vw] flex-col border-r border-white/15 bg-card/55 p-4 shadow-2xl backdrop-blur-2xl saturate-150 md:hidden"
+            aria-modal="true"
+            className="absolute inset-y-0 left-0 z-10 flex w-72 max-w-[85vw] flex-col border-r border-white/15 bg-card/65 p-4 shadow-2xl backdrop-blur-2xl saturate-150"
           >
             <SidebarContent close={close} />
           </aside>
-        </>
+        </div>
       ) : null}
 
       <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-border bg-card p-4 shadow-xl md:flex">
