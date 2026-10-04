@@ -93,7 +93,7 @@ export function HomeDiscovery({
           </p>
         </div>
 
-        <form action="/search" className="mt-7 flex max-w-3xl gap-2">
+        <form action="/search" className="bobaks-search-form mt-7">
           <label className="sr-only" htmlFor="home-search">Search games or creators</label>
           <div className="relative flex-1">
             <Search
@@ -105,12 +105,12 @@ export function HomeDiscovery({
               name="q"
               maxLength={100}
               placeholder="Search a game or creator..."
-              className="h-12 w-full rounded-2xl border border-border bg-background pl-11 pr-4 text-sm outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-ring"
+              className="bobaks-search-input h-12 w-full rounded-2xl border pl-11 pr-4 text-sm outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-ring"
             />
           </div>
           <button
             type="submit"
-            className="h-12 rounded-2xl bg-primary px-5 text-sm font-bold text-primary-foreground shadow-lg shadow-black/15 hover:brightness-105"
+            className="bobaks-search-button h-12 rounded-2xl px-5 text-sm font-bold shadow-lg shadow-black/15 hover:brightness-105"
           >
             Search
           </button>
