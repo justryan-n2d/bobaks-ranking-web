@@ -36,17 +36,17 @@ export function PlayerHistoryChart({
   }
 
   return (
-    <div className="h-72 w-full">
+    <div className="bobaks-chart h-72 w-full p-2">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData} margin={{ top: 8, right: 12, left: 4, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis dataKey="date" tickFormatter={formatDate} minTickGap={36} />
           <YAxis tickFormatter={formatNumber} width={52} />
           <Tooltip
             labelFormatter={(value) => formatDate(String(value))}
             formatter={(value) => [formatNumber(Number(value)), "Players"]}
           />
-          <Line type="monotone" dataKey="players" dot={false} stroke="currentColor" strokeWidth={2} />
+          <Line type="monotone" dataKey="players" dot={false} stroke="var(--primary)" strokeWidth={2.5} />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -80,7 +80,7 @@ export function RankHistoryChart({
             labelFormatter={(value) => formatDate(String(value))}
             formatter={(value) => [`#${Number(value)}`, "Rank"]}
           />
-          <Line type="monotone" dataKey="rank" dot={false} stroke="currentColor" strokeWidth={2} />
+          <Line type="monotone" dataKey="rank" dot={false} stroke="var(--foreground)" strokeWidth={2.5} />
         </LineChart>
       </ResponsiveContainer>
     </div>
