@@ -10,5 +10,9 @@
     "not_found_handling": "none",
     "binding": "ASSETS"
   },
-  "previews": {}
+  "previews": {
+    "vars": {
+      "BOBAKS_UI_DEMO_MODE": "true"
+    }
+  }
 }
