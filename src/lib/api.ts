@@ -9,7 +9,7 @@ import {
   searchDemoGames,
 } from "@/lib/demo-data";
 
-export type RankingPeriod = "live" | "weekly" | "monthly" | "yearly";
+import {\n  getDemoGameProfile,\n  getDemoHistory,\n  getDemoPeak,\n  getDemoRankHistory,\n  getDemoRankings,\n  getDemoSocialFeed,\n  isDemoModeEnabled,\n  searchDemoGames,\n} from "@/lib/demo-data";\n\nexport type RankingPeriod = "live" | "weekly" | "monthly" | "yearly";
 
 export type RankingGame = {
   id?: string | number;
