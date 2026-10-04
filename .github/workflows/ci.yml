@@ -21,6 +21,8 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 20
+      - name: Use npm 11
+        run: npm install --global npm@11
       - name: Install
         run: npm install
       - name: Test
