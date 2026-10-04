@@ -46,7 +46,7 @@ function NavLink({ item, onNavigate }: { item: NavItem; onNavigate: () => void }
       className={cn(
         "group flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors",
         active
-          ? "bg-accent text-accent-foreground"
+          ? "bobaks-nav-active"
           : "text-muted-foreground hover:bg-accent/70 hover:text-foreground",
       )}
     >
