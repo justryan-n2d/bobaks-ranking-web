@@ -142,10 +142,6 @@ export type SocialFeed = {
 
 const DEFAULT_API_ORIGIN = "https://bobaks-ranking-api-service.ryan-oledan0.workers.dev";
 
-function usePreviewDemoData() {
-  return process.env.BOBAKS_UI_DEMO_MODE === "true" && process.env.BOBAKS_DEPLOYMENT_ENV === "preview";
-}
-
 function getApiOrigin() {
   return process.env.BOBAKS_API_ORIGIN?.replace(/\/$/, "") || DEFAULT_API_ORIGIN;
 }
