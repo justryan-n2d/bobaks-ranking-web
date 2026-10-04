@@ -203,7 +203,7 @@ export async function getRankings(period: RankingPeriod): Promise<RankingRespons
 }
 
 export async function getSocialFeed(period: RankingPeriod = "live"): Promise<SocialFeed> {
-  if (isDemoModeEnabled()) return getDemoSocialFeed();
+  if (isDemoModeEnabled()) return getDemoSocialFeed(period);
 
   const candidate = await fetchJson(`/api/social/feed?period=${encodeURIComponent(period)}`);
   if (!candidate.ranking || typeof candidate.ranking !== "object") {
