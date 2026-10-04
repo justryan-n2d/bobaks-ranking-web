@@ -161,13 +161,14 @@ function rankingFor(period: RankingPeriod): RankingResponse {
     .sort((a, b) => scoreFor(b, period, 0) - scoreFor(a, period, 0))
     .map((game, index): RankingGame => {
       const rank = index + 1;
-      const rankChange = ((index + offset) % 4) - 1;
+      const isNewEntry = period === "live" && game.id === "demo-008";
+      const rankChange = isNewEntry ? null : ((index + offset) % 4) - 1;
       return {
         id: game.id,
         rank,
         gameId: game.id,
         score: scoreFor(game, period, index),
-        previousRank: Math.max(1, rank + rankChange),
+        previousRank: isNewEntry ? null : Math.max(1, rank + Number(rankChange ?? 0)),
         rankChange,
         calculatedAt: DEMO_UPDATED_AT,
         game: {
@@ -219,7 +220,9 @@ function socialFeed(period: RankingPeriod = "live"): SocialFeed {
     trending: {
       title: "Trending",
       path: `/rankings/${period}`,
-      items: [...items].reverse(),
+      items: [...items]
+        .filter((item) => (item.rankChange ?? 0) > 0)
+        .sort((a, b) => (b.rankChange ?? 0) - (a.rankChange ?? 0)),
     },
     peaks: {
       title: "Peak records",
