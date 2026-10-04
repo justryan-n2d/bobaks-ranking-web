@@ -43,12 +43,19 @@ describe("preview demo data", () => {
   });
 
   it("does not enable demo mode unless explicitly configured", () => {
-    const previous = process.env.BOBAKS_UI_DEMO_MODE;
+    const previousDemoMode = process.env.BOBAKS_UI_DEMO_MODE;
+    const previousEnvironment = process.env.BOBAKS_DEPLOYMENT_ENV;
+
     process.env.BOBAKS_UI_DEMO_MODE = "true";
+    process.env.BOBAKS_DEPLOYMENT_ENV = "preview";
     expect(isDemoModeEnabled()).toBe(true);
-    process.env.BOBAKS_UI_DEMO_MODE = "false";
+
+    process.env.BOBAKS_DEPLOYMENT_ENV = "production";
     expect(isDemoModeEnabled()).toBe(false);
-    if (previous === undefined) delete process.env.BOBAKS_UI_DEMO_MODE;
-    else process.env.BOBAKS_UI_DEMO_MODE = previous;
+
+    if (previousDemoMode === undefined) delete process.env.BOBAKS_UI_DEMO_MODE;
+    else process.env.BOBAKS_UI_DEMO_MODE = previousDemoMode;
+    if (previousEnvironment === undefined) delete process.env.BOBAKS_DEPLOYMENT_ENV;
+    else process.env.BOBAKS_DEPLOYMENT_ENV = previousEnvironment;
   });
 });
