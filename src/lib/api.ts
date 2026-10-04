@@ -142,6 +142,17 @@ export type SocialFeed = {
 
 const DEFAULT_API_ORIGIN = "https://bobaks-ranking-api-service.ryan-oledan0.workers.dev";
 
+import {
+  getDemoGameProfile,
+  getDemoHistory,
+  getDemoPeak,
+  getDemoRankHistory,
+  getDemoRankings,
+  getDemoSocialFeed,
+  isDemoModeEnabled,
+  searchDemoGames,
+} from "@/lib/demo-data";
+
 function getApiOrigin() {
   return process.env.BOBAKS_API_ORIGIN?.replace(/\/$/, "") || DEFAULT_API_ORIGIN;
 }
