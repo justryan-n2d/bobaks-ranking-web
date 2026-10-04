@@ -115,7 +115,7 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
           ["Recorded Peak", peak ? formatPlayers(peak.peakPlayers) : "Unavailable", peak ? formatDate(peak.peakAt) : "Peak data unavailable"],
           ["Weekly rank", weekly?.rank ? `#${weekly.rank}` : "Not ranked", weekly?.calculatedAt ? formatDate(weekly.calculatedAt) : "No weekly rank"],
         ].map(([label, value, note]) => (
-          <Card key={label} className="p-5">
+          <Card key={label} data-state={label === "Current players" ? "live" : label === "Recorded Peak" ? "peak" : label === "Live rank" ? "rank" : undefined} className="bobaks-metric p-5">
             <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</div>
             <div className="mt-2 text-2xl font-black tabular-nums">{value}</div>
             <div className="mt-1 text-xs text-muted-foreground">{note}</div>
