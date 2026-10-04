@@ -303,7 +303,7 @@ function rankHistoryFor(game: DemoGame, days: number): RankHistoryPoint[] {
 
 export function isDemoModeEnabled() {
   return (
-    process.env.BOBAKS_UI_ENV === "preview" &&
+    process.env.BOBAKS_DEPLOYMENT_ENV === "preview" &&
     process.env.BOBAKS_UI_DEMO_MODE === "true"
   );
 }
