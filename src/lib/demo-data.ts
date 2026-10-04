@@ -190,8 +190,8 @@ function rankingFor(period: RankingPeriod): RankingResponse {
   };
 }
 
-function socialFeed(): SocialFeed {
-  const ranking = rankingFor("live").data;
+function socialFeed(period: RankingPeriod = "live"): SocialFeed {
+  const ranking = rankingFor(period).data;
   const items = ranking.slice(0, 5).map((item): SocialFeed["ranking"]["items"][number] => {
     const game = DEMO_GAMES.find((candidate) => candidate.id === item.gameId)!;
     return {
@@ -210,10 +210,10 @@ function socialFeed(): SocialFeed {
   return {
     generatedAt: DEMO_UPDATED_AT,
     source: "preview-demo",
-    period: "live",
+    period,
     ranking: {
       title: "Live ranking",
-      path: "/live",
+      path: `/rankings/${period}`,
       items,
     },
     trending: {
@@ -251,17 +251,23 @@ function gameProfile(game: DemoGame): GameProfile {
     isActive: game.isActive,
     currentPlayers: game.currentPlayers,
     currentSnapshotAt: DEMO_UPDATED_AT,
-    rankings: {
-      live: liveRank
-        ? {
-            rank: liveRank.rank,
-            score: liveRank.score,
-            previousRank: liveRank.previousRank,
-            rankChange: liveRank.rankChange,
-            calculatedAt: DEMO_UPDATED_AT,
-          }
-        : undefined,
-    },
+    rankings: Object.fromEntries(
+      (["live", "weekly", "monthly", "yearly"] as RankingPeriod[]).map((period) => {
+        const summary = rankingFor(period).data.find((item) => item.gameId === game.id);
+        return [
+          period,
+          summary
+            ? {
+                rank: summary.rank,
+                score: summary.score,
+                previousRank: summary.previousRank,
+                rankChange: summary.rankChange,
+                calculatedAt: DEMO_UPDATED_AT,
+              }
+            : undefined,
+        ];
+      }),
+    ),
   };
 }
 
