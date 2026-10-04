@@ -98,11 +98,11 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
             <h1 className="relative z-[1] mt-1 truncate text-3xl font-black tracking-tight text-white sm:text-4xl">{game.name || `Experience ${id}`}</h1>
             <p className="mt-2 text-sm text-muted-foreground">By {game.creatorName || "Unknown creator"}</p>
             <div className="mt-5 flex flex-wrap gap-2">
-              <a href={`https://www.roblox.com/games/${encodeURIComponent(String(game.placeId || id))}`} target="_blank" rel="noreferrer noopener" className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:brightness-105">
+              <a href={`https://www.roblox.com/games/${encodeURIComponent(String(game.placeId || id))}`} target="_blank" rel="noreferrer noopener" className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-lg shadow-black/15 hover:brightness-105">
                 Open on Roblox
                 <ExternalLink className="size-4" aria-hidden="true" />
               </a>
-              <WatchlistButton game={watchlistGame} />
+              <WatchlistButton game={watchlistGame} variant="hero" />
             </div>
           </div>
         </div>
