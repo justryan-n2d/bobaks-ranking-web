@@ -142,7 +142,7 @@ function HighlightCard({
     <Link
       data-signal={mode === "up" ? "rise" : mode === "down" ? "drop" : "new"}
       href={game ? `/game/${encodeURIComponent(game.gameId)}` : "/rankings/live"}
-      className="group rounded-2xl border border-border bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent/60"
+      className="bobaks-signal-card group rounded-2xl border border-border p-5"
     >
       <div className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{label}</div>
       <div className="mt-2 truncate text-lg font-black">{game?.game?.name || "No signal yet"}</div>
