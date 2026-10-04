@@ -10,8 +10,13 @@
     "not_found_handling": "none",
     "binding": "ASSETS"
   },
+  "vars": {
+    "BOBAKS_DEPLOYMENT_ENV": "production",
+    "BOBAKS_UI_DEMO_MODE": "false"
+  },
   "previews": {
     "vars": {
+      "BOBAKS_DEPLOYMENT_ENV": "preview",
       "BOBAKS_UI_DEMO_MODE": "true"
     }
   }
