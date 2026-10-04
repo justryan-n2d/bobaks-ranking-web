@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { getRankings } from "@/lib/api";
 import {
   getDemoGameProfile,
   getDemoHistory,
