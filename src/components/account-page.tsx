@@ -20,7 +20,7 @@ function formatDate(value?: string | null) {
 }
 
 function AuthForm() {
-  const { signIn, signUp, loading, client } = useAuth();
+  const { signIn, signInWithGoogle, signUp, loading, client } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,6 +28,7 @@ function AuthForm() {
   const [error, setError] = useState("");
   const [confirmation, setConfirmation] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
   const [resendBusy, setResendBusy] = useState(false);
   const [resendMessage, setResendMessage] = useState("");
 
@@ -106,6 +107,32 @@ function AuthForm() {
       <div className="mt-5 flex rounded-xl bg-muted p-1">
         <button type="button" className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${mode === "signin" ? "bg-background shadow-sm" : "text-muted-foreground"}`} onClick={() => setMode("signin")}>Log in</button>
         <button type="button" className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${mode === "signup" ? "bg-background shadow-sm" : "text-muted-foreground"}`} onClick={() => setMode("signup")}>Create account</button>
+      </div>
+
+      <button
+        type="button"
+        className="mt-5 flex h-11 w-full items-center justify-center gap-3 rounded-xl border border-border bg-background px-4 text-sm font-semibold transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+        disabled={loading || busy || googleBusy}
+        onClick={async () => {
+          if (busy || googleBusy) return;
+          setGoogleBusy(true);
+          setError("");
+          try {
+            await signInWithGoogle();
+          } catch (cause) {
+            setError(cause instanceof Error ? cause.message : "Google sign-in could not be started.");
+            setGoogleBusy(false);
+          }
+        }}
+      >
+        <span className="flex size-7 items-center justify-center rounded-full border border-border bg-background text-sm font-black" aria-hidden="true">G</span>
+        {googleBusy ? "Opening Google..." : "Continue with Google"}
+      </button>
+
+      <div className="mt-5 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        <div className="h-px flex-1 bg-border" />
+        <span>or</span>
+        <div className="h-px flex-1 bg-border" />
       </div>
 
       <form className="mt-5 space-y-4" onSubmit={submit}>
