@@ -1,11 +1,6 @@
-const SUPABASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://zhrfozouzvxhpkylmpwh.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY =
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-  "sb_publishable_m5sYdsVZpWMOVRxyMSwblw_dIesP93F";
-
-const GOOGLE_TRANSACTION_COOKIE = "__Host-bobaks-google-tx";
-const GOOGLE_TRANSACTION_MAX_AGE = 10 * 60;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://zhrfozouzvxhpkylmpwh.supabase.co";
+const SUPABASE_REDIRECT = "/account/google-callback";
+const COOKIE = "__Host-bobaks-google-tx";
 
 function base64Url(bytes: Uint8Array): string {
   let binary = "";
@@ -28,15 +23,13 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
-  const redirectTo = new URL("/account/google-callback", requestUrl.origin).toString();
-  const state = randomToken(32);
+  const redirectTo = new URL(SUPABASE_REDIRECT, requestUrl.origin).toString();
   const codeVerifier = randomToken(32);
   const challenge = await codeChallenge(codeVerifier);
 
   const transaction = base64Url(
     new TextEncoder().encode(
       JSON.stringify({
-        state,
         codeVerifier,
         createdAt: Date.now(),
       }),
@@ -48,7 +41,6 @@ export async function GET(request: Request) {
   authorizeUrl.searchParams.set("redirect_to", redirectTo);
   authorizeUrl.searchParams.set("code_challenge", challenge);
   authorizeUrl.searchParams.set("code_challenge_method", "S256");
-  authorizeUrl.searchParams.set("state", state);
 
   return new Response(null, {
     status: 302,
@@ -56,8 +48,8 @@ export async function GET(request: Request) {
       location: authorizeUrl.toString(),
       "cache-control": "no-store",
       "set-cookie": [
-        GOOGLE_TRANSACTION_COOKIE + "=" + transaction,
-        "Max-Age=" + GOOGLE_TRANSACTION_MAX_AGE,
+        COOKIE + "=" + transaction,
+        "Max-Age=600",
         "Path=/",
         "HttpOnly",
         "Secure",
@@ -66,5 +58,3 @@ export async function GET(request: Request) {
     },
   });
 }
-
-export { GOOGLE_TRANSACTION_COOKIE };
