@@ -47,13 +47,28 @@ jobs:
             exit 1
           fi
 
-      - name: Check production routes and demo isolation
+      - name: Check production routes APIs and demo isolation
         env:
           PRODUCTION_URL: https://bobaks-ranking-web.ryan-oledan0.workers.dev
         run: |
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$PRODUCTION_URL/")" = "200"
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$PRODUCTION_URL/rankings/live")" = "200"
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$PRODUCTION_URL/about")" = "200"
+
+          live_json="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/rankings/live")"
+          social_json="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/social/feed?period=live")"
+
+          node --input-type=module - <<'EOF'
+          const live = JSON.parse(process.env.LIVE_JSON);
+          const social = JSON.parse(process.env.SOCIAL_JSON);
+          if (live.period !== "live" || !Array.isArray(live.data) || live.data.length === 0) {
+            throw new Error("same-origin live rankings API returned an invalid or empty payload");
+          }
+          if (!Array.isArray(social.trending?.items) || !Array.isArray(social.peaks?.items)) {
+            throw new Error("same-origin social feed API returned an invalid payload");
+          }
+          EOF
+
           if grep -qiE 'BOBAKS_UI_DEMO_MODE|preview-demo|Filipino Hangout' production-home.html; then
             echo "Preview/demo data leaked into production HTML."
             exit 1
@@ -63,10 +78,53 @@ jobs:
         env:
           PRODUCTION_URL: https://bobaks-ranking-web.ryan-oledan0.workers.dev
         run: |
-          npx --yes playwright screenshot --device="Desktop Chrome" "$PRODUCTION_URL/" production-home.png
-          npx --yes playwright screenshot --device="Desktop Chrome" "$PRODUCTION_URL/rankings/live" production-live.png
-          npx --yes playwright screenshot --device="Desktop Chrome" "$PRODUCTION_URL/about" production-about.png
-          npx --yes playwright screenshot --browser=chromium --viewport-size="390,844" "$PRODUCTION_URL/" production-home-mobile.png
+          cat > production-browser-check.mjs <<'EOF'
+          import { chromium } from "playwright";
+
+          const base = process.env.PRODUCTION_URL;
+          const browser = await chromium.launch({ headless: true });
+          try {
+            const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+
+            const response = await page.goto(base + "/", { waitUntil: "domcontentloaded" });
+            if (!response || !response.ok()) {
+              throw new Error("Production Home did not return a successful browser response");
+            }
+
+            await page.waitForSelector(".bobaks-rank-pill", { timeout: 15000 });
+
+            const homeText = await page.locator("body").innerText();
+            if (homeText.includes("Preview demo mode") || homeText.includes("Filipino Hangout")) {
+              throw new Error("Preview/demo content appeared in production browser output");
+            }
+
+            await page.screenshot({ path: "production-home.png", fullPage: false });
+
+            await page.goto(base + "/rankings/live", { waitUntil: "domcontentloaded" });
+            await page.waitForSelector('a[href^="/game/"]', { timeout: 15000 });
+            await page.screenshot({ path: "production-live.png", fullPage: false });
+
+            await page.goto(base + "/about", { waitUntil: "domcontentloaded" });
+            await page.screenshot({ path: "production-about.png", fullPage: false });
+
+            const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
+            try {
+              await mobile.goto(base + "/", { waitUntil: "domcontentloaded" });
+              await mobile.waitForSelector(".bobaks-rank-pill", { timeout: 15000 });
+              const mobileText = await mobile.locator("body").innerText();
+              if (mobileText.includes("Preview demo mode") || mobileText.includes("Filipino Hangout")) {
+                throw new Error("Preview/demo content appeared in production mobile browser output");
+              }
+              await mobile.screenshot({ path: "production-home-mobile.png", fullPage: false });
+            } finally {
+              await mobile.close();
+            }
+          } finally {
+            await browser.close();
+          }
+          EOF
+
+          LIVE_JSON="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/rankings/live")"           SOCIAL_JSON="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/social/feed?period=live")"           node production-browser-check.mjs
 
       - name: Upload production evidence
         uses: actions/upload-artifact@v4
