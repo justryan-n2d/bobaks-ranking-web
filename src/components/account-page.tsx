@@ -159,7 +159,6 @@ function SignedInAccount() {
     disconnectRoblox,
     removeComparison,
     signOut,
-    client,
   } = useAuth();
 
   const [displayName, setDisplayName] = useState(profile?.display_name ?? "");
@@ -274,14 +273,7 @@ function SignedInAccount() {
     }
   }
 
-  async function saveComparison(a: string, b: string) {
-    try {
-      await client.saveComparison(a, b);
-      setSaved("Comparison saved.");
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not save comparison.");
-    }
-  }
+
 
   return (
     <div className="space-y-6">
@@ -417,9 +409,6 @@ function SignedInAccount() {
               </div>
             )) : <div className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">No saved comparisons yet.</div>}
           </div>
-          <button type="button" className="mt-3 text-xs font-semibold text-muted-foreground hover:text-foreground" onClick={() => { void saveComparison("1", "2"); }}>
-            Save an example pair
-          </button>
         </Card>
       </div>
 
