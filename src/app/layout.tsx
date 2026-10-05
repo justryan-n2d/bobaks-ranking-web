@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AuthProvider } from "@/components/account-provider";
 import { SiteShell } from "@/components/site-shell";
 import { isDemoModeEnabled } from "@/lib/demo-data";
 import "./globals.css";
@@ -20,7 +21,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body>
-        <SiteShell demoMode={isDemoModeEnabled()}>{children}</SiteShell>
+        <AuthProvider>
+          <SiteShell demoMode={isDemoModeEnabled()}>{children}</SiteShell>
+        </AuthProvider>
       </body>
     </html>
   );
