@@ -1,4 +1,6 @@
 export const AUTH_SESSION_STORAGE_KEY = "bobaks.auth.session.v1";
+const GOOGLE_OAUTH_FLOW_STORAGE_KEY = "bobaks.auth.google.oauth.v1";
+const GOOGLE_OAUTH_MAX_AGE_MS = 10 * 60 * 1000;
 const REFRESH_BUFFER_SECONDS = 60;
 
 export type AuthUser = {
@@ -148,6 +150,40 @@ function email(value: string): string {
   return normalized;
 }
 
+function browserSessionStorage(): StorageLike {
+  try {
+    if (typeof window !== "undefined" && window.sessionStorage) return window.sessionStorage;
+  } catch {
+    // Browser session storage may be blocked.
+  }
+  return createMemoryStorage();
+}
+
+function base64Url(bytes: Uint8Array): string {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function randomToken(byteLength = 32): string {
+  const bytes = new Uint8Array(byteLength);
+  crypto.getRandomValues(bytes);
+  return base64Url(bytes);
+}
+
+async function codeChallenge(verifier: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
+  return base64Url(new Uint8Array(digest));
+}
+
+type GoogleOAuthFlow = {
+  provider: "google";
+  state: string;
+  codeVerifier: string;
+  createdAt: number;
+  redirectTo: string;
+};
+
 async function send(
   baseUrl: string,
   key: string,
@@ -185,6 +221,7 @@ export function createAuthClient({
   const key = publishableKey.trim();
   if (!key) throw new Error("Supabase publishable key is required.");
   const store = storage;
+  const googleOAuthStore = browserSessionStorage();
   const listeners = new Set<(event: string, session: AuthSession | null) => void>();
   let refreshPromise: Promise<AuthSession | null> | null = null;
 
@@ -293,6 +330,93 @@ export function createAuthClient({
     if (!session) throw new Error("Sign-in succeeded but no session was returned.");
     emit("SIGNED_IN", session);
     return { user: session.user, session };
+  }
+
+  async function signInWithGoogle(): Promise<string> {
+    if (typeof window === "undefined") throw new Error("Google sign-in requires a browser.");
+    const codeVerifier = randomToken(32);
+    const state = randomToken(24);
+    const challenge = await codeChallenge(codeVerifier);
+    const redirectTo = window.location.origin + "/account/google-callback";
+    const flow: GoogleOAuthFlow = {
+      provider: "google",
+      state,
+      codeVerifier,
+      createdAt: Date.now(),
+      redirectTo,
+    };
+
+    googleOAuthStore.setItem(GOOGLE_OAUTH_FLOW_STORAGE_KEY, JSON.stringify(flow));
+
+    const authorizeUrl = new URL(baseUrl + "/auth/v1/authorize");
+    authorizeUrl.searchParams.set("provider", "google");
+    authorizeUrl.searchParams.set("redirect_to", redirectTo);
+    authorizeUrl.searchParams.set("code_challenge", challenge);
+    authorizeUrl.searchParams.set("code_challenge_method", "S256");
+    authorizeUrl.searchParams.set("state", state);
+
+    window.location.assign(authorizeUrl.toString());
+    return authorizeUrl.toString();
+  }
+
+  async function exchangeGoogleAuthCode(code: string, state: string) {
+    if (typeof window === "undefined") throw new Error("Google sign-in requires a browser.");
+    const normalizedCode = String(code ?? "").trim();
+    const normalizedState = String(state ?? "").trim();
+    if (!normalizedCode || !normalizedState) throw new Error("Google sign-in callback is incomplete.");
+
+    const rawFlow = googleOAuthStore.getItem(GOOGLE_OAUTH_FLOW_STORAGE_KEY);
+    if (!rawFlow) throw new Error("Google sign-in session is missing. Start Google sign-in again.");
+
+    let flow: GoogleOAuthFlow;
+    try {
+      const parsed = JSON.parse(rawFlow) as Partial<GoogleOAuthFlow>;
+      if (
+        parsed.provider !== "google" ||
+        typeof parsed.state !== "string" ||
+        typeof parsed.codeVerifier !== "string" ||
+        typeof parsed.createdAt !== "number" ||
+        typeof parsed.redirectTo !== "string"
+      ) {
+        throw new Error("invalid flow");
+      }
+      flow = parsed as GoogleOAuthFlow;
+    } catch {
+      googleOAuthStore.removeItem(GOOGLE_OAUTH_FLOW_STORAGE_KEY);
+      throw new Error("Google sign-in session is invalid. Start Google sign-in again.");
+    }
+
+    const age = Date.now() - flow.createdAt;
+    if (!Number.isFinite(age) || age < 0 || age > GOOGLE_OAUTH_MAX_AGE_MS) {
+      googleOAuthStore.removeItem(GOOGLE_OAUTH_FLOW_STORAGE_KEY);
+      throw new Error("Google sign-in session expired. Start Google sign-in again.");
+    }
+
+    if (flow.state !== normalizedState) {
+      throw new Error("Google sign-in state validation failed.");
+    }
+
+    if (flow.redirectTo !== window.location.origin + "/account/google-callback") {
+      googleOAuthStore.removeItem(GOOGLE_OAUTH_FLOW_STORAGE_KEY);
+      throw new Error("Google sign-in callback does not match the expected Bobaks redirect.");
+    }
+
+    try {
+      const { payload } = await send(baseUrl, key, "/auth/v1/token?grant_type=pkce", {
+        method: "POST",
+        body: JSON.stringify({
+          auth_code: normalizedCode,
+          code_verifier: flow.codeVerifier,
+        }),
+      });
+      const session = writeStored(payload);
+      if (!session) throw new Error("Google sign-in succeeded but no session was returned.");
+      emit("SIGNED_IN", session);
+      window.dispatchEvent(new Event("bobaks-auth-change"));
+      return session;
+    } finally {
+      googleOAuthStore.removeItem(GOOGLE_OAUTH_FLOW_STORAGE_KEY);
+    }
   }
 
   async function signUp(values: { email: string; password: string; displayName?: string }) {
@@ -573,6 +697,8 @@ export function createAuthClient({
 
   return {
     signIn,
+    signInWithGoogle,
+    exchangeGoogleAuthCode,
     signUp,
     resetPasswordForEmail,
     updatePassword,
