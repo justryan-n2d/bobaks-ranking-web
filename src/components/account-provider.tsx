@@ -37,6 +37,8 @@ type AuthContextValue = {
   refreshAccount: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, displayName: string) => Promise<{ needsConfirmation: boolean }>;
+  resetPasswordForEmail: (email: string) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (patch: Partial<Pick<Profile, "display_name" | "avatar_url" | "is_public">>) => Promise<void>;
   updateAlerts: (patch: Partial<AlertPreferences>) => Promise<void>;
@@ -174,6 +176,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { needsConfirmation: !result.session };
   }
 
+  async function resetPasswordForEmail(email: string) {
+    await client.resetPasswordForEmail(email);
+  }
+
+  async function updatePassword(password: string) {
+    await client.updatePassword(password);
+    await refreshAccount();
+  }
+
   async function signOut() {
     await client.signOut();
     await loadAccount(null);
@@ -243,6 +254,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshAccount,
     signIn,
     signUp,
+    resetPasswordForEmail,
+    updatePassword,
     signOut,
     updateProfile,
     updateAlerts,
