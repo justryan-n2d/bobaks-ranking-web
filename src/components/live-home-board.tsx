@@ -8,8 +8,6 @@ import type { RankingGame, RankingResponse } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-const REFRESH_INTERVAL_MS = 30_000;
-
 function formatNumber(value: number) {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.max(0, value));
 }
@@ -173,7 +171,6 @@ export function LiveHomeBoard({
   const [nextRefreshAt, setNextRefreshAt] = useState<number | null>(null);
   const refreshInFlight = useRef(false);
   const nextRefreshRef = useRef<number | null>(null);
-  const refreshIntervalRef = useRef(30_000);
   const previousScores = useRef(new Map(initialGames.map((game) => [game.gameId, Number(game.score)])));
 
   const sync = async () => {
@@ -202,7 +199,6 @@ export function LiveHomeBoard({
         5_000,
         Number(payload.refreshIntervalSeconds ?? 30) * 1_000,
       );
-      refreshIntervalRef.current = intervalMs;
       const payloadNext = payload.nextRefreshAt ? Date.parse(payload.nextRefreshAt) : Number.NaN;
       const target = Number.isFinite(payloadNext)
         ? payloadNext
