@@ -67,6 +67,12 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
   const peak = peakResult.status === "fulfilled" ? peakResult.value : null;
   const rankHistory = rankHistoryResult.status === "fulfilled" ? rankHistoryResult.value : [];
 
+  const oldestRecordedAt = history?.data.reduce<string | null>((oldest, point) => {
+    const timestamp = point.timestamp || "";
+    if (!timestamp || !Number.isFinite(Date.parse(timestamp))) return oldest;
+    return !oldest || Date.parse(timestamp) < Date.parse(oldest) ? timestamp : oldest;
+  }, null) ?? null;
+
   const live = game.rankings?.live;
   const weekly = game.rankings?.week || game.rankings?.weekly;
   const monthly = game.rankings?.month || game.rankings?.monthly;
@@ -110,15 +116,32 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Current game statistics">
         {[
-          ["Current players", formatPlayers(game.currentPlayers), formatDate(game.currentSnapshotAt)],
-          ["Live rank", live?.rank ? `#${live.rank}` : "Not ranked", live?.calculatedAt ? formatDate(live.calculatedAt) : "No live rank"],
-          ["Recorded Peak", peak ? formatPlayers(peak.peakPlayers) : "Unavailable", peak ? formatDate(peak.peakAt) : "Peak data unavailable"],
-          ["Weekly rank", weekly?.rank ? `#${weekly.rank}` : "Not ranked", weekly?.calculatedAt ? formatDate(weekly.calculatedAt) : "No weekly rank"],
+          ["Current players", formatPlayers(game.currentPlayers), game.currentSnapshotAt ? `Latest sample · ${formatDate(game.currentSnapshotAt)}` : "Latest player count unavailable"],
+          ["Live rank", live?.rank ? `#${live.rank}` : "Not ranked", live?.calculatedAt ? `Calculated · ${formatDate(live.calculatedAt)}` : "No live rank"],
+          ["Recorded Peak", peak ? formatPlayers(peak.peakPlayers) : "Unavailable", peak ? `Peak recorded · ${formatDate(peak.peakAt)}` : "Peak data unavailable"],
+          ["Weekly rank", weekly?.rank ? `#${weekly.rank}` : "Not ranked", weekly?.calculatedAt ? `Calculated · ${formatDate(weekly.calculatedAt)}` : "No weekly rank"],
         ].map(([label, value, note]) => (
-          <Card key={label} data-state={label === "Current players" ? "live" : label === "Recorded Peak" ? "peak" : label === "Live rank" ? "rank" : undefined} className="bobaks-metric p-5">
-            <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</div>
-            <div className="mt-2 text-2xl font-black tabular-nums">{value}</div>
-            <div className="mt-1 text-xs text-muted-foreground">{note}</div>
+          <Card
+            key={label}
+            data-state={label === "Current players" ? "live" : label === "Recorded Peak" ? "peak" : label === "Live rank" ? "rank" : undefined}
+            className={`bobaks-metric p-5 ${label === "Current players" || label === "Live rank" ? "sm:p-6" : ""}`}
+          >
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              <span>{label}</span>
+              {label === "Recorded Peak" ? (
+                <span
+                  title="Recorded Peak means the highest player count Bobaks has recorded for this experience."
+                  aria-label="Recorded Peak information"
+                  className="cursor-help normal-case tracking-normal"
+                >
+                  ⓘ
+                </span>
+              ) : null}
+            </div>
+            <div className={`mt-2 font-black tabular-nums tracking-tight ${label === "Current players" ? "text-3xl" : label === "Live rank" ? "text-3xl" : "text-2xl"}`}>
+              {value}
+            </div>
+            <div className="mt-1 text-xs leading-5 text-muted-foreground">{note}</div>
           </Card>
         ))}
       </section>
@@ -148,13 +171,16 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
         <CardContent><RankHistoryChart data={rankHistory} /></CardContent>
       </Card>
 
-      <Card>
-        <CardHeader><CardTitle>Rankings</CardTitle></CardHeader>
+      <Card className="overflow-hidden">
+        <CardHeader>
+          <CardTitle>Rankings and recording history</CardTitle>
+          <p className="text-sm text-muted-foreground">Your current Bobaks period ranks and the oldest record available in the displayed history window.</p>
+        </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-3">
           {[
             ["This Month", monthly?.rank ? `#${monthly.rank}` : "Not ranked"],
             ["This Year", yearly?.rank ? `#${yearly.rank}` : "Not ranked"],
-            ["Data since", game.createdAt ? formatDate(game.createdAt) : "Unavailable"],
+            ["Oldest available record", oldestRecordedAt ? formatDate(oldestRecordedAt) : "Unavailable"],
           ].map(([label, value]) => (
             <div key={label} className="rounded-xl border border-border bg-background p-4">
               <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</div>
@@ -165,7 +191,7 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
       </Card>
 
       <p className="text-xs leading-5 text-muted-foreground">
-        Peak labeling follows Bobaks' tracking policy. A Recorded Peak may reflect the period since Bobaks began recording the experience.
+        <strong>Recorded Peak</strong> is the highest player count Bobaks has stored for this experience. The oldest available record shown here is limited to the history window returned by Bobaks, so it is not presented as the game's original creation date or guaranteed first-ever observation.
       </p>
     </div>
   );
