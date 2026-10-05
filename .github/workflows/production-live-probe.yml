@@ -1,0 +1,63 @@
+name: Production Live Probe
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Install Chromium
+        run: npx --yes playwright install --with-deps chromium
+
+      - name: Probe production
+        env:
+          PRODUCTION_URL: https://bobaks-ranking-web.ryan-oledan0.workers.dev
+        run: |
+          set -e
+          for path in / /rankings/live /about /api/rankings/live; do
+            code="$(curl --silent --output /tmp/body --write-out '%{http_code}' "$PRODUCTION_URL$path")"
+            echo "$path -> $code"
+            test "$code" = "200"
+          done
+
+          if grep -qiE 'preview-demo|Filipino Hangout|BOBAKS_UI_DEMO_MODE' /tmp/body; then
+            echo "Preview/demo content detected in production."
+            exit 1
+          fi
+
+          python - <<'PY'
+          import json
+          raw=open("/tmp/body","rb").read()
+          json.loads(raw)
+          print("Production rankings endpoint returned valid JSON.")
+          PY
+
+      - name: Browser smoke and screenshots
+        env:
+          PRODUCTION_URL: https://bobaks-ranking-web.ryan-oledan0.workers.dev
+        run: |
+          npx --yes playwright screenshot --device="Desktop Chrome" "$PRODUCTION_URL/" production-home.png
+          npx --yes playwright screenshot --device="Desktop Chrome" "$PRODUCTION_URL/rankings/live" production-live.png
+          npx --yes playwright screenshot --device="Desktop Chrome" "$PRODUCTION_URL/about" production-about.png
+          npx --yes playwright screenshot --browser=chromium --viewport-size="390,844" "$PRODUCTION_URL/" production-home-mobile.png
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: production-live-probe
+          path: |
+            production-home.png
+            production-live.png
+            production-about.png
+            production-home-mobile.png
+          retention-days: 7
