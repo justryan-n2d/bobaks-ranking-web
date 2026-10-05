@@ -215,6 +215,7 @@ export function LiveHomeBoard({
       }, REFRESH_INTERVAL_MS);
     };
 
+    void sync();
     schedule();
 
     const visibility = () => {
