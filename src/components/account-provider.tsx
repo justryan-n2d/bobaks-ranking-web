@@ -36,6 +36,7 @@ type AuthContextValue = {
   savedComparisons: SavedComparison[];
   refreshAccount: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<string>;
   signUp: (email: string, password: string, displayName: string) => Promise<{ needsConfirmation: boolean }>;
   resetPasswordForEmail: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
@@ -170,6 +171,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await refreshAccount();
   }
 
+  async function signInWithGoogle() {
+    return client.signInWithGoogle();
+  }
+
   async function signUp(email: string, password: string, displayName: string) {
     const result = await client.signUp({ email, password, displayName });
     if (result.session) await refreshAccount();
@@ -253,6 +258,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     savedComparisons,
     refreshAccount,
     signIn,
+    signInWithGoogle,
     signUp,
     resetPasswordForEmail,
     updatePassword,
