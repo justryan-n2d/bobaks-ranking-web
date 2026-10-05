@@ -79,7 +79,6 @@ function SidebarContent({ close }: { close: () => void }) {
       <div className="flex items-center justify-between px-2 pb-5 pt-2">
         <BobaksBrand close={close} />
         <button
-          ref={drawerCloseRef}
           type="button"
           className="inline-flex size-10 items-center justify-center rounded-xl hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
           onClick={close}
@@ -139,7 +138,6 @@ export function SiteShell({
 }) {
   const [open, setOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
-  const drawerCloseRef = useRef<HTMLButtonElement | null>(null);
   const drawerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -178,7 +176,11 @@ export function SiteShell({
 
     document.body.style.overflow = "hidden";
     document.addEventListener("keydown", onKeyDown);
-    drawerCloseRef.current?.focus();
+    window.requestAnimationFrame(() => {
+      drawerRef.current?.querySelector<HTMLElement>(
+        'button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )?.focus();
+    });
 
     return () => {
       document.body.style.overflow = "";
