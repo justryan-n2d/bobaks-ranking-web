@@ -11,6 +11,7 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   verify:
@@ -25,16 +26,43 @@ jobs:
       - name: Use npm 11
         run: npm install --global npm@11
       - name: Install
-        run: npm install --legacy-peer-deps --no-audit --no-fund
+        run: |
+          set -o pipefail
+          npm install --legacy-peer-deps --no-audit --no-fund 2>&1 | tee /tmp/ci-install.log
       - name: Test
-        run: npm test
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee /tmp/ci-test.log
       - name: Build
-        run: npm run build
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee /tmp/ci-build.log
       - name: Build Cloudflare preview
+        run: |
+          set -o pipefail
+          BOBAKS_DEPLOYMENT_ENV=preview BOBAKS_UI_DEMO_MODE="true" npm run build:vinext 2>&1 | tee /tmp/ci-vinext-build.log
+
+      - name: Report CI failure
+        if: failure()
         env:
-          BOBAKS_DEPLOYMENT_ENV: preview
-          BOBAKS_UI_DEMO_MODE: "true"
-        run: npm run build:vinext
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          {
+            echo "## Temporary CI failure diagnostics"
+            echo
+            for file in /tmp/ci-*.log; do
+              [ -f "$file" ] || continue
+              echo "<details><summary>$(basename "$file")</summary>"
+              echo
+              echo '```text'
+              tail -n 120 "$file"
+              echo '```'
+              echo "</details>"
+              echo
+            done
+          } > /tmp/ci-report.md
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file /tmp/ci-report.md
 
       - name: Install Playwright Chromium
         run: npx --yes playwright install --with-deps chromium
