@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowLeftRight, ExternalLink } from "lucide-react";
 import { getGame, getGamePeak, getRankings, type GameProfile, type RankingGame } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { SaveComparisonButton } from "@/components/save-comparison-button";
+import { ComparePicker } from "@/components/compare-picker";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,21 @@ function metricValue(profile: GameProfile | null, key: "current" | "live" | "wee
           ? profile.rankings?.month || profile.rankings?.monthly
           : profile.rankings?.year || profile.rankings?.yearly;
   return rankLabel(summary?.rank);
+}
+
+function gameToSearchGame(game: GameProfile | null): import("@/lib/api").SearchGame | null {
+  if (!game) return null;
+  return {
+    id: game.id,
+    universeId: game.universeId,
+    placeId: game.placeId,
+    name: game.name,
+    creatorName: game.creatorName,
+    creatorId: game.creatorId,
+    iconUrl: game.iconUrl,
+    description: game.description,
+    isActive: game.isActive,
+  };
 }
 
 async function loadProfile(id: string): Promise<GameProfile | null> {
@@ -71,39 +87,16 @@ export default async function ComparePage({
           </p>
         </div>
 
-        <Card className="p-5">
-          <form action="/compare" className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
-            <div>
-              <label htmlFor="compare-a" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                Game A
-              </label>
-              <input
-                id="compare-a"
-                name="a"
-                defaultValue={a}
-                placeholder="Game ID"
-                inputMode="numeric"
-                className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </div>
-            <div>
-              <label htmlFor="compare-b" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                Game B
-              </label>
-              <input
-                id="compare-b"
-                name="b"
-                defaultValue={b}
-                placeholder="Game ID"
-                inputMode="numeric"
-                className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </div>
-            <button type="submit" className="h-11 self-end rounded-xl bg-foreground px-5 text-sm font-semibold text-background hover:opacity-90">
-              Compare
-            </button>
-          </form>
-        </Card>
+        <ComparePicker
+          initialA={selected ? {
+            id: selected.id,
+            name: selected.name,
+            creatorName: selected.creatorName,
+            iconUrl: selected.iconUrl,
+            placeId: selected.placeId,
+          } : null}
+          initialB={null}
+        />
 
         {selected ? (
           <Card className="p-5">
