@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import {
   AUTH_SESSION_STORAGE_KEY,
@@ -161,10 +161,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [client]);
 
-  async function refreshAccount() {
+  const refreshAccount = useCallback(async () => {
     const next = await client.getSession();
     await loadAccount(next, false);
-  }
+  }, [client]);
 
   async function signIn(email: string, password: string) {
     await client.signIn({ email, password });
