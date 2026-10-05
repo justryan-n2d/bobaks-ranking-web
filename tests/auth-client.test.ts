@@ -55,10 +55,15 @@ describe("account auth client", () => {
       const url = await client.signInWithGoogle();
       const parsed = new URL(url);
       expect(parsed.searchParams.get("provider")).toBe("google");
-      expect(parsed.searchParams.get("redirect_to")).toBe("https://bobaksranking.com/account/google-callback");
+      expect(parsed.searchParams.get("redirect_to")).toBe(
+        "https://bobaksranking.com/account/google-callback?bobaks_state=" + parsed.searchParams.get("state"),
+      );
       expect(parsed.searchParams.get("code_challenge_method")).toBe("S256");
       expect(parsed.searchParams.get("code_challenge")).toMatch(/^[A-Za-z0-9_-]{43}$/);
-      expect(parsed.searchParams.get("state")).toMatch(/^[A-Za-z0-9_-]{32}$/);
+      expect(parsed.searchParams.get("state")).toBeNull();
+
+      const callbackRedirect = new URL(parsed.searchParams.get("redirect_to")!);
+      expect(callbackRedirect.searchParams.get("bobaks_state")).toMatch(/^[A-Za-z0-9_-]{32}$/);
       expect(assigned[0]).toBe(url);
 
       const stored = JSON.parse(values.get("bobaks.auth.google.oauth.v1") ?? "{}");
@@ -84,7 +89,7 @@ describe("account auth client", () => {
       state: "expected-state",
       codeVerifier: "verifier",
       createdAt: Date.now(),
-      redirectTo: "https://bobaksranking.com/account/google-callback",
+      redirectTo: "https://bobaksranking.com/account/google-callback?bobaks_state=expected-state",
     }));
     const originalWindow = (globalThis as { window?: unknown }).window;
     Object.defineProperty(globalThis, "window", {
@@ -131,7 +136,7 @@ describe("account auth client", () => {
       state: "state-1",
       codeVerifier: "verifier-1",
       createdAt: Date.now(),
-      redirectTo: "https://bobaksranking.com/account/google-callback",
+      redirectTo: "https://bobaksranking.com/account/google-callback?bobaks_state=state-1",
     }));
     const originalWindow = (globalThis as { window?: unknown }).window;
     Object.defineProperty(globalThis, "window", {
