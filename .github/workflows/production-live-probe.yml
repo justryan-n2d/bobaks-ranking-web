@@ -25,13 +25,20 @@ jobs:
           BACKEND_URL: https://bobaks-ranking-api-service.ryan-oledan0.workers.dev
         run: |
           set -e
-          code="$(curl --silent --output /tmp/backend-health --write-out '%{http_code}' "$BACKEND_URL/")"
-          echo "backend / -> $code"
+          code="$(curl --silent --output /tmp/backend-health --write-out '%{http_code}' "$BACKEND_URL/api/health")"
+          echo "backend /api/health -> $code"
+          cat /tmp/backend-health
           test "$code" = "200"
           code="$(curl --silent --output /tmp/backend-live --write-out '%{http_code}' "$BACKEND_URL/api/rankings/live")"
           echo "backend /api/rankings/live -> $code"
           cat /tmp/backend-live
           test "$code" = "200"
+          python - <<'PY'
+          import json
+          raw=open("/tmp/backend-live","rb").read()
+          json.loads(raw)
+          print("Backend live rankings returned valid JSON.")
+          PY
 
       - name: Probe production
         env:
