@@ -1,0 +1,18 @@
+name: Diagnostic CI Runner
+
+on:
+  push:
+    branches: ["diagnostic/ci-runner-20261005"]
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Runner smoke test
+        run: |
+          echo "GitHub Actions runner is alive."
+          uname -a
+          node --version
