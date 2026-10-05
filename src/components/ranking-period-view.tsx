@@ -51,7 +51,7 @@ export function RankingPeriodView({ period, scoreLabel }: { period: RankingPerio
   const load = useCallback(async () => {
     if (inFlight.current) return;
     inFlight.current = true;
-    setLoading((current) => response === null ? true : current);
+    setLoading(true);
     setError(false);
     try {
       const result = await fetch("/api/rankings/" + encodeURIComponent(period), {
@@ -76,7 +76,7 @@ export function RankingPeriodView({ period, scoreLabel }: { period: RankingPerio
       inFlight.current = false;
       setLoading(false);
     }
-  }, [period, response]);
+  }, [period]);
 
   useEffect(() => {
     void load();
