@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowLeftRight, ExternalLink } from "lucide-react";
 import { getGame, getGamePeak, getRankings, type GameProfile, type RankingGame } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { SaveComparisonButton } from "@/components/save-comparison-button";
+import { ComparePicker } from "@/components/compare-picker";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,21 @@ function metricValue(profile: GameProfile | null, key: "current" | "live" | "wee
   return rankLabel(summary?.rank);
 }
 
+function gameToSearchGame(game: GameProfile | null): import("@/lib/api").SearchGame | null {
+  if (!game) return null;
+  return {
+    id: game.id,
+    universeId: game.universeId,
+    placeId: game.placeId,
+    name: game.name,
+    creatorName: game.creatorName,
+    creatorId: game.creatorId,
+    iconUrl: game.iconUrl,
+    description: game.description,
+    isActive: game.isActive,
+  };
+}
+
 async function loadProfile(id: string): Promise<GameProfile | null> {
   try {
     return await getGame(id);
@@ -48,13 +64,14 @@ export default async function ComparePage({
   const b = rawB?.trim() || "";
 
   if (!a || !b) {
-    const [selected, liveResult] = await Promise.all([
+    const [profileA, profileB, liveResult] = await Promise.all([
       a ? loadProfile(a) : Promise.resolve(null),
+      b ? loadProfile(b) : Promise.resolve(null),
       getRankings("live").catch(() => ({ data: [] as RankingGame[] })),
     ]);
 
     const suggestions = liveResult.data
-      .filter((game) => game.gameId !== a)
+      .filter((game) => game.gameId !== a && game.gameId !== b)
       .slice(0, 8);
 
     return (
@@ -71,57 +88,10 @@ export default async function ComparePage({
           </p>
         </div>
 
-        <Card className="p-5">
-          <form action="/compare" className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
-            <div>
-              <label htmlFor="compare-a" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                Game A
-              </label>
-              <input
-                id="compare-a"
-                name="a"
-                defaultValue={a}
-                placeholder="Game ID"
-                inputMode="numeric"
-                className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </div>
-            <div>
-              <label htmlFor="compare-b" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                Game B
-              </label>
-              <input
-                id="compare-b"
-                name="b"
-                defaultValue={b}
-                placeholder="Game ID"
-                inputMode="numeric"
-                className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </div>
-            <button type="submit" className="h-11 self-end rounded-xl bg-foreground px-5 text-sm font-semibold text-background hover:opacity-90">
-              Compare
-            </button>
-          </form>
-        </Card>
-
-        {selected ? (
-          <Card className="p-5">
-            <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Selected game</div>
-            <div className="mt-3 flex items-center gap-3">
-              {selected.iconUrl ? (
-                <img src={selected.iconUrl} alt="" width={52} height={52} className="size-13 rounded-2xl border border-border object-cover" />
-              ) : (
-                <div className="size-13 rounded-2xl bg-muted" aria-hidden="true" />
-              )}
-              <div className="min-w-0">
-                <div className="truncate font-semibold">{selected.name || `Experience ${a}`}</div>
-                <div className="truncate text-xs text-muted-foreground">{selected.creatorName || "Unknown creator"}</div>
-              </div>
-            </div>
-            <p className="mt-4 text-sm text-muted-foreground">Now choose a second game below.</p>
-          </Card>
-        ) : null}
+        <ComparePicker
+          initialA={gameToSearchGame(profileA)}
+          initialB={gameToSearchGame(profileB)}
+        />
 
         <section>
           <div className="mb-3 flex items-end justify-between gap-4">
@@ -135,7 +105,13 @@ export default async function ComparePage({
           <div className="grid gap-3 md:grid-cols-2">
             {suggestions.map((game) => (
               <Link
-                href={`/compare?a=${encodeURIComponent(a || game.gameId)}&b=${encodeURIComponent(a ? game.gameId : "")}`}
+                href={
+                  a
+                    ? `/compare?a=${encodeURIComponent(a)}&b=${encodeURIComponent(game.gameId)}`
+                    : b
+                      ? `/compare?a=${encodeURIComponent(game.gameId)}&b=${encodeURIComponent(b)}`
+                      : `/compare?a=${encodeURIComponent(game.gameId)}`
+                }
                 key={game.gameId}
                 className="group"
               >
