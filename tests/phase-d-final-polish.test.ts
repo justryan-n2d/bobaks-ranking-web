@@ -25,7 +25,7 @@ describe("Phase D final polish", () => {
   it("provides global and account loading/error recovery surfaces", () => {
     expect(rootLoading).toContain("Loading Bobaks...");
     expect(rootError).toContain("Try again");
-    expect(rootError).toContain("role="alert"");
+    expect(rootError).toContain('role="alert"');
     expect(accountLoading).toContain("Loading your account...");
   });
 
@@ -45,7 +45,7 @@ describe("Phase D final polish", () => {
   });
 
   it("keeps Phase D error styling semantic instead of hard-coded colors", () => {
-    expect(search).toContain("role="alert"");
+    expect(search).toContain('role="alert"');
     expect(search).toContain("text-destructive");
     expect(search).not.toContain("text-red-600");
   });
