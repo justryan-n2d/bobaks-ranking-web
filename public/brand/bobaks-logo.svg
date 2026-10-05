@@ -6,8 +6,9 @@
     <circle cx="140" cy="140" r="126" fill="#0b2f66"/>
     <path fill="#fff" d="M86 74h67c33 0 56 18 56 45 0 16-9 30-25 36 19 6 33 20 33 41 0 31-26 54-63 54H86V74Zm30 27v43h36c16 0 27-8 27-21 0-14-11-22-27-22h-36Zm0 70v52h38c19 0 32-9 32-26 0-17-13-26-32-26h-38Z"/>
     <g fill="#129ef5">
-      <path d="M103 189h26v58h-26z"/>
-      <path d="M139 170h26v77h-26z"/>
+      <path d="M103 189h22v58h-22z"/>
+      <path d="M133 169h22v78h-22z"/>
+      <path d="M163 145h22v102h-22z"/>
     </g>
   </g>
   <text x="480" y="295" text-anchor="middle" font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="88" font-weight="900" letter-spacing="1" fill="#fff">BOBAKS</text>
