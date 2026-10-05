@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Check, ExternalLink, Link2, LogIn, LogOut, ShieldCheck, UserRound } from "lucide-react";
+import { Check, ExternalLink, FileText, Link2, LogIn, LogOut, ShieldCheck, UserRound } from "lucide-react";
 
 import { useAuth } from "@/components/account-provider";
 import { getGame, type GameProfile } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { LEGAL_VERSIONS } from "@/lib/legal";
 
 function formatDate(value?: string | null) {
   if (!value) return "Not available";
@@ -31,6 +32,7 @@ function AuthForm() {
   const [googleBusy, setGoogleBusy] = useState(false);
   const [resendBusy, setResendBusy] = useState(false);
   const [resendMessage, setResendMessage] = useState("");
+  const [legalAccepted, setLegalAccepted] = useState(false);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -42,7 +44,11 @@ function AuthForm() {
       if (mode === "signin") {
         await signIn(email, password);
       } else {
-        const result = await signUp(email, password, displayName);
+        if (!legalAccepted) {
+          setError("Please agree to the Terms and Conditions and Privacy Policy to create your account.");
+          return;
+        }
+        const result = await signUp(email, password, displayName, true);
         if (result.needsConfirmation) setConfirmation(true);
       }
     } catch (cause) {
@@ -115,6 +121,10 @@ function AuthForm() {
         disabled={loading || busy || googleBusy}
         onClick={async () => {
           if (busy || googleBusy) return;
+          if (mode === "signup" && !legalAccepted) {
+            setError("Please agree to the Terms and Conditions and Privacy Policy to create your account.");
+            return;
+          }
           setGoogleBusy(true);
           setError("");
           try {
@@ -150,6 +160,20 @@ function AuthForm() {
           <span className="text-sm font-semibold">Password</span>
           <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" required minLength={8} autoComplete={mode === "signin" ? "current-password" : "new-password"} className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
         </label>
+        {mode === "signup" ? (
+          <label className="flex items-start gap-3 rounded-xl border border-border bg-muted/20 p-3 text-xs leading-5 text-muted-foreground">
+            <input
+              type="checkbox"
+              className="mt-1 size-4 shrink-0 accent-foreground"
+              checked={legalAccepted}
+              onChange={(event) => setLegalAccepted(event.target.checked)}
+              required
+            />
+            <span>
+              I agree to the <Link href="/terms" className="font-semibold text-foreground underline underline-offset-2">Terms and Conditions</Link> and acknowledge the <Link href="/privacy" className="font-semibold text-foreground underline underline-offset-2">Privacy Policy</Link>.
+            </span>
+          </label>
+        ) : null}
         {mode === "signin" ? <Link href="/account/reset-password" className="block text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline">Forgot password?</Link> : null}
         {error ? <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">{error}</div> : null}
         <Button type="submit" className="w-full" disabled={loading || busy}>
@@ -205,6 +229,7 @@ function SignedInAccount() {
     savedComparisons,
     updateProfile,
     updateAlerts,
+    acceptCurrentLegal,
     updateIdentityPreferences,
     startRobloxConnection,
     disconnectRoblox,
@@ -299,6 +324,25 @@ function SignedInAccount() {
     }
   }
 
+  const hasCurrentLegal = Boolean(
+    profile &&
+      profile.terms_version === LEGAL_VERSIONS.terms &&
+      profile.privacy_version === LEGAL_VERSIONS.privacy,
+  );
+
+  async function acceptLegal() {
+    setBusy("legal");
+    setError("");
+    try {
+      await acceptCurrentLegal();
+      setSaved("Terms and Privacy accepted.");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not save legal acceptance.");
+    } finally {
+      setBusy("");
+    }
+  }
+
   async function connectRoblox() {
     setBusy("roblox");
     setError("");
@@ -339,7 +383,50 @@ function SignedInAccount() {
       {error ? <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">{error}</div> : null}
       {saved ? <div role="status" className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm">{saved}</div> : null}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      {!hasCurrentLegal ? (
+        <Card className="border-primary/30 bg-primary/5 p-5 sm:p-6">
+          <div className="flex items-start gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <FileText className="size-5" aria-hidden="true" />
+            </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">Required once</div>
+              <h2 className="mt-1 text-lg font-black">Review the current Terms and Privacy Policy</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Your account needs to accept the current Bobaks Terms and Conditions and Privacy Policy before account features can be used.
+              </p>
+            </div>
+          </div>
+          <label className="mt-5 flex items-start gap-3 rounded-xl border border-border bg-background p-3 text-sm">
+            <input
+              id="account-legal-consent"
+              type="checkbox"
+              className="mt-1 size-4 shrink-0 accent-foreground"
+              required
+            />
+            <span>
+              I agree to the <Link href="/terms" className="font-semibold text-foreground underline underline-offset-2">Terms and Conditions</Link> and acknowledge the <Link href="/privacy" className="font-semibold text-foreground underline underline-offset-2">Privacy Policy</Link>.
+            </span>
+          </label>
+          <Button
+            className="mt-4"
+            disabled={busy === "legal"}
+            onClick={async () => {
+              const checkbox = document.getElementById("account-legal-consent") as HTMLInputElement | null;
+              if (!checkbox?.checked) {
+                setError("Please agree to the Terms and Conditions and Privacy Policy.");
+                return;
+              }
+              await acceptLegal();
+            }}
+          >
+            {busy === "legal" ? "Saving..." : "Agree and continue"}
+          </Button>
+        </Card>
+      ) : null}
+
+      {hasCurrentLegal ? (
+        <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-5 sm:p-6">
           <div className="flex items-center gap-3">
             <UserRound className="size-5" aria-hidden="true" />
@@ -471,6 +558,8 @@ function SignedInAccount() {
         </div>
         <Button variant="outline" onClick={() => void signOut()}><LogOut className="size-4" aria-hidden="true" /> Log out</Button>
       </Card>
+        </div>
+      ) : null}
     </div>
   );
 }
