@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowLeftRight, ExternalLink } from "lucide-react";
 
 import { getGame, getGamePeak, getRankings, type GameProfile, type RankingGame } from "@/lib/api";
 import { Card } from "@/components/ui/card";
+import { SaveComparisonButton } from "@/components/save-comparison-button";
 
 export const dynamic = "force-dynamic";
 
@@ -226,6 +227,7 @@ export default async function ComparePage({
               <a href={`https://www.roblox.com/games/${encodeURIComponent(String(profile.placeId || profile.id))}`} target="_blank" rel="noreferrer noopener" className="inline-flex h-9 items-center gap-2 rounded-xl border border-border px-3 text-sm font-semibold hover:bg-accent">
                 Roblox <ExternalLink className="size-3.5" aria-hidden="true" />
               </a>
+              <SaveComparisonButton gameIdA={a} gameIdB={b} />
             </div>
           </Card>
         ))}
