@@ -94,6 +94,7 @@ describe("account auth client", () => {
           origin: "https://bobaksranking.com",
         },
         sessionStorage,
+        dispatchEvent: () => true,
       },
     });
 
