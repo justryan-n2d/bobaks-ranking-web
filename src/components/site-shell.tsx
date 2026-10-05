@@ -18,6 +18,7 @@ import {
 
 import { NAV_ITEMS, type NavItem } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/account-provider";
 
 const ICONS = {
   home: Home,
@@ -67,6 +68,7 @@ function NavLink({ item, onNavigate }: { item: NavItem; onNavigate: () => void }
 }
 
 function SidebarContent({ close }: { close: () => void }) {
+  const { user, profile, loading } = useAuth();
   const main = NAV_ITEMS.filter((item) => item.section === "main");
   const info = NAV_ITEMS.filter((item) => item.section === "info");
 
@@ -97,10 +99,12 @@ function SidebarContent({ close }: { close: () => void }) {
             <UserCircle2 className="size-5 text-muted-foreground" aria-hidden="true" />
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-semibold">Account</div>
-            <div className="truncate text-xs text-muted-foreground">
-              Optional. Sign in to save across devices.
-            </div>
+            <div className="truncate text-sm font-semibold">
+                {loading ? "Account" : user ? (profile?.display_name || user.email || "Your account") : "Guest"}
+              </div>
+              <div className="truncate text-xs text-muted-foreground">
+                {loading ? "Loading..." : user ? "Signed in · save across devices" : "Sign in to save across devices"}
+              </div>
           </div>
           <LinkPendingIndicator />
         </div>

@@ -13,12 +13,12 @@ export default function SavedPage() {
         <div className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Watchlist</div>
         <h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">Games you care about</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-          Save games without signing in. Account-backed cross-device sync can be connected later.
+          Save games without signing in, or log in to sync your watchlist across devices.
         </p>
       </div>
       <WatchlistPage />
       <div className="text-xs text-muted-foreground">
-        Guest saves are stored only in your browser. They are not uploaded to Bobaks.
+        Guest saves stay in your browser. Signed-in saves are stored in your Bobaks account and protected by account ownership policies.
       </div>
     </div>
   );
