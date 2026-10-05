@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -19,8 +19,6 @@ import {
 import { NAV_ITEMS, type NavItem } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
-const DRAWER_EXIT_MS = 260;
-
 const ICONS = {
   home: Home,
   rankings: BarChart3,
@@ -30,6 +28,17 @@ const ICONS = {
   community: Users,
   info: Info,
 } as const;
+
+function LinkPendingIndicator() {
+  const { pending } = useLinkStatus();
+
+  return (
+    <span
+      aria-hidden="true"
+      className={cn("bobaks-nav-pending", pending && "is-pending")}
+    />
+  );
+}
 
 function NavLink({ item, onNavigate }: { item: NavItem; onNavigate: () => void }) {
   const pathname = usePathname();
@@ -52,6 +61,7 @@ function NavLink({ item, onNavigate }: { item: NavItem; onNavigate: () => void }
     >
       <Icon className="size-4 shrink-0" strokeWidth={2} aria-hidden="true" />
       <span>{item.label}</span>
+      <LinkPendingIndicator />
     </Link>
   );
 }
@@ -92,6 +102,7 @@ function SidebarContent({ close }: { close: () => void }) {
               Optional. Sign in to save across devices.
             </div>
           </div>
+          <LinkPendingIndicator />
         </div>
       </Link>
 
@@ -123,7 +134,6 @@ export function SiteShell({
   demoMode: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -144,20 +154,7 @@ export function SiteShell({
     };
   }, [open]);
 
-  useEffect(() => {
-    if (open || !mounted) return;
-
-    const timer = window.setTimeout(() => {
-      setMounted(false);
-    }, DRAWER_EXIT_MS);
-
-    return () => window.clearTimeout(timer);
-  }, [open, mounted]);
-
-  const openSidebar = () => {
-    setMounted(true);
-    setOpen(true);
-  };
+  const openSidebar = () => setOpen(true);
 
   const close = () => setOpen(false);
 
@@ -179,7 +176,7 @@ export function SiteShell({
         </Link>
       </div>
 
-      {mounted ? (
+      {open ? (
         <div className="fixed inset-0 z-[100] md:hidden">
           <button
             type="button"
@@ -192,10 +189,7 @@ export function SiteShell({
             id="mobile-navigation"
             aria-label="Mobile navigation"
             aria-modal="true"
-            className={cn(
-              "absolute inset-y-0 left-0 z-10 flex w-72 max-w-[85vw] flex-col border-r border-white/20 bg-card/75 p-4 shadow-2xl backdrop-blur-2xl saturate-150",
-              open ? "bobaks-drawer-enter" : "bobaks-drawer-exit",
-            )}
+            className="absolute inset-y-0 left-0 z-10 flex w-72 max-w-[85vw] flex-col border-r border-white/20 bg-card/75 p-4 shadow-2xl backdrop-blur-2xl saturate-150 bobaks-drawer-enter"
           >
             <SidebarContent close={close} />
           </aside>
