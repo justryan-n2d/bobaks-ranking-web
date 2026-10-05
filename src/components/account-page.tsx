@@ -384,11 +384,12 @@ function SignedInAccount() {
         </Card>
       </div>
 
-      <Card className="p-5 sm:p-6">
+      <Card className="p-5 sm:p-6 opacity-60">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="font-black">Roblox identity</h2>
             <p className="mt-1 text-sm text-muted-foreground">Connect only when you choose. Bobaks stores the Roblox identity separately from your account.</p>
+            <p className="mt-2 text-sm font-semibold text-muted-foreground">Connect to Roblox is not yet available.</p>
           </div>
           <Link2 className="size-5 shrink-0" aria-hidden="true" />
         </div>
@@ -417,7 +418,7 @@ function SignedInAccount() {
             <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
               The connection uses authorization code + PKCE. Roblox username and display name are profile data, not the permanent identity key.
             </p>
-            <Button className="mt-4" onClick={connectRoblox} disabled={busy === "roblox"}>{busy === "roblox" ? "Opening Roblox..." : "Connect Roblox"}</Button>
+            <Button className="mt-4" onClick={connectRoblox} disabled>{busy === "roblox" ? "Opening Roblox..." : "Connect Roblox"}</Button>
           </div>
         )}
       </Card>
