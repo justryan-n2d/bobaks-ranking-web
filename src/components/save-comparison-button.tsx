@@ -11,6 +11,7 @@ export function SaveComparisonButton({ gameIdA, gameIdB }: { gameIdA: string; ga
   const { user, client } = useAuth();
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
   if (!user) {
     return <Link href="/account" className="inline-flex h-9 items-center gap-2 rounded-xl border border-border px-3 text-sm font-semibold hover:bg-accent"><Bookmark className="size-4" aria-hidden="true" /> Sign in to save</Link>;
@@ -19,16 +20,24 @@ export function SaveComparisonButton({ gameIdA, gameIdB }: { gameIdA: string; ga
   async function save() {
     if (busy || saved) return;
     setBusy(true);
+    setError("");
     try {
       await client.saveComparison(gameIdA, gameIdB);
       setSaved(true);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not save this comparison.");
     } finally {
       setBusy(false);
     }
   }
 
-  return <Button variant="outline" size="sm" onClick={() => void save()} disabled={busy || saved}>
-    {saved ? <Check className="size-4" aria-hidden="true" /> : <Bookmark className="size-4" aria-hidden="true" />}
-    {saved ? "Saved" : busy ? "Saving..." : "Save comparison"}
-  </Button>;
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <Button variant="outline" size="sm" onClick={() => void save()} disabled={busy || saved}>
+        {saved ? <Check className="size-4" aria-hidden="true" /> : <Bookmark className="size-4" aria-hidden="true" />}
+        {saved ? "Saved" : busy ? "Saving..." : "Save comparison"}
+      </Button>
+      {error ? <span role="status" className="max-w-48 text-right text-xs text-destructive">{error}</span> : null}
+    </div>
+  );
 }
