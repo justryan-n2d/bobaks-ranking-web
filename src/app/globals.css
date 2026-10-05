@@ -313,25 +313,35 @@ a {
   }
 }
 
+.bobaks-nav-pending {
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-left: auto;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.bobaks-nav-pending.is-pending {
+  visibility: visible;
+  animation: bobaks-nav-pending 900ms ease-in-out 100ms infinite alternate;
+}
+
+@keyframes bobaks-nav-pending {
+  from { opacity: 0.2; transform: scale(0.8); }
+  to { opacity: 0.75; transform: scale(1); }
+}
+
 @keyframes bobaks-drawer-in {
   from {
     opacity: 0;
-    transform: translateX(-22px) scale(0.985);
+    transform: translateX(-18px);
   }
   to {
     opacity: 1;
-    transform: translateX(0) scale(1);
-  }
-}
-
-@keyframes bobaks-drawer-out {
-  from {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(-22px) scale(0.985);
+    transform: translateX(0);
   }
 }
 
