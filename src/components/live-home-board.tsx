@@ -158,10 +158,10 @@ function HighlightCard({
 }
 
 export function LiveHomeBoard({
-  initialGames,
-  initialUpdatedAt,
+  initialGames = [],
+  initialUpdatedAt = null,
 }: {
-  initialGames: RankingGame[];
+  initialGames?: RankingGame[];
   initialUpdatedAt?: string | null;
 }) {
   const [games, setGames] = useState(initialGames);
