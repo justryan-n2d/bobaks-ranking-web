@@ -33,6 +33,9 @@ jobs:
         run: npx --yes playwright install --with-deps chromium
 
       - name: Start browser test server
+        env:
+          BOBAKS_DEPLOYMENT_ENV: preview
+          BOBAKS_UI_DEMO_MODE: "true"
         run: |
           npm run start:vinext -- --host 127.0.0.1 --port 4173 > /tmp/bobaks-vinext.log 2>&1 &
           echo $! > /tmp/bobaks-vinext.pid
