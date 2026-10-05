@@ -326,11 +326,10 @@ export function createAuthClient({
     return authorizeUrl.toString();
   }
 
-  async function exchangeGoogleAuthCode(code: string, state: string) {
+  async function exchangeGoogleAuthCode(code: string) {
     if (typeof window === "undefined") throw new Error("Google sign-in requires a browser.");
     const normalizedCode = String(code ?? "").trim();
-    const normalizedState = String(state ?? "").trim();
-    if (!normalizedCode || !normalizedState) {
+    if (!normalizedCode) {
       throw new Error("Google sign-in callback is incomplete.");
     }
 
@@ -341,7 +340,7 @@ export function createAuthClient({
         accept: "application/json",
       },
       credentials: "same-origin",
-      body: JSON.stringify({ code: normalizedCode, state: normalizedState }),
+      body: JSON.stringify({ code: normalizedCode }),
       cache: "no-store",
     });
     const payload = await readBody(response);
