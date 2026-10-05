@@ -20,7 +20,7 @@
 - [x] Publish the canonical ranking Methodology.
 - [x] Add Terms/Privacy agreement to email account creation.
 - [x] Persist accepted Terms and Privacy versions server-side.
-- [ ] Add a one-time legal acceptance gate for legacy or OAuth-created accounts that have no current consent.
+- [x] Add a one-time legal acceptance gate for legacy or OAuth-created accounts that have no current consent.
 
 ## Phase B: Account UX
 
