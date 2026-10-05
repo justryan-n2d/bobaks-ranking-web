@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
   issues: write
 
@@ -61,25 +61,24 @@ jobs:
 
       - name: Report CI failure
         if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
+          set +e
+          mkdir -p .ci-debug
           {
-            echo "## Temporary CI failure diagnostics"
+            echo "Frontend CI diagnostic for commit $GITHUB_SHA"
             echo
             for file in /tmp/ci-*.log; do
               [ -f "$file" ] || continue
-              echo "<details><summary>$(basename "$file")</summary>"
-              echo
-              echo '```text'
-              tail -n 120 "$file"
-              echo '```'
-              echo "</details>"
+              echo "=== $(basename "$file") ==="
+              tail -n 240 "$file"
               echo
             done
-          } > /tmp/ci-report.md
-          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file /tmp/ci-report.md
+          } > .ci-debug/frontend-ci-diagnostic.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .ci-debug/frontend-ci-diagnostic.txt
+          git commit -m "chore: record frontend CI diagnostic [skip ci]" || true
+          git push origin "HEAD:${GITHUB_HEAD_REF}" || true
 
       - name: Install Playwright Chromium
         run: npx --yes playwright install --with-deps chromium
