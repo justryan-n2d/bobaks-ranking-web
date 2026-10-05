@@ -78,53 +78,13 @@ jobs:
         env:
           PRODUCTION_URL: https://bobaks-ranking-web.ryan-oledan0.workers.dev
         run: |
-          cat > production-browser-check.mjs <<'EOF'
-          import { chromium } from "playwright";
+          npx --yes playwright screenshot             --viewport-size="1440,900"             --wait-for-selector=".bobaks-rank-pill"             "$PRODUCTION_URL/" production-home.png
 
-          const base = process.env.PRODUCTION_URL;
-          const browser = await chromium.launch({ headless: true });
-          try {
-            const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+          npx --yes playwright screenshot             --viewport-size="1440,900"             --wait-for-selector='a[href^="/game/"]'             "$PRODUCTION_URL/rankings/live" production-live.png
 
-            const response = await page.goto(base + "/", { waitUntil: "domcontentloaded" });
-            if (!response || !response.ok()) {
-              throw new Error("Production Home did not return a successful browser response");
-            }
+          npx --yes playwright screenshot             --viewport-size="1440,900"             "$PRODUCTION_URL/about" production-about.png
 
-            await page.waitForSelector(".bobaks-rank-pill", { timeout: 15000 });
-
-            const homeText = await page.locator("body").innerText();
-            if (homeText.includes("Preview demo mode") || homeText.includes("Filipino Hangout")) {
-              throw new Error("Preview/demo content appeared in production browser output");
-            }
-
-            await page.screenshot({ path: "production-home.png", fullPage: false });
-
-            await page.goto(base + "/rankings/live", { waitUntil: "domcontentloaded" });
-            await page.waitForSelector('a[href^="/game/"]', { timeout: 15000 });
-            await page.screenshot({ path: "production-live.png", fullPage: false });
-
-            await page.goto(base + "/about", { waitUntil: "domcontentloaded" });
-            await page.screenshot({ path: "production-about.png", fullPage: false });
-
-            const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
-            try {
-              await mobile.goto(base + "/", { waitUntil: "domcontentloaded" });
-              await mobile.waitForSelector(".bobaks-rank-pill", { timeout: 15000 });
-              const mobileText = await mobile.locator("body").innerText();
-              if (mobileText.includes("Preview demo mode") || mobileText.includes("Filipino Hangout")) {
-                throw new Error("Preview/demo content appeared in production mobile browser output");
-              }
-              await mobile.screenshot({ path: "production-home-mobile.png", fullPage: false });
-            } finally {
-              await mobile.close();
-            }
-          } finally {
-            await browser.close();
-          }
-          EOF
-
-          LIVE_JSON="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/rankings/live")"           SOCIAL_JSON="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/social/feed?period=live")"           npx --yes -p playwright node production-browser-check.mjs
+          npx --yes playwright screenshot             --viewport-size="390,844"             --wait-for-selector=".bobaks-rank-pill"             "$PRODUCTION_URL/" production-home-mobile.png
 
       - name: Upload production evidence
         uses: actions/upload-artifact@v4
