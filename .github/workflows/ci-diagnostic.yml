@@ -1,8 +1,8 @@
 name: Frontend CI diagnostic
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  push:
+    branches: ["feat/phase-6-7-accounts-identity-20261005"]
 
 permissions:
   contents: read
