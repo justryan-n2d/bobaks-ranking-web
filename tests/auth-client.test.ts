@@ -116,7 +116,7 @@ describe("account auth client", () => {
     const originalFetch = globalThis.fetch;
     let receivedBody = "";
     globalThis.fetch = (async (input: RequestInfo | URL, init: RequestInit = {}) => {
-      expect(String(input)).toBe("https://bobaksranking.com/api/auth/google/exchange");
+      expect(String(input)).toBe("/api/auth/google/exchange");
       expect(new Headers(init.headers).get("content-type")).toBe("application/json");
       receivedBody = String(init.body);
       return new Response(JSON.stringify({
