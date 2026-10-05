@@ -24,7 +24,7 @@ function session(expiresAt = Math.floor(Date.now() / 1000) + 3600) {
 }
 
 describe("account auth client", () => {
-  it("builds a Google OAuth authorization URL with PKCE and Bobaks callback state", async () => {
+  it("builds a Google OAuth authorization URL with PKCE and a fixed callback", async () => {
     const values = new Map<string, string>();
     const sessionStorage = {
       getItem: (key: string) => values.get(key) ?? null,
@@ -55,21 +55,18 @@ describe("account auth client", () => {
       const url = await client.signInWithGoogle();
       const parsed = new URL(url);
       expect(parsed.searchParams.get("provider")).toBe("google");
-      expect(parsed.searchParams.get("redirect_to")).toContain(
-        "https://bobaksranking.com/account/google-callback?bobaks_state=",
+      expect(parsed.searchParams.get("redirect_to")).toBe(
+        "https://bobaksranking.com/account/google-callback",
       );
       expect(parsed.searchParams.get("code_challenge_method")).toBe("S256");
       expect(parsed.searchParams.get("code_challenge")).toMatch(/^[A-Za-z0-9_-]{43}$/);
       expect(parsed.searchParams.get("state")).toBeNull();
 
-      const callbackRedirect = new URL(parsed.searchParams.get("redirect_to")!);
-      const callbackState = callbackRedirect.searchParams.get("bobaks_state");
-      expect(callbackState).toMatch(/^[A-Za-z0-9_-]{32}$/);
       expect(assigned[0]).toBe(url);
 
       const stored = JSON.parse(values.get("bobaks.auth.google.oauth.v1") ?? "{}");
       expect(stored.provider).toBe("google");
-      expect(stored.state).toBe(callbackState);
+      expect(stored.state).toBeUndefined();
       expect(stored.codeVerifier).toMatch(/^[A-Za-z0-9_-]{43}$/);
     } finally {
       if (originalWindow === undefined) delete (globalThis as { window?: unknown }).window;
@@ -87,10 +84,9 @@ describe("account auth client", () => {
     };
     values.set("bobaks.auth.google.oauth.v1", JSON.stringify({
       provider: "google",
-      state: "expected-state",
       codeVerifier: "verifier",
       createdAt: Date.now(),
-      redirectTo: "https://bobaksranking.com/account/google-callback?bobaks_state=expected-state",
+      redirectTo: "https://bobaksranking.com/account/google-callback",
     }));
     const originalWindow = (globalThis as { window?: unknown }).window;
     Object.defineProperty(globalThis, "window", {
@@ -116,7 +112,7 @@ describe("account auth client", () => {
         supabaseUrl: "https://supabase.example",
         publishableKey: "sb_publishable_test",
       });
-      await expect(client.exchangeGoogleAuthCode("auth-code", "wrong-state")).rejects.toThrow(/state validation failed/i);
+      await expect(client.exchangeGoogleAuthCode("auth-code")).rejects.toThrow(/Google sign-in session is missing/i);
       expect(fetchCalled).toBe(false);
     } finally {
       globalThis.fetch = originalFetch;
@@ -134,10 +130,9 @@ describe("account auth client", () => {
     };
     values.set("bobaks.auth.google.oauth.v1", JSON.stringify({
       provider: "google",
-      state: "state-1",
       codeVerifier: "verifier-1",
       createdAt: Date.now(),
-      redirectTo: "https://bobaksranking.com/account/google-callback?bobaks_state=state-1",
+      redirectTo: "https://bobaksranking.com/account/google-callback",
     }));
     const originalWindow = (globalThis as { window?: unknown }).window;
     Object.defineProperty(globalThis, "window", {
@@ -171,7 +166,7 @@ describe("account auth client", () => {
         publishableKey: "sb_publishable_test",
         storage: storage(),
       });
-      const result = await client.exchangeGoogleAuthCode("auth-code", "state-1");
+      const result = await client.exchangeGoogleAuthCode("auth-code");
       expect(result.user.id).toBe("google-user");
       expect(receivedBody).toContain("auth-code");
       expect(receivedBody).toContain("verifier-1");
