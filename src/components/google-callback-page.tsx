@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, LoaderCircle, ShieldAlert } from "lucide-react";
 
@@ -13,6 +13,7 @@ export function GoogleCallbackPage() {
   const { client, loading, refreshAccount } = useAuth();
   const [message, setMessage] = useState("Finishing Google sign-in...");
   const [error, setError] = useState("");
+  const exchangeStarted = useRef(false);
 
   useEffect(() => {
     if (loading) return;
@@ -28,6 +29,9 @@ export function GoogleCallbackPage() {
       setError("The Google callback is missing its authorization code.");
       return;
     }
+
+    if (exchangeStarted.current) return;
+    exchangeStarted.current = true;
 
     let cancelled = false;
     void client.exchangeGoogleAuthCode(code)
