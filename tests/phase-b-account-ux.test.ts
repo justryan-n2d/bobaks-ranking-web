@@ -35,6 +35,6 @@ describe("Phase B account UX", () => {
     expect(callback).toContain('status, setStatus');
     expect(callback).toContain("Sign-in could not be completed");
     expect(callback).toContain("Try again");
-    expect(callback).toContain("role={status === "working" ? "status" : "alert"}");
+    expect(callback).toContain('role={status === "working" ? "status" : "alert"}');
   });
 });
