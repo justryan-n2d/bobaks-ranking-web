@@ -20,7 +20,7 @@ function formatDate(value?: string | null) {
 }
 
 function AuthForm() {
-  const { signIn, signUp, loading } = useAuth();
+  const { signIn, signUp, loading, client } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,6 +28,8 @@ function AuthForm() {
   const [error, setError] = useState("");
   const [confirmation, setConfirmation] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [resendBusy, setResendBusy] = useState(false);
+  const [resendMessage, setResendMessage] = useState("");
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -59,9 +61,30 @@ function AuthForm() {
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
           Bobaks sent a confirmation link to <strong>{email}</strong>. Confirm it, then come back and log in.
         </p>
-        <Button className="mt-5" variant="outline" onClick={() => { setConfirmation(false); setMode("signin"); }}>
-          Back to log in
-        </Button>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => { setConfirmation(false); setMode("signin"); }}>
+            Back to log in
+          </Button>
+          <Button
+            variant="outline"
+            disabled={resendBusy}
+            onClick={async () => {
+              setResendBusy(true);
+              setResendMessage("");
+              try {
+                await client.resendConfirmation(email);
+                setResendMessage("A new confirmation email was sent.");
+              } catch (cause) {
+                setResendMessage(cause instanceof Error ? cause.message : "Could not resend the confirmation email.");
+              } finally {
+                setResendBusy(false);
+              }
+            }}
+          >
+            {resendBusy ? "Sending..." : "Resend confirmation"}
+          </Button>
+        </div>
+        {resendMessage ? <p role="status" className="mt-3 text-xs text-muted-foreground">{resendMessage}</p> : null}
       </Card>
     );
   }
@@ -98,8 +121,9 @@ function AuthForm() {
         </label>
         <label className="block">
           <span className="text-sm font-semibold">Password</span>
-          <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" required minLength={6} autoComplete={mode === "signin" ? "current-password" : "new-password"} className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+          <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" required minLength={8} autoComplete={mode === "signin" ? "current-password" : "new-password"} className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
         </label>
+        {mode === "signin" ? <Link href="/account/reset-password" className="block text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline">Forgot password?</Link> : null}
         {error ? <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">{error}</div> : null}
         <Button type="submit" className="w-full" disabled={loading || busy}>
           {busy ? "Working..." : mode === "signin" ? "Log in" : "Create account"}
