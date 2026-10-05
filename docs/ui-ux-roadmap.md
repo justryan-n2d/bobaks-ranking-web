@@ -1,7 +1,7 @@
 # Bobaks Ranking Web UI/UX Roadmap
 
 **Updated:** 2026-10-06  
-**Status:** Phase A ready for merge; Phase B QA-passed; Phase C QA-passed; Phase D implemented on feature branch; QA pending
+**Status:** Phase A ready for merge; Phase B QA-passed; Phase C QA-passed; Phase D CI/Cloudflare QA-passed; manual preview review pending
 
 ## Locked brand decisions
 
@@ -43,5 +43,5 @@
 - [x] Accessibility pass.
 - [x] Loading, error, and empty-state pass.
 - [x] Visual consistency pass.
-- [ ] Cloudflare Preview QA.
+- [x] Cloudflare Preview QA.
 - [ ] Production verification before merge.
