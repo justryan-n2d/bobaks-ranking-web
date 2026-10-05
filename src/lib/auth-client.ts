@@ -148,6 +148,30 @@ function email(value: string): string {
   return normalized;
 }
 
+async function send(
+  baseUrl: string,
+  key: string,
+  path: string,
+  init: RequestInit = {},
+  accessToken?: string,
+) {
+  const headers = new Headers(init.headers);
+  headers.set("apikey", key);
+  headers.set("accept", "application/json");
+  if (accessToken) headers.set("authorization", "Bearer " + accessToken);
+  if (init.body !== undefined && !headers.has("content-type")) {
+    headers.set("content-type", "application/json");
+  }
+
+  const response = await fetch(path.startsWith("http") ? path : baseUrl + path, {
+    ...init,
+    headers,
+  });
+  const payload = await readBody(response);
+  if (!response.ok) throw requestError(response, payload);
+  return { response, payload };
+}
+
 export function createAuthClient({
   supabaseUrl,
   publishableKey,
