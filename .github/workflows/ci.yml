@@ -27,6 +27,9 @@ jobs:
       - name: Build
         run: npm run build
       - name: Build Cloudflare preview
+        env:
+          BOBAKS_DEPLOYMENT_ENV: preview
+          BOBAKS_UI_DEMO_MODE: "true"
         run: npm run build:vinext
 
       - name: Install Playwright Chromium
