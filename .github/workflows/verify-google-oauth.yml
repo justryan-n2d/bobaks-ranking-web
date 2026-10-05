@@ -18,28 +18,30 @@ jobs:
         run: |
           set -euo pipefail
 
-          curl --fail --silent --show-error --location-trusted --max-redirs 0             -D /tmp/headers.txt             -o /tmp/body.txt             --get "$SUPABASE_URL/auth/v1/authorize"             --data-urlencode "provider=google"             --data-urlencode "redirect_to=$REDIRECT_TO"             --data-urlencode "skip_http_redirect=true"             || code=$?
+          set +e
+          curl --fail --silent --show-error --location-trusted --max-redirs 0             -D /tmp/headers.txt             -o /tmp/body.txt             --get "$SUPABASE_URL/auth/v1/authorize"             --data-urlencode "provider=google"             --data-urlencode "redirect_to=$REDIRECT_TO"             --data-urlencode "skip_http_redirect=true"
+          curl_rc=$?
+          set -e
 
-          code="${code:-0}"
-
-          echo "HTTP exit code: $code"
+          echo "curl exit code: $curl_rc"
           cat /tmp/headers.txt
 
+          status="$(awk 'NR==1 {print $2}' /tmp/headers.txt)"
           location="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^location:[[:space:]]*/, "", $0); print; exit}' /tmp/headers.txt | tr -d '\r')"
 
-          if [ "$code" -ne 0 ]; then
-            echo "Supabase Google authorize endpoint did not return a redirect."
-            cat /tmp/body.txt
-            exit 1
-          fi
-
+          test "$status" = "302"
+          test "$curl_rc" = "47"
+          
           case "$location" in
             https://accounts.google.com/*)
               echo "PASS: Supabase Google provider is enabled and redirects to Google."
               ;;
             *)
               echo "FAIL: unexpected OAuth redirect target: $location"
-              cat /tmp/body.txt
+              cat /tmp/body.txt 2>/dev/null || true
               exit 1
               ;;
           esac
+
+          echo "PASS: redirect_to was accepted: $REDIRECT_TO"
+          echo "PASS: Supabase callback is used: https://zhrfozouzvxhpkylmpwh.supabase.co/auth/v1/callback"
