@@ -34,6 +34,14 @@ jobs:
         run: |
           set -o pipefail
           npm test 2>&1 | tee /tmp/ci-test.log
+      - name: Upload test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-test-log
+          path: /tmp/ci-test.log
+          if-no-files-found: ignore
+
       - name: Build
         run: |
           set -o pipefail
@@ -42,6 +50,14 @@ jobs:
         run: |
           set -o pipefail
           BOBAKS_DEPLOYMENT_ENV=preview BOBAKS_UI_DEMO_MODE="true" npm run build:vinext 2>&1 | tee /tmp/ci-vinext-build.log
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-build-log
+          path: /tmp/ci-build.log
+          if-no-files-found: ignore
 
       - name: Report CI failure
         if: failure()
