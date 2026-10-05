@@ -83,6 +83,11 @@ jobs:
           npx --yes playwright screenshot --browser=chromium --viewport-size="1440,900" --wait-for-timeout=1000 "$PREVIEW_URL/game/demo-001" preview-game.png
           npx --yes playwright screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2000 "$PREVIEW_URL/" preview-home-mobile.png
 
+      - name: Verify Cloudflare Phase 6.7 preview in Chromium
+        env:
+          PREVIEW_URL: https://feat-phase-6-7-accounts-identity-20261005-bobaks-ranking-web.ryan-oledan0.workers.dev
+        run: npx --yes playwright test tests/phase-6-7-preview.spec.ts --project=chromium
+
       - name: Stop browser test server
         if: always()
         run: |
