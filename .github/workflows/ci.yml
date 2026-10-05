@@ -13,46 +13,91 @@ permissions:
   contents: read
 
 jobs:
-  runner-smoke:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Runner smoke
-        run: |
-          set -euxo pipefail
-          echo "runner-ok"
-          node --version
-          npm --version
-
-  checkout:
-    runs-on: ubuntu-22.04
+  verify:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-
-  node-setup:
-    runs-on: ubuntu-22.04
-    steps:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: 22
-
-  npm-global:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
-      - name: Upgrade npm
+      - name: Use npm 11
         run: npm install --global npm@11
-
-  dependencies:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
-      - run: npm install --global npm@11
-      - name: Install dependencies
+      - name: Install
         run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Test
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Build Cloudflare preview
+        env:
+          BOBAKS_DEPLOYMENT_ENV: preview
+          BOBAKS_UI_DEMO_MODE: "true"
+        run: npm run build:vinext
+
+      - name: Install Playwright Chromium
+        run: npx --yes playwright install --with-deps chromium
+
+      - name: Start browser test server
+        env:
+          BOBAKS_DEPLOYMENT_ENV: preview
+          BOBAKS_UI_DEMO_MODE: "true"
+        run: |
+          npm run start:vinext -- --host 127.0.0.1 --port 4173 > /tmp/bobaks-vinext.log 2>&1 &
+          echo $! > /tmp/bobaks-vinext.pid
+
+          ready=0
+          for i in $(seq 1 36); do
+            if curl --fail --silent --show-error http://127.0.0.1:4173/ > /tmp/home.html; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            cat /tmp/bobaks-vinext.log
+            echo "Local browser test server did not become reachable."
+            exit 1
+          fi
+
+      - name: Inspect current branch browser build
+        env:
+          PREVIEW_URL: http://127.0.0.1:4173
+        run: |
+          set -e
+
+          for path in / /rankings/live /game/demo-001; do
+            code="$(curl --silent --output /tmp/route.html --write-out '%{http_code}' "$PREVIEW_URL$path")"
+            test "$code" = "200"
+            test -s /tmp/route.html
+          done
+
+          grep -q "See what gamers are playing right now." /tmp/home.html
+          curl --fail --silent --show-error "$PREVIEW_URL/api/rankings/live" > /tmp/live-api.json
+          grep -q '"data"' /tmp/live-api.json
+
+          npx --yes playwright screenshot --browser=chromium --viewport-size="1440,900" --wait-for-timeout=2000 "$PREVIEW_URL/" preview-home.png
+          npx --yes playwright screenshot --browser=chromium --viewport-size="1440,900" --wait-for-timeout=2000 "$PREVIEW_URL/rankings/live" preview-live.png
+          npx --yes playwright screenshot --browser=chromium --viewport-size="1440,900" --wait-for-timeout=1000 "$PREVIEW_URL/game/demo-001" preview-game.png
+          npx --yes playwright screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2000 "$PREVIEW_URL/" preview-home-mobile.png
+
+      - name: Stop browser test server
+        if: always()
+        run: |
+          if [ -f /tmp/bobaks-vinext.pid ]; then
+            kill "$(cat /tmp/bobaks-vinext.pid)" 2>/dev/null || true
+          fi
+
+      - name: Upload browser evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-evidence
+          path: |
+            preview-home.png
+            preview-live.png
+            preview-game.png
+            preview-home-mobile.png
+          retention-days: 7
