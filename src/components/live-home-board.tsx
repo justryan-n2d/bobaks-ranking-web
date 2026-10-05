@@ -158,10 +158,10 @@ function HighlightCard({
 }
 
 export function LiveHomeBoard({
-  initialGames,
-  initialUpdatedAt,
+  initialGames = [],
+  initialUpdatedAt = null,
 }: {
-  initialGames: RankingGame[];
+  initialGames?: RankingGame[];
   initialUpdatedAt?: string | null;
 }) {
   const [games, setGames] = useState(initialGames);
@@ -215,6 +215,7 @@ export function LiveHomeBoard({
       }, REFRESH_INTERVAL_MS);
     };
 
+    void sync();
     schedule();
 
     const visibility = () => {
