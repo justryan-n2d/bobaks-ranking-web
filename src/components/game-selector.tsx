@@ -46,11 +46,11 @@ export function GameSelector({ label, value, excludeId, onChange }: GameSelector
             cache: "no-store",
             headers: { accept: "application/json" },
             signal: controller.signal,
-          }),
+          }).catch(() => null),
         ]);
         if (!searchResponse.ok) throw new Error("Search failed");
         const payload = (await searchResponse.json()) as { data?: SearchGame[] };
-        if (liveResponse.ok) {
+        if (liveResponse?.ok) {
           const livePayload = (await liveResponse.json()) as RankingResponse;
           setLiveByGameId(
             new Map(
