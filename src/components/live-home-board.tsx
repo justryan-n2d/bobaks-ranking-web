@@ -211,6 +211,9 @@ export function LiveHomeBoard({
       window.setTimeout(() => setChangedIds([]), 1_500);
     } catch {
       setError(true);
+      const retryAt = Date.now() + 30_000;
+      nextRefreshRef.current = retryAt;
+      setNextRefreshAt(retryAt);
     } finally {
       refreshInFlight.current = false;
       setRefreshing(false);
