@@ -2,7 +2,7 @@
 
 import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BarChart3,
   Bookmark,
@@ -19,6 +19,8 @@ import {
 import { NAV_ITEMS, type NavItem } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/account-provider";
+import { BobaksBrand } from "@/components/bobaks-brand";
+import { SiteFooter } from "@/components/site-footer";
 
 const ICONS = {
   home: Home,
@@ -75,13 +77,10 @@ function SidebarContent({ close }: { close: () => void }) {
   return (
     <>
       <div className="flex items-center justify-between px-2 pb-5 pt-2">
-        <Link href="/" onClick={close}>
-          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground"><span className="bobaks-live-dot" aria-hidden="true" />Bobaks</div>
-          <div className="text-xl font-black tracking-tight">Ranking</div>
-        </Link>
+        <BobaksBrand close={close} />
         <button
           type="button"
-          className="inline-flex size-10 items-center justify-center rounded-xl hover:bg-accent md:hidden"
+          className="inline-flex size-10 items-center justify-center rounded-xl hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
           onClick={close}
           aria-label="Close navigation"
         >
@@ -100,11 +99,11 @@ function SidebarContent({ close }: { close: () => void }) {
           </div>
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold">
-                {loading ? "Account" : user ? (profile?.display_name || user.email || "Your account") : "Guest"}
-              </div>
-              <div className="truncate text-xs text-muted-foreground">
-                {loading ? "Loading..." : user ? "Signed in · save across devices" : "Sign in to save across devices"}
-              </div>
+              {loading ? "Account" : user ? (profile?.display_name || user.email || "Your account") : "Guest"}
+            </div>
+            <div className="truncate text-xs text-muted-foreground">
+              {loading ? "Loading..." : user ? "Signed in · save across devices" : "Sign in to save across devices"}
+            </div>
           </div>
           <LinkPendingIndicator />
         </div>
@@ -138,19 +137,50 @@ export function SiteShell({
   demoMode: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const drawerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!open) {
       document.body.style.overflow = "";
+      menuButtonRef.current?.focus();
       return;
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") close();
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+        return;
+      }
+
+      if (event.key === "Tab" && drawerRef.current) {
+        const focusable = Array.from(
+          drawerRef.current.querySelectorAll<HTMLElement>(
+            'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          ),
+        );
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
     };
 
     document.body.style.overflow = "hidden";
     document.addEventListener("keydown", onKeyDown);
+    window.requestAnimationFrame(() => {
+      drawerRef.current?.querySelector<HTMLElement>(
+        'button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )?.focus();
+    });
 
     return () => {
       document.body.style.overflow = "";
@@ -158,12 +188,21 @@ export function SiteShell({
     };
   }, [open]);
 
-  const openSidebar = () => setOpen(true);
+  const openSidebar = () => {
+    menuButtonRef.current = document.activeElement as HTMLButtonElement | null;
+    setOpen(true);
+  };
 
   const close = () => setOpen(false);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-background text-foreground">
+      <a
+        href="#main-content"
+        className="fixed left-3 top-3 z-[200] -translate-y-24 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background shadow-xl transition-transform focus:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        Skip to content
+      </a>
       <div className="fixed inset-x-0 top-0 z-40 flex h-14 items-center border-b border-border bg-background/95 px-4 backdrop-blur md:hidden">
         <button
           type="button"
@@ -175,9 +214,7 @@ export function SiteShell({
         >
           <Menu className="size-5" aria-hidden="true" />
         </button>
-        <Link href="/" className="ml-2 text-sm font-bold tracking-tight">
-          Bobaks Ranking
-        </Link>
+        <BobaksBrand compact close={() => undefined} />
       </div>
 
       {open ? (
@@ -190,7 +227,9 @@ export function SiteShell({
           />
 
           <aside
+            ref={drawerRef}
             id="mobile-navigation"
+            role="dialog"
             aria-label="Mobile navigation"
             aria-modal="true"
             className="absolute inset-y-0 left-0 z-10 flex w-72 max-w-[85vw] flex-col border-r border-white/20 bg-card/75 p-4 shadow-2xl backdrop-blur-2xl saturate-150 bobaks-drawer-enter"
@@ -204,17 +243,21 @@ export function SiteShell({
         <SidebarContent close={close} />
       </aside>
 
-      <main className="min-h-screen md:pl-64">
-        <div className="mx-auto w-full max-w-7xl px-4 pb-16 pt-20 sm:px-6 md:px-8 md:pt-10">
-          {demoMode ? (
-            <div
-              role="status"
-              className="mb-6 rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-sm dark:border-amber-400/40 dark:bg-amber-950/30 dark:text-amber-100"
-            >
-              <strong>Preview demo mode:</strong> this branch is using isolated sample data for QA. Production data is not being modified.
-            </div>
-          ) : null}
-          {children}
+      <main id="main-content" tabIndex={-1} className="flex min-h-screen min-w-0 flex-1 flex-col outline-none md:pl-64">
+        <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 pb-8 pt-20 sm:px-6 md:px-8 md:pt-10">
+          <div className="flex-1">
+            {demoMode ? (
+              <div
+                role="status"
+                className="mb-6 rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-sm dark:border-amber-400/40 dark:bg-amber-950/30 dark:text-amber-100"
+              >
+                <strong>Preview demo mode:</strong> this branch is using isolated sample data for QA. Production data is not being modified.
+              </div>
+            ) : null}
+            {children}
+          </div>
+
+          <SiteFooter />
         </div>
       </main>
     </div>

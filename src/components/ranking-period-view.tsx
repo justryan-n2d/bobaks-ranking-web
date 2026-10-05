@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 import { RefreshCw } from "lucide-react";
 
 import { RankingTable } from "@/components/ranking-table";
@@ -26,12 +27,30 @@ function LoadingSkeleton() {
   );
 }
 
+function formatAge(value: string | null | undefined, now: number) {
+  if (!value) return "Freshness unavailable";
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) return "Freshness unavailable";
+  const seconds = Math.max(0, Math.floor((now - parsed) / 1000));
+  if (seconds < 5) return "just now";
+  if (seconds < 60) return seconds + "s ago";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return minutes + "m ago";
+  return Math.floor(minutes / 60) + "h ago";
+}
+
 export function RankingPeriodView({ period, scoreLabel }: { period: RankingPeriod; scoreLabel: string }) {
   const [response, setResponse] = useState<RankingResponse | null>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(Date.now());
+  const [nextRefreshAt, setNextRefreshAt] = useState<number | null>(null);
+  const inFlight = useRef(false);
+  const nextRefreshRef = useRef<number | null>(null);
 
   const load = useCallback(async () => {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setLoading(true);
     setError(false);
     try {
@@ -43,16 +62,59 @@ export function RankingPeriodView({ period, scoreLabel }: { period: RankingPerio
       const payload = (await result.json()) as RankingResponse;
       if (!Array.isArray(payload.data)) throw new Error("invalid ranking payload");
       setResponse(payload);
+
+      if (period === "live") {
+        const intervalMs = Math.max(5_000, Number(payload.refreshIntervalSeconds ?? 30) * 1_000);
+        const parsedNext = payload.nextRefreshAt ? Date.parse(payload.nextRefreshAt) : Number.NaN;
+        const next = Number.isFinite(parsedNext) && parsedNext > Date.now()
+          ? parsedNext
+          : Date.now() + intervalMs;
+        nextRefreshRef.current = next;
+        setNextRefreshAt(next);
+      }
     } catch {
       setError(true);
+      if (period === "live") {
+        const retryAt = Date.now() + 30_000;
+        nextRefreshRef.current = retryAt;
+        setNextRefreshAt(retryAt);
+      }
     } finally {
+      inFlight.current = false;
       setLoading(false);
     }
   }, [period]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
 
-  if (loading) return <LoadingSkeleton />;
+    if (period !== "live") return;
+
+    const clock = window.setInterval(() => {
+      const current = Date.now();
+      setNow(current);
+      if (
+        document.visibilityState === "visible" &&
+        !inFlight.current &&
+        nextRefreshRef.current !== null &&
+        current >= nextRefreshRef.current
+      ) {
+        void load();
+      }
+    }, 1_000);
+
+    const visibility = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    document.addEventListener("visibilitychange", visibility);
+
+    return () => {
+      window.clearInterval(clock);
+      document.removeEventListener("visibilitychange", visibility);
+    };
+  }, [load, period]);
+
+  if (loading && !response) return <LoadingSkeleton />;
 
   if (error || !response) {
     return (
@@ -67,5 +129,32 @@ export function RankingPeriodView({ period, scoreLabel }: { period: RankingPerio
     );
   }
 
-  return <RankingTable games={response.data.slice(0, 100)} scoreLabel={scoreLabel} />;
+  return (
+    <div className="space-y-3">
+      {response.updatedAt || period === "live" ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="font-semibold text-foreground">
+              {period === "live" ? "Live ranking" : response.period ? String(response.period) : scoreLabel}
+            </span>
+            {response.updatedAt ? <span>Updated {formatAge(response.updatedAt, now)}</span> : null}
+            {period === "live" && nextRefreshAt !== null ? (
+              <span>Next refresh in {Math.max(0, Math.ceil((nextRefreshAt - now) / 1000))}s</span>
+            ) : null}
+            {error ? <span className="font-semibold text-[color:var(--signal-drop)]">Refresh failed, showing last good data</span> : null}
+          </div>
+          <button
+            type="button"
+            onClick={() => void load()}
+            disabled={loading}
+            className={cn("inline-flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 font-semibold text-foreground hover:bg-accent disabled:opacity-60")}
+          >
+            <RefreshCw className={cn("size-3.5", loading && "animate-spin")} aria-hidden="true" />
+            Refresh
+          </button>
+        </div>
+      ) : null}
+      <RankingTable games={response.data.slice(0, 100)} scoreLabel={scoreLabel} />
+    </div>
+  );
 }

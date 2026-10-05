@@ -78,6 +78,16 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="option"]:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
 .bobaks-hero {
   position: relative;
   overflow: hidden;
@@ -311,6 +321,16 @@ a {
   50% {
     box-shadow: 0 0 0 5px color-mix(in srgb, var(--signal-live) 0%, transparent);
   }
+}
+
+.bobaks-status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 10%, transparent);
+  animation: bobaks-live-pulse 1.9s infinite;
 }
 
 .bobaks-nav-pending {

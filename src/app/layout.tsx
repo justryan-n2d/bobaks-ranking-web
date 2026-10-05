@@ -11,6 +11,9 @@ export const metadata: Metadata = {
     template: "%s | Bobaks Ranking",
   },
   description: "Live rankings and historical trends for Roblox experiences.",
+  icons: {
+    icon: "/icon.svg",
+  },
   robots: {
     index: true,
     follow: true,

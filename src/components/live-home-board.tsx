@@ -8,8 +8,6 @@ import type { RankingGame, RankingResponse } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-const REFRESH_INTERVAL_MS = 30_000;
-
 function formatNumber(value: number) {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.max(0, value));
 }
@@ -170,10 +168,14 @@ export function LiveHomeBoard({
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(false);
   const [changedIds, setChangedIds] = useState<string[]>([]);
+  const [nextRefreshAt, setNextRefreshAt] = useState<number | null>(null);
+  const refreshInFlight = useRef(false);
+  const nextRefreshRef = useRef<number | null>(null);
   const previousScores = useRef(new Map(initialGames.map((game) => [game.gameId, Number(game.score)])));
-  const refreshTimer = useRef<number | null>(null);
 
   const sync = async () => {
+    if (refreshInFlight.current) return;
+    refreshInFlight.current = true;
     setRefreshing(true);
     try {
       const response = await fetch("/api/rankings/live", {
@@ -193,40 +195,57 @@ export function LiveHomeBoard({
       );
       setGames(payload.data);
       setUpdatedAt(payload.updatedAt ?? null);
+      const intervalMs = Math.max(
+        5_000,
+        Number(payload.refreshIntervalSeconds ?? 30) * 1_000,
+      );
+      const payloadNext = payload.nextRefreshAt ? Date.parse(payload.nextRefreshAt) : Number.NaN;
+      const target = Number.isFinite(payloadNext) && payloadNext > Date.now()
+        ? payloadNext
+        : Date.now() + intervalMs;
+      nextRefreshRef.current = target;
+      setNextRefreshAt(target);
       setChangedIds(nextChanged);
       setError(false);
 
       window.setTimeout(() => setChangedIds([]), 1_500);
     } catch {
       setError(true);
+      const retryAt = Date.now() + 30_000;
+      nextRefreshRef.current = retryAt;
+      setNextRefreshAt(retryAt);
     } finally {
+      refreshInFlight.current = false;
       setRefreshing(false);
     }
   };
 
   useEffect(() => {
-    const tick = () => setNow(Date.now());
-    const clock = window.setInterval(tick, 1_000);
-
-    const schedule = () => {
-      refreshTimer.current = window.setTimeout(async () => {
-        if (document.visibilityState === "visible") await sync();
-        schedule();
-      }, REFRESH_INTERVAL_MS);
-    };
-
     void sync();
-    schedule();
+
+    const clock = window.setInterval(() => {
+      const current = Date.now();
+      setNow(current);
+
+      if (
+        document.visibilityState === "visible" &&
+        !refreshInFlight.current &&
+        nextRefreshRef.current !== null &&
+        current >= nextRefreshRef.current
+      ) {
+        void sync();
+      }
+    }, 1_000);
 
     const visibility = () => {
-      if (document.visibilityState === "visible") sync();
+      if (document.visibilityState === "visible") void sync();
     };
+
     document.addEventListener("visibilitychange", visibility);
 
     return () => {
       window.clearInterval(clock);
       document.removeEventListener("visibilitychange", visibility);
-      if (refreshTimer.current !== null) window.clearTimeout(refreshTimer.current);
     };
   }, []);
 
@@ -306,9 +325,16 @@ export function LiveHomeBoard({
         <HighlightCard label="Biggest drop" game={drops} mode="down" />
       </section>
 
-      <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground" aria-live="polite">
-        <Circle className="size-2 fill-current" aria-hidden="true" />
-        {refreshing ? "Updating live rankings..." : "Next check in about 30 seconds"}
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground" aria-live="polite">
+        <span className="inline-flex items-center gap-2">
+          <Circle className="size-2 fill-current" aria-hidden="true" />
+          {refreshing ? "Updating live rankings..." : "Live updates are automatic"}
+        </span>
+        {!refreshing && nextRefreshAt !== null ? (
+          <span className="font-medium">
+            Next refresh in {Math.max(0, Math.ceil((nextRefreshAt - now) / 1000))}s
+          </span>
+        ) : null}
       </div>
     </div>
   );

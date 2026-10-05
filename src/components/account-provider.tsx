@@ -37,7 +37,8 @@ type AuthContextValue = {
   refreshAccount: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<string>;
-  signUp: (email: string, password: string, displayName: string) => Promise<{ needsConfirmation: boolean }>;
+  signUp: (email: string, password: string, displayName: string, acceptCurrentLegal?: boolean) => Promise<{ needsConfirmation: boolean }>;
+  acceptCurrentLegal: () => Promise<void>;
   resetPasswordForEmail: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -175,10 +176,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return client.signInWithGoogle();
   }
 
-  async function signUp(email: string, password: string, displayName: string) {
-    const result = await client.signUp({ email, password, displayName });
+  async function signUp(email: string, password: string, displayName: string, acceptCurrentLegal = false) {
+    const result = await client.signUp({ email, password, displayName, acceptCurrentLegal });
     if (result.session) await refreshAccount();
     return { needsConfirmation: !result.session };
+  }
+
+  async function acceptCurrentLegal() {
+    await client.acceptCurrentLegal();
+    await refreshAccount();
   }
 
   async function resetPasswordForEmail(email: string) {
@@ -260,6 +266,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signInWithGoogle,
     signUp,
+    acceptCurrentLegal,
     resetPasswordForEmail,
     updatePassword,
     signOut,

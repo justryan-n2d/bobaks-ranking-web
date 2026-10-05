@@ -1,0 +1,47 @@
+# Bobaks Ranking Web UI/UX Roadmap
+
+**Updated:** 2026-10-06  
+**Status:** Phase A ready for merge; Phase B QA-passed; Phase C QA-passed; Phase D CI/Cloudflare QA-passed; manual preview review pending
+
+## Locked brand decisions
+
+- Use the full BOBAKS RANKING logo for larger brand surfaces such as the footer and About/trust surfaces.
+- Use the Bobaks B analytics mark for the mobile header, desktop sidebar, favicon, and compact brand placements.
+- Do not use the Roblox logo as Bobaks branding.
+- Keep the existing clean gaming-analytics visual direction. Do not turn the interface into a neon or Roblox-style UI.
+
+## Phase A: Brand + trust
+
+- [x] Create a reusable Bobaks compact brand treatment.
+- [x] Add a site-wide footer with brand, legal links, copyright, and independent-site disclaimer.
+- [x] Add the 2026 Bobaks copyright notice.
+- [x] Publish Terms and Conditions.
+- [x] Publish Privacy Policy.
+- [x] Publish the canonical ranking Methodology.
+- [x] Add Terms/Privacy agreement to email account creation.
+- [x] Persist accepted Terms and Privacy versions server-side.
+- [x] Add a one-time legal acceptance gate for legacy or OAuth-created accounts that have no current consent.
+
+## Phase B: Account UX
+
+- [x] Replace native account-setting checkboxes with accessible switch controls.
+- [x] Simplify nested account-card styling for mobile.
+- [x] Improve login/create-account visual hierarchy.
+- [x] Refine Google authentication states.
+
+## Phase C: Core product UX
+
+- [x] Replace Compare game-ID inputs with searchable game selectors.
+- [x] Add live rank and player count to search results.
+- [x] Improve live freshness and countdown messaging.
+- [x] Refine game-profile metric hierarchy.
+- [x] Verify Recorded Peak and tracking-start wording.
+
+## Phase D: Final polish
+
+- [x] Mobile spacing and navigation pass.
+- [x] Accessibility pass.
+- [x] Loading, error, and empty-state pass.
+- [x] Visual consistency pass.
+- [x] Cloudflare Preview QA.
+- [ ] Production verification before merge.

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Search } from "lucide-react";
 
-import { searchGames } from "@/lib/api";
+import { getRankings, searchGames } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 
 export const metadata = {
@@ -18,10 +18,16 @@ export default async function SearchPage({
   const query = (rawQuery ?? "").trim();
   let results: Awaited<ReturnType<typeof searchGames>> = [];
   let error: string | null = null;
+  let liveByGameId = new Map<string, Awaited<ReturnType<typeof getRankings>>["data"][number]>();
 
   if (query) {
     try {
-      results = await searchGames(query.slice(0, 100));
+      const [searchResult, liveResult] = await Promise.all([
+        searchGames(query.slice(0, 100)),
+        getRankings("live").catch(() => ({ data: [] })),
+      ]);
+      results = searchResult;
+      liveByGameId = new Map(liveResult.data.map((game) => [String(game.gameId), game]));
     } catch (cause) {
       error =
         cause && typeof cause === "object" && "status" in cause && (cause as { status?: number }).status === 400
@@ -52,7 +58,7 @@ export default async function SearchPage({
       {!query ? (
         <Card className="p-8 text-sm text-muted-foreground">Search by game name or creator name. Results come from the Bobaks API.</Card>
       ) : error ? (
-        <Card className="p-8 text-sm text-red-600">{error}</Card>
+        <Card role="alert" className="border-destructive/25 bg-destructive/5 p-8 text-sm text-destructive">{error}</Card>
       ) : (
         <section aria-labelledby="results-heading" className="space-y-3">
           <div className="flex items-end justify-between gap-4">
@@ -65,20 +71,37 @@ export default async function SearchPage({
             <div className="grid gap-3 md:grid-cols-2">
               {results.map((game) => (
                 <Card key={String(game.id)} className="flex h-full items-center gap-4 p-4">
-                  <Link href={`/game/${encodeURIComponent(String(game.id))}`} className="flex min-w-0 flex-1 items-center gap-4">
-                    {game.iconUrl ? (
-                      <img src={game.iconUrl} alt="" width={56} height={56} loading="lazy" decoding="async" className="size-14 shrink-0 rounded-2xl border border-border object-cover" />
-                    ) : (
-                      <div className="size-14 shrink-0 rounded-2xl bg-muted" aria-hidden="true" />
-                    )}
-                    <div className="min-w-0">
-                      <div className="truncate font-semibold hover:underline">{game.name || "Unknown experience"}</div>
-                      <div className="mt-1 truncate text-sm text-muted-foreground">{game.creatorName || "Unknown creator"}</div>
-                    </div>
-                  </Link>
-                  <Link href={`/compare?a=${encodeURIComponent(String(game.id))}`} className="shrink-0 rounded-xl border border-border px-3 py-2 text-xs font-semibold hover:bg-accent">
-                    Compare
-                  </Link>
+                  {(() => {
+                    const live = liveByGameId.get(String(game.id));
+                    return (
+                      <>
+                        <Link href={`/game/${encodeURIComponent(String(game.id))}`} className="flex min-w-0 flex-1 items-center gap-4">
+                          {game.iconUrl ? (
+                            <img src={game.iconUrl} alt="" width={56} height={56} loading="lazy" decoding="async" className="size-14 shrink-0 rounded-2xl border border-border object-cover" />
+                          ) : (
+                            <div className="size-14 shrink-0 rounded-2xl bg-muted" aria-hidden="true" />
+                          )}
+                          <div className="min-w-0">
+                            <div className="truncate font-semibold hover:underline">{game.name || "Unknown experience"}</div>
+                            <div className="mt-1 truncate text-sm text-muted-foreground">{game.creatorName || "Unknown creator"}</div>
+                            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                              {live ? (
+                                <>
+                                  <span className="font-bold tabular-nums">{new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.max(0, Number(live.score) || 0))} players</span>
+                                  <span className="text-muted-foreground">Live #{live.rank}</span>
+                                </>
+                              ) : (
+                                <span className="text-muted-foreground">Live ranking unavailable</span>
+                              )}
+                            </div>
+                          </div>
+                        </Link>
+                        <Link href={`/compare?a=${encodeURIComponent(String(game.id))}`} className="shrink-0 rounded-xl border border-border px-3 py-2 text-xs font-semibold hover:bg-accent">
+                          Compare
+                        </Link>
+                      </>
+                    );
+                  })()}
                 </Card>
               ))}
             </div>

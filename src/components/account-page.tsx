@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Check, ExternalLink, Link2, LogIn, LogOut, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeft, Check, ExternalLink, FileText, Link2, LogIn, LogOut, ShieldCheck, UserRound } from "lucide-react";
 
 import { useAuth } from "@/components/account-provider";
 import { getGame, type GameProfile } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { LEGAL_VERSIONS } from "@/lib/legal";
+import { cn } from "@/lib/utils";
 
 function formatDate(value?: string | null) {
   if (!value) return "Not available";
@@ -31,18 +34,31 @@ function AuthForm() {
   const [googleBusy, setGoogleBusy] = useState(false);
   const [resendBusy, setResendBusy] = useState(false);
   const [resendMessage, setResendMessage] = useState("");
+  const [legalAccepted, setLegalAccepted] = useState(false);
+
+  function changeMode(nextMode: "signin" | "signup") {
+    setMode(nextMode);
+    setError("");
+    setResendMessage("");
+  }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy) return;
+    if (busy || googleBusy) return;
+
     setBusy(true);
     setError("");
     setConfirmation(false);
+
     try {
       if (mode === "signin") {
         await signIn(email, password);
       } else {
-        const result = await signUp(email, password, displayName);
+        if (!legalAccepted) {
+          setError("Please agree to the Terms and Conditions and Privacy Policy to create your account.");
+          return;
+        }
+        const result = await signUp(email, password, displayName, true);
         if (result.needsConfirmation) setConfirmation(true);
       }
     } catch (cause) {
@@ -52,23 +68,46 @@ function AuthForm() {
     }
   }
 
+  async function continueWithGoogle() {
+    if (busy || googleBusy) return;
+    if (mode === "signup" && !legalAccepted) {
+      setError("Please agree to the Terms and Conditions and Privacy Policy to create your account.");
+      return;
+    }
+
+    setGoogleBusy(true);
+    setError("");
+
+    try {
+      await signInWithGoogle();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Google sign-in could not be started.");
+      setGoogleBusy(false);
+    }
+  }
+
   if (confirmation) {
     return (
-      <Card className="mx-auto max-w-lg p-6 sm:p-8">
-        <div className="flex size-12 items-center justify-center rounded-2xl bg-muted">
+      <Card className="mx-auto w-full max-w-lg p-6 sm:p-8">
+        <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
           <Check className="size-5" aria-hidden="true" />
         </div>
-        <h2 className="mt-5 text-xl font-black">Check your email</h2>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Bobaks sent a confirmation link to <strong>{email}</strong>. Confirm it, then come back and log in.
-        </p>
-        <div className="mt-5 flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => { setConfirmation(false); setMode("signin"); }}>
+        <div className="mt-5">
+          <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Almost there</div>
+          <h2 className="mt-1 text-2xl font-black tracking-tight">Check your email</h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Bobaks sent a confirmation link to <strong>{email}</strong>. Confirm it, then return to Bobaks and log in.
+          </p>
+        </div>
+        <div className="mt-6 grid gap-2 sm:flex">
+          <Button className="sm:flex-1" onClick={() => changeMode("signin")}>
             Back to log in
           </Button>
           <Button
             variant="outline"
+            className="sm:flex-1"
             disabled={resendBusy}
+            aria-busy={resendBusy}
             onClick={async () => {
               setResendBusy(true);
               setResendMessage("");
@@ -85,81 +124,163 @@ function AuthForm() {
             {resendBusy ? "Sending..." : "Resend confirmation"}
           </Button>
         </div>
-        {resendMessage ? <p role="status" className="mt-3 text-xs text-muted-foreground">{resendMessage}</p> : null}
+        {resendMessage ? <p role="status" className="mt-3 text-xs leading-5 text-muted-foreground">{resendMessage}</p> : null}
       </Card>
     );
   }
 
+  const isSignUp = mode === "signup";
+
   return (
-    <Card className="mx-auto max-w-lg p-6 sm:p-8">
-      <div className="flex items-center gap-3">
-        <div className="flex size-11 items-center justify-center rounded-2xl bg-muted">
-          {mode === "signin" ? <LogIn className="size-5" aria-hidden="true" /> : <UserRound className="size-5" aria-hidden="true" />}
-        </div>
+    <Card className="mx-auto w-full max-w-lg overflow-hidden">
+      <div className="p-5 sm:p-8">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            {mode === "signin" ? "Welcome back" : "New account"}
+          <div className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            {isSignUp ? "New account" : "Welcome back"}
           </div>
-          <h2 className="text-xl font-black">{mode === "signin" ? "Log in to Bobaks" : "Create your Bobaks account"}</h2>
+          <h2 className="mt-1 text-2xl font-black tracking-tight">
+            {isSignUp ? "Create your Bobaks account" : "Log in to Bobaks"}
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            {isSignUp
+              ? "Save games, alerts, comparisons, and account preferences across devices."
+              : "Access your saved games, alerts, comparisons, and preferences."}
+          </p>
         </div>
-      </div>
 
-      <div className="mt-5 flex rounded-xl bg-muted p-1">
-        <button type="button" className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${mode === "signin" ? "bg-background shadow-sm" : "text-muted-foreground"}`} onClick={() => setMode("signin")}>Log in</button>
-        <button type="button" className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${mode === "signup" ? "bg-background shadow-sm" : "text-muted-foreground"}`} onClick={() => setMode("signup")}>Create account</button>
-      </div>
+        <div
+          className="mt-6 grid grid-cols-2 rounded-xl border border-border bg-muted/60 p-1"
+          aria-label="Account access mode"
+        >
+          <button
+            type="button"
+            aria-pressed={!isSignUp}
+            className={cn(
+              "min-h-10 rounded-lg px-3 text-sm font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+              !isSignUp ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+            )}
+            onClick={() => changeMode("signin")}
+          >
+            Log in
+          </button>
+          <button
+            type="button"
+            aria-pressed={isSignUp}
+            className={cn(
+              "min-h-10 rounded-lg px-3 text-sm font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+              isSignUp ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+            )}
+            onClick={() => changeMode("signup")}
+          >
+            Create account
+          </button>
+        </div>
 
-      <button
-        type="button"
-        className="mt-5 flex h-11 w-full items-center justify-center gap-3 rounded-xl border border-border bg-background px-4 text-sm font-semibold transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-        disabled={loading || busy || googleBusy}
-        onClick={async () => {
-          if (busy || googleBusy) return;
-          setGoogleBusy(true);
-          setError("");
-          try {
-            await signInWithGoogle();
-          } catch (cause) {
-            setError(cause instanceof Error ? cause.message : "Google sign-in could not be started.");
-            setGoogleBusy(false);
-          }
-        }}
-      >
-        <span className="flex size-7 items-center justify-center rounded-full border border-border bg-background text-sm font-black" aria-hidden="true">G</span>
-        {googleBusy ? "Opening Google..." : "Continue with Google"}
-      </button>
+        <div className="mt-5">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-12 w-full justify-center border-border bg-background"
+            disabled={loading || busy || googleBusy}
+            aria-busy={googleBusy}
+            onClick={() => void continueWithGoogle()}
+          >
+            <span className="flex size-7 items-center justify-center" aria-hidden="true">
+              <svg viewBox="0 0 24 24" className="size-6" focusable="false">
+                <path fill="#4285F4" d="M21.35 12.25c0-.71-.06-1.4-.18-2.05H12v3.89h5.22a4.46 4.46 0 0 1-1.93 2.93v2.43h3.12c1.83-1.69 2.94-4.18 2.94-7.2z" />
+                <path fill="#34A853" d="M12 21.9c2.62 0 4.82-.87 6.42-2.36l-3.12-2.43c-.87.58-1.98.92-3.3.92-2.53 0-4.68-1.71-5.45-4.01H3.33v2.51A9.7 9.7 0 0 0 12 21.9z" />
+                <path fill="#FBBC05" d="M6.55 14.02A5.84 5.84 0 0 1 6.25 12c0-.7.12-1.38.3-2.02V7.47H3.33A9.9 9.9 0 0 0 2.25 12c0 1.63.39 3.17 1.08 4.53l3.22-2.51z" />
+                <path fill="#EA4335" d="M12 5.97c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.81 3.01 14.62 2.1 12 2.1a9.7 9.7 0 0 0-8.67 5.37l3.22 2.51c.77-2.3 2.92-4.01 5.45-4.01z" />
+              </svg>
+            </span>
+            <span>{googleBusy ? "Redirecting to Google..." : "Continue with Google"}</span>
+          </Button>
+        </div>
 
-      <div className="mt-5 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-        <div className="h-px flex-1 bg-border" />
-        <span>or</span>
-        <div className="h-px flex-1 bg-border" />
-      </div>
+        <div className="my-6 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+          <div className="h-px flex-1 bg-border" />
+          <span>or use email</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
 
-      <form className="mt-5 space-y-4" onSubmit={submit}>
-        {mode === "signup" ? (
+        <form className="space-y-4" onSubmit={submit} aria-busy={busy}>
+          {isSignUp ? (
+            <label className="block">
+              <span className="text-sm font-semibold">Display name <span className="font-normal text-muted-foreground">(optional)</span></span>
+              <input
+                value={displayName}
+                onChange={(event) => setDisplayName(event.target.value)}
+                maxLength={80}
+                autoComplete="name"
+                className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                placeholder="How should Bobaks show you?"
+              />
+            </label>
+          ) : null}
+
           <label className="block">
-            <span className="text-sm font-semibold">Display name</span>
-            <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} maxLength={80} autoComplete="name" className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" placeholder="How should Bobaks show you?" />
+            <span className="text-sm font-semibold">Email</span>
+            <input
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              type="email"
+              required
+              autoComplete="email"
+              className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              placeholder="you@example.com"
+            />
           </label>
-        ) : null}
-        <label className="block">
-          <span className="text-sm font-semibold">Email</span>
-          <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required autoComplete="email" className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
-        </label>
-        <label className="block">
-          <span className="text-sm font-semibold">Password</span>
-          <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" required minLength={8} autoComplete={mode === "signin" ? "current-password" : "new-password"} className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
-        </label>
-        {mode === "signin" ? <Link href="/account/reset-password" className="block text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline">Forgot password?</Link> : null}
-        {error ? <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">{error}</div> : null}
-        <Button type="submit" className="w-full" disabled={loading || busy}>
-          {busy ? "Working..." : mode === "signin" ? "Log in" : "Create account"}
-        </Button>
-      </form>
 
-      <p className="mt-5 text-xs leading-5 text-muted-foreground">
-        Accounts are optional. You can keep browsing as a guest.
-      </p>
+          <label className="block">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm font-semibold">Password</span>
+              {!isSignUp ? (
+                <Link href="/account/reset-password" className="text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline">
+                  Forgot password?
+                </Link>
+              ) : (
+                <span className="text-xs text-muted-foreground">8+ characters</span>
+              )}
+            </div>
+            <input
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              type="password"
+              required
+              minLength={8}
+              autoComplete={isSignUp ? "new-password" : "current-password"}
+              className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </label>
+
+          {isSignUp ? (
+            <label className="flex items-start gap-3 rounded-xl border border-border bg-muted/20 p-3 text-xs leading-5 text-muted-foreground">
+              <input
+                id="account-legal-consent"
+                type="checkbox"
+                className="mt-1 size-4 shrink-0 accent-foreground"
+                checked={legalAccepted}
+                onChange={(event) => setLegalAccepted(event.target.checked)}
+                required
+              />
+              <span>
+                I agree to the <Link href="/terms" className="font-semibold text-foreground underline underline-offset-2">Terms and Conditions</Link> and acknowledge the <Link href="/privacy" className="font-semibold text-foreground underline underline-offset-2">Privacy Policy</Link>.
+              </span>
+            </label>
+          ) : null}
+
+          {error ? (
+            <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm leading-5 text-destructive">
+              {error}
+            </div>
+          ) : null}
+
+          <Button type="submit" className="h-11 w-full" disabled={loading || busy || googleBusy} aria-busy={busy}>
+            {busy ? (isSignUp ? "Creating account..." : "Signing in...") : isSignUp ? "Create Bobaks account" : "Log in to Bobaks"}
+          </Button>
+        </form>
+
+      </div>
     </Card>
   );
 }
@@ -177,20 +298,29 @@ function ToggleRow({
   disabled?: boolean;
   onChange: (value: boolean) => void;
 }) {
+  const descriptionId = `bobaks-switch-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
   return (
-    <label className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-border p-4 hover:bg-accent/40">
-      <span>
-        <span className="block text-sm font-semibold">{label}</span>
-        <span className="mt-1 block text-xs leading-5 text-muted-foreground">{description}</span>
-      </span>
-      <input
-        type="checkbox"
-        className="mt-1 size-4 accent-foreground"
+    <div className="flex min-h-[76px] items-center justify-between gap-5 px-5 py-4 sm:px-6">
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="text-sm font-semibold">{label}</div>
+          <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+            {checked ? "On" : "Off"}
+          </span>
+        </div>
+        <div id={descriptionId} className="mt-1 max-w-xl text-xs leading-5 text-muted-foreground">
+          {description}
+        </div>
+      </div>
+      <Switch
         checked={checked}
         disabled={disabled}
-        onChange={(event) => onChange(event.target.checked)}
+        onCheckedChange={onChange}
+        aria-label={label}
+        aria-describedby={descriptionId}
       />
-    </label>
+    </div>
   );
 }
 
@@ -205,6 +335,7 @@ function SignedInAccount() {
     savedComparisons,
     updateProfile,
     updateAlerts,
+    acceptCurrentLegal,
     updateIdentityPreferences,
     startRobloxConnection,
     disconnectRoblox,
@@ -299,6 +430,25 @@ function SignedInAccount() {
     }
   }
 
+  const hasCurrentLegal = Boolean(
+    profile &&
+      profile.terms_version === LEGAL_VERSIONS.terms &&
+      profile.privacy_version === LEGAL_VERSIONS.privacy,
+  );
+
+  async function acceptLegal() {
+    setBusy("legal");
+    setError("");
+    try {
+      await acceptCurrentLegal();
+      setSaved("Terms and Privacy accepted.");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not save legal acceptance.");
+    } finally {
+      setBusy("");
+    }
+  }
+
   async function connectRoblox() {
     setBusy("roblox");
     setError("");
@@ -339,48 +489,120 @@ function SignedInAccount() {
       {error ? <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">{error}</div> : null}
       {saved ? <div role="status" className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm">{saved}</div> : null}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="p-5 sm:p-6">
-          <div className="flex items-center gap-3">
-            <UserRound className="size-5" aria-hidden="true" />
+      {!hasCurrentLegal ? (
+        <Card className="border-primary/30 bg-primary/5 p-5 sm:p-6">
+          <div className="flex items-start gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <FileText className="size-5" aria-hidden="true" />
+            </div>
             <div>
-              <h2 className="font-black">Profile</h2>
-              <p className="text-xs text-muted-foreground">Community identity foundation</p>
+              <div className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">Required once</div>
+              <h2 className="mt-1 text-lg font-black">Review the current Terms and Privacy Policy</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Your account needs to accept the current Bobaks Terms and Conditions and Privacy Policy before account features can be used.
+              </p>
             </div>
           </div>
-          <label className="mt-5 block">
-            <span className="text-sm font-semibold">Display name</span>
-            <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} maxLength={80} className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+          <label className="mt-5 flex items-start gap-3 rounded-xl border border-border bg-background p-3 text-sm">
+            <input
+              id="account-legal-consent"
+              type="checkbox"
+              className="mt-1 size-4 shrink-0 accent-foreground"
+              required
+            />
+            <span>
+              I agree to the <Link href="/terms" className="font-semibold text-foreground underline underline-offset-2">Terms and Conditions</Link> and acknowledge the <Link href="/privacy" className="font-semibold text-foreground underline underline-offset-2">Privacy Policy</Link>.
+            </span>
           </label>
-          <div className="mt-3 rounded-xl border border-border bg-muted/30 px-3 py-2 text-sm">
-            <div className="font-medium">{user?.email}</div>
-            <div className="mt-1 text-xs text-muted-foreground">
-              {user?.email_confirmed_at || user?.confirmed_at ? "Email verified" : "Email confirmation pending"}
+          <Button
+            className="mt-4"
+            disabled={busy === "legal"}
+            onClick={async () => {
+              const checkbox = document.getElementById("account-legal-consent") as HTMLInputElement | null;
+              if (!checkbox?.checked) {
+                setError("Please agree to the Terms and Conditions and Privacy Policy.");
+                return;
+              }
+              await acceptLegal();
+            }}
+          >
+            {busy === "legal" ? "Saving..." : "Agree and continue"}
+          </Button>
+        </Card>
+      ) : null}
+
+      {hasCurrentLegal ? (
+        <>
+        <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="overflow-hidden">
+          <div className="p-5 pb-4 sm:p-6 sm:pb-5">
+            <div className="flex items-center gap-3">
+              <UserRound className="size-5 text-muted-foreground" aria-hidden="true" />
+              <div>
+                <h2 className="font-black">Profile</h2>
+                <p className="text-xs text-muted-foreground">Your Bobaks community identity</p>
+              </div>
             </div>
           </div>
-          <ToggleRow label="Public profile" description="Allow your Bobaks profile to be visible when community profile surfaces are introduced." checked={isPublic} onChange={setIsPublic} />
-          <Button className="mt-4" onClick={saveProfile} disabled={busy === "profile"}>{busy === "profile" ? "Saving..." : "Save profile"}</Button>
+          <div className="border-t border-border">
+            <div className="p-5 sm:p-6">
+              <label className="block">
+                <span className="text-sm font-semibold">Display name</span>
+                <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} maxLength={80} className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+              </label>
+              <div className="mt-3 text-sm">
+                <div className="font-medium">{user?.email}</div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {user?.email_confirmed_at || user?.confirmed_at ? "Email verified" : "Email confirmation pending"}
+                </div>
+              </div>
+            </div>
+            <div className="border-t border-border">
+              <ToggleRow label="Public profile" description="Allow your Bobaks profile to be visible when community profile surfaces are introduced." checked={isPublic} onChange={setIsPublic} />
+            </div>
+            <div className="flex justify-end border-t border-border p-5 sm:p-6">
+              <Button onClick={saveProfile} disabled={busy === "profile"} aria-busy={busy === "profile"}>
+                {busy === "profile" ? "Saving..." : "Save profile"}
+              </Button>
+            </div>
+          </div>
         </Card>
 
-        <Card className="p-5 sm:p-6">
-          <div className="flex items-center gap-3">
-            <ShieldCheck className="size-5" aria-hidden="true" />
-            <div>
-              <h2 className="font-black">Alerts</h2>
-              <p className="text-xs text-muted-foreground">Persistent account preferences</p>
+        <Card className="overflow-hidden">
+          <div className="p-5 pb-4 sm:p-6 sm:pb-5">
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="size-5 text-muted-foreground" aria-hidden="true" />
+              <div>
+                <h2 className="font-black">Alerts</h2>
+                <p className="text-xs text-muted-foreground">Choose which account alerts Bobaks sends</p>
+              </div>
             </div>
           </div>
-          <div className="mt-5 space-y-2">
+          <div className="border-t border-border">
             <ToggleRow label="Enable alerts" description="Master switch for Bobaks account alerts." checked={alertState.alerts_enabled} onChange={(value) => setAlertState((current) => ({ ...current, alerts_enabled: value }))} />
-            <ToggleRow label="Top 10 alerts" description="Alert when a saved game enters the live Top 10." checked={alertState.top10_enabled} onChange={(value) => setAlertState((current) => ({ ...current, top10_enabled: value }))} />
-            <ToggleRow label="New peak alerts" description="Alert when Bobaks records a new peak for a saved game." checked={alertState.new_peak_enabled} onChange={(value) => setAlertState((current) => ({ ...current, new_peak_enabled: value }))} />
-            <ToggleRow label="Rank jump alerts" description={`Alert when a saved game moves by at least ${alertState.rank_jump_threshold} ranks.`} checked={alertState.rank_jump_enabled} onChange={(value) => setAlertState((current) => ({ ...current, rank_jump_enabled: value }))} />
+            <div className="border-t border-border">
+              <ToggleRow label="Top 10 alerts" description="Alert when a saved game enters the live Top 10." checked={alertState.top10_enabled} onChange={(value) => setAlertState((current) => ({ ...current, top10_enabled: value }))} />
+            </div>
+            <div className="border-t border-border">
+              <ToggleRow label="New peak alerts" description="Alert when Bobaks records a new peak for a saved game." checked={alertState.new_peak_enabled} onChange={(value) => setAlertState((current) => ({ ...current, new_peak_enabled: value }))} />
+            </div>
+            <div className="border-t border-border">
+              <ToggleRow label="Rank jump alerts" description={"Alert when a saved game moves by at least " + alertState.rank_jump_threshold + " ranks."} checked={alertState.rank_jump_enabled} onChange={(value) => setAlertState((current) => ({ ...current, rank_jump_enabled: value }))} />
+            </div>
+            <div className="border-t border-border p-5 sm:p-6">
+              <label className="block">
+                <span className="text-sm font-semibold">Rank jump threshold</span>
+                <span className="mt-1 block text-xs leading-5 text-muted-foreground">How many ranks a saved game must move before Bobaks sends a jump alert.</span>
+                <input type="number" min={1} max={100} value={alertState.rank_jump_threshold} onChange={(event) => setAlertState((current) => ({ ...current, rank_jump_threshold: Number(event.target.value) }))} className="mt-2 h-10 w-28 rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+              </label>
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <span className="text-xs text-muted-foreground">Changes are saved when you tap Save alerts.</span>
+                <Button onClick={saveAlerts} disabled={busy === "alerts"} aria-busy={busy === "alerts"}>
+                  {busy === "alerts" ? "Saving..." : "Save alerts"}
+                </Button>
+              </div>
+            </div>
           </div>
-          <label className="mt-3 block">
-            <span className="text-xs font-semibold text-muted-foreground">Rank jump threshold</span>
-            <input type="number" min={1} max={100} value={alertState.rank_jump_threshold} onChange={(event) => setAlertState((current) => ({ ...current, rank_jump_threshold: Number(event.target.value) }))} className="mt-1 h-10 w-28 rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
-          </label>
-          <Button className="mt-4" onClick={saveAlerts} disabled={busy === "alerts"}>{busy === "alerts" ? "Saving..." : "Save alerts"}</Button>
         </Card>
       </div>
 
@@ -471,6 +693,8 @@ function SignedInAccount() {
         </div>
         <Button variant="outline" onClick={() => void signOut()}><LogOut className="size-4" aria-hidden="true" /> Log out</Button>
       </Card>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -485,10 +709,14 @@ export function AccountPage() {
   return user ? <SignedInAccount /> : (
     <div className="space-y-6">
       <section>
+        <Link href="/" className="mb-3 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="size-4" aria-hidden="true" />
+          Home
+        </Link>
         <div className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Account</div>
-        <h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">Accounts are optional</h1>
+        <h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">Log in or create an account</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-          Browse Bobaks as a guest, or create an account to sync saved games, alerts, comparisons, and future community identity settings across devices.
+          Save games, alerts, comparisons, and preferences across devices.
         </p>
       </section>
       <AuthForm />
