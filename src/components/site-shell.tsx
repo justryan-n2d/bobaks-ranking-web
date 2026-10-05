@@ -2,7 +2,7 @@
 
 import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BarChart3,
   Bookmark,
@@ -79,8 +79,9 @@ function SidebarContent({ close }: { close: () => void }) {
       <div className="flex items-center justify-between px-2 pb-5 pt-2">
         <BobaksBrand close={close} />
         <button
+          ref={drawerCloseRef}
           type="button"
-          className="inline-flex size-10 items-center justify-center rounded-xl hover:bg-accent md:hidden"
+          className="inline-flex size-10 items-center justify-center rounded-xl hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
           onClick={close}
           aria-label="Close navigation"
         >
@@ -137,10 +138,13 @@ export function SiteShell({
   demoMode: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const drawerCloseRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     if (!open) {
       document.body.style.overflow = "";
+      menuButtonRef.current?.focus();
       return;
     }
 
@@ -150,6 +154,7 @@ export function SiteShell({
 
     document.body.style.overflow = "hidden";
     document.addEventListener("keydown", onKeyDown);
+    drawerCloseRef.current?.focus();
 
     return () => {
       document.body.style.overflow = "";
@@ -157,12 +162,21 @@ export function SiteShell({
     };
   }, [open]);
 
-  const openSidebar = () => setOpen(true);
+  const openSidebar = () => {
+    menuButtonRef.current = document.activeElement as HTMLButtonElement | null;
+    setOpen(true);
+  };
 
   const close = () => setOpen(false);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-background text-foreground">
+      <a
+        href="#main-content"
+        className="fixed left-3 top-3 z-[200] -translate-y-24 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background shadow-xl transition-transform focus:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        Skip to content
+      </a>
       <div className="fixed inset-x-0 top-0 z-40 flex h-14 items-center border-b border-border bg-background/95 px-4 backdrop-blur md:hidden">
         <button
           type="button"
@@ -188,6 +202,7 @@ export function SiteShell({
 
           <aside
             id="mobile-navigation"
+            role="dialog"
             aria-label="Mobile navigation"
             aria-modal="true"
             className="absolute inset-y-0 left-0 z-10 flex w-72 max-w-[85vw] flex-col border-r border-white/20 bg-card/75 p-4 shadow-2xl backdrop-blur-2xl saturate-150 bobaks-drawer-enter"
@@ -201,7 +216,7 @@ export function SiteShell({
         <SidebarContent close={close} />
       </aside>
 
-      <main className="flex min-h-screen flex-1 flex-col md:pl-64">
+      <main id="main-content" tabIndex={-1} className="flex min-h-screen min-w-0 flex-1 flex-col outline-none md:pl-64">
         <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 pb-8 pt-20 sm:px-6 md:px-8 md:pt-10">
           <div className="flex-1">
             {demoMode ? (
