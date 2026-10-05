@@ -150,7 +150,7 @@ export default async function ComparePage({
       <div className="mx-auto max-w-2xl py-20 text-center">
         <div className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Compare</div>
         <h1 className="mt-2 text-3xl font-black">One of those games could not be loaded</h1>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">Check the game IDs and try again.</p>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">One or both games could not be loaded. Choose different games and try again.</p>
         <Link href="/compare" className="mt-6 inline-flex rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background">
           Start again
         </Link>
