@@ -1,0 +1,125 @@
+import { describe, expect, it } from "vitest";
+
+import {
+  AUTH_SESSION_STORAGE_KEY,
+  createAuthClient,
+} from "@/lib/auth-client";
+
+function storage() {
+  const values = new Map<string, string>();
+  return {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => values.set(key, value),
+    removeItem: (key: string) => values.delete(key),
+  };
+}
+
+function session(expiresAt = Math.floor(Date.now() / 1000) + 3600) {
+  return {
+    access_token: "access-1",
+    refresh_token: "refresh-1",
+    expires_at: expiresAt,
+    user: { id: "user-1", email: "player@example.com" },
+  };
+}
+
+describe("account auth client", () => {
+  it("stores a successful sign-in session and uses its bearer token for owned data", async () => {
+    const store = storage();
+    const calls: { url: string; init: RequestInit }[] = [];
+    const client = createAuthClient({
+      supabaseUrl: "https://supabase.example",
+      publishableKey: "sb_publishable_test",
+      storage: store,
+    });
+
+    const fetchImpl = async (input: RequestInfo | URL, init: RequestInit = {}) => {
+      calls.push({ url: String(input), init });
+      const url = new URL(String(input));
+      if (url.pathname === "/auth/v1/token") return new Response(JSON.stringify(session()));
+      if (url.pathname === "/auth/v1/user") return new Response(JSON.stringify({ id: "user-1", email: "player@example.com" }));
+      if (url.pathname === "/rest/v1/user_watchlist") {
+        return new Response(JSON.stringify([{ game_id: 123, created_at: "2026-10-05T00:00:00Z" }]));
+      }
+      return new Response("{}", { status: 404 });
+    };
+
+    const authenticatedClient = createAuthClient({
+      supabaseUrl: "https://supabase.example",
+      publishableKey: "sb_publishable_test",
+      storage: store,
+    });
+    (authenticatedClient as unknown as { __fetch?: typeof fetch }).__fetch = fetchImpl;
+
+    // The public client intentionally takes no fetch override in production.
+    // This test swaps global fetch only for the duration of the public boundary.
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = fetchImpl as typeof fetch;
+    try {
+      await authenticatedClient.signIn({ email: "player@example.com", password: "correct" });
+      const rows = await authenticatedClient.listWatchlist();
+      expect(rows[0]?.game_id).toBe(123);
+      expect(store.getItem(AUTH_SESSION_STORAGE_KEY)).toContain("access-1");
+      const watchlistCall = calls.find((call) => call.url.includes("/rest/v1/user_watchlist"));
+      expect(new Headers(watchlistCall?.init.headers).get("authorization")).toBe("Bearer access-1");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("refreshes an expired session before an owned request", async () => {
+    const store = storage();
+    store.setItem(AUTH_SESSION_STORAGE_KEY, JSON.stringify(session(Math.floor(Date.now() / 1000) - 10)));
+    const calls: string[] = [];
+    const originalFetch = globalThis.fetch;
+
+    globalThis.fetch = (async (input: RequestInfo | URL, init: RequestInit = {}) => {
+      calls.push(String(input));
+      const url = new URL(String(input));
+      if (url.pathname === "/auth/v1/token") {
+        expect(String(init.body)).toContain("refresh-1");
+        return new Response(JSON.stringify(session()));
+      }
+      if (url.pathname === "/auth/v1/user") return new Response(JSON.stringify({ id: "user-1" }));
+      if (url.pathname === "/rest/v1/user_watchlist") return new Response(JSON.stringify([]));
+      return new Response("{}", { status: 404 });
+    }) as typeof fetch;
+
+    try {
+      const client = createAuthClient({
+        supabaseUrl: "https://supabase.example",
+        publishableKey: "sb_publishable_test",
+        storage: store,
+      });
+      await client.listWatchlist();
+      expect(calls.some((call) => call.endsWith("/auth/v1/token?grant_type=refresh_token"))).toBe(true);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("rejects invalid Roblox visibility combinations before saving them", async () => {
+    const store = storage();
+    store.setItem(AUTH_SESSION_STORAGE_KEY, JSON.stringify(session()));
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.pathname === "/auth/v1/user") return new Response(JSON.stringify({ id: "user-1" }));
+      return new Response("[]");
+    }) as typeof fetch;
+
+    try {
+      const client = createAuthClient({
+        supabaseUrl: "https://supabase.example",
+        publishableKey: "sb_publishable_test",
+        storage: store,
+      });
+      await expect(client.updateIdentityPreferences({
+        show_roblox_identity: false,
+        show_roblox_avatar: true,
+      })).rejects.toThrow(/requires Roblox identity/i);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+});
