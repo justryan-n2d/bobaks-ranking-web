@@ -66,7 +66,9 @@ export function RankingPeriodView({ period, scoreLabel }: { period: RankingPerio
       if (period === "live") {
         const intervalMs = Math.max(5_000, Number(payload.refreshIntervalSeconds ?? 30) * 1_000);
         const parsedNext = payload.nextRefreshAt ? Date.parse(payload.nextRefreshAt) : Number.NaN;
-        const next = Number.isFinite(parsedNext) ? parsedNext : Date.now() + intervalMs;
+        const next = Number.isFinite(parsedNext) && parsedNext > Date.now()
+          ? parsedNext
+          : Date.now() + intervalMs;
         nextRefreshRef.current = next;
         setNextRefreshAt(next);
       }
