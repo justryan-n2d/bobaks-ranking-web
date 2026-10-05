@@ -1,3 +1,5 @@
+import { LEGAL_VERSIONS } from "@/lib/legal";
+
 export const AUTH_SESSION_STORAGE_KEY = "bobaks.auth.session.v1";
 const REFRESH_BUFFER_SECONDS = 60;
 
@@ -25,6 +27,10 @@ export type Profile = {
   is_public: boolean;
   created_at?: string;
   updated_at?: string;
+  terms_version?: string | null;
+  terms_accepted_at?: string | null;
+  privacy_version?: string | null;
+  privacy_accepted_at?: string | null;
 };
 
 export type AlertPreferences = {
@@ -329,7 +335,12 @@ export function createAuthClient({
     return session;
   }
 
-  async function signUp(values: { email: string; password: string; displayName?: string }) {
+  async function signUp(values: {
+    email: string;
+    password: string;
+    displayName?: string;
+    acceptCurrentLegal?: boolean;
+  }) {
     const body: Record<string, unknown> = {
       email: email(values.email),
       password: values.password,
@@ -337,6 +348,11 @@ export function createAuthClient({
       redirect_to: window.location.origin + "/account",
     };
     if (values.displayName?.trim()) (body.data as Record<string, unknown>).display_name = values.displayName.trim().slice(0, 80);
+    if (values.acceptCurrentLegal) {
+      const data = body.data as Record<string, unknown>;
+      data.terms_version = LEGAL_VERSIONS.terms;
+      data.privacy_version = LEGAL_VERSIONS.privacy;
+    }
     const { payload } = await send(baseUrl, key, "/auth/v1/signup", {
       method: "POST",
       body: JSON.stringify(body),
@@ -426,7 +442,7 @@ export function createAuthClient({
   async function getProfile(): Promise<Profile | null> {
     const user = await getUser();
     const { payload } = await authenticatedRest(
-      "/profiles?select=id,display_name,avatar_url,is_public,created_at,updated_at&id=eq." + encodeURIComponent(user.id) + "&limit=1",
+      "/profiles?select=id,display_name,avatar_url,is_public,created_at,updated_at,terms_version,terms_accepted_at,privacy_version,privacy_accepted_at&id=eq." + encodeURIComponent(user.id) + "&limit=1",
     );
     return Array.isArray(payload) ? (payload[0] as Profile | undefined) ?? null : null;
   }
@@ -443,6 +459,17 @@ export function createAuthClient({
       body: JSON.stringify(allowed),
     });
     return Array.isArray(payload) ? (payload[0] as Profile | undefined) ?? null : null;
+  }
+
+  async function acceptCurrentLegal() {
+    const { payload } = await authenticatedRest("/rpc/accept_current_legal", {
+      method: "POST",
+      body: "{}",
+    });
+    if (!payload || typeof payload !== "object") {
+      throw new Error("Legal acceptance could not be saved.");
+    }
+    return payload as Profile;
   }
 
   async function getAlerts(): Promise<AlertPreferences | null> {
@@ -620,6 +647,7 @@ export function createAuthClient({
     recoverSessionFromUrl,
     getProfile,
     updateProfile,
+    acceptCurrentLegal,
     getAlerts,
     updateAlerts,
     getIdentityPreferences,
