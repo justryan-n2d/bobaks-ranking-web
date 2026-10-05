@@ -335,13 +335,10 @@ export function createAuthClient({
   async function signInWithGoogle(): Promise<string> {
     if (typeof window === "undefined") throw new Error("Google sign-in requires a browser.");
     const codeVerifier = randomToken(32);
-    const state = randomToken(24);
     const challenge = await codeChallenge(codeVerifier);
     const redirectTo = new URL("/account/google-callback", window.location.origin);
-    redirectTo.searchParams.set("bobaks_state", state);
     const flow: GoogleOAuthFlow = {
       provider: "google",
-      state,
       codeVerifier,
       createdAt: Date.now(),
       redirectTo: redirectTo.toString(),
@@ -359,11 +356,10 @@ export function createAuthClient({
     return authorizeUrl.toString();
   }
 
-  async function exchangeGoogleAuthCode(code: string, state: string) {
+  async function exchangeGoogleAuthCode(code: string) {
     if (typeof window === "undefined") throw new Error("Google sign-in requires a browser.");
     const normalizedCode = String(code ?? "").trim();
-    const normalizedState = String(state ?? "").trim();
-    if (!normalizedCode || !normalizedState) throw new Error("Google sign-in callback is incomplete.");
+    if (!normalizedCode) throw new Error("Google sign-in callback is incomplete.");
 
     const rawFlow = googleOAuthStore.getItem(GOOGLE_OAUTH_FLOW_STORAGE_KEY);
     if (!rawFlow) throw new Error("Google sign-in session is missing. Start Google sign-in again.");
@@ -392,13 +388,8 @@ export function createAuthClient({
       throw new Error("Google sign-in session expired. Start Google sign-in again.");
     }
 
-    if (flow.state !== normalizedState) {
-      throw new Error("Google sign-in state validation failed.");
-    }
-
-    const expectedRedirectTo = new URL("/account/google-callback", window.location.origin);
-    expectedRedirectTo.searchParams.set("bobaks_state", flow.state);
-    if (flow.redirectTo !== expectedRedirectTo.toString()) {
+    const expectedRedirectTo = new URL("/account/google-callback", window.location.origin).toString();
+    if (flow.redirectTo !== expectedRedirectTo) {
       googleOAuthStore.removeItem(GOOGLE_OAUTH_FLOW_STORAGE_KEY);
       throw new Error("Google sign-in callback does not match the expected Bobaks redirect.");
     }
