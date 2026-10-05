@@ -45,22 +45,33 @@ jobs:
           PRODUCTION_URL: https://bobaks-ranking-web.ryan-oledan0.workers.dev
         run: |
           set -e
-          for path in / /rankings/live /about /api/rankings/live; do
-            code="$(curl --silent --output /tmp/body --write-out '%{http_code}' "$PRODUCTION_URL$path")"
-            echo "$path -> $code"
-            test "$code" = "200"
-          done
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$PRODUCTION_URL/")" = "200"
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$PRODUCTION_URL/rankings/live")" = "200"
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$PRODUCTION_URL/about")" = "200"
 
-          if grep -qiE 'preview-demo|Filipino Hangout|BOBAKS_UI_DEMO_MODE' /tmp/body; then
-            echo "Preview/demo content detected in production."
+          for i in $(seq 1 36); do
+            code="$(curl --silent --output /tmp/frontend-live --write-out '%{http_code}' "$PRODUCTION_URL/api/rankings/live")"
+            echo "frontend /api/rankings/live -> $code"
+            if [ "$code" = "200" ]; then
+              break
+            fi
+            sleep 10
+          done
+          test "$code" = "200"
+
+          if grep -qiE 'preview-demo|Filipino Hangout|BOBAKS_UI_DEMO_MODE' /tmp/frontend-live; then
+            echo "Preview/demo content detected in production API response."
             exit 1
           fi
 
           python - <<'PY'
           import json
-          raw=open("/tmp/body","rb").read()
-          json.loads(raw)
-          print("Production rankings endpoint returned valid JSON.")
+          raw=open("/tmp/frontend-live","rb").read()
+          payload=json.loads(raw)
+          assert isinstance(payload, dict)
+          assert payload.get("period") == "live"
+          assert isinstance(payload.get("data"), list)
+          print("Production same-origin live rankings returned valid JSON.")
           PY
 
       - name: Browser smoke and screenshots
