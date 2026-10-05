@@ -9,10 +9,11 @@ permissions:
 
 jobs:
   smoke:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Runner smoke test
+        shell: pwsh
         run: |
-          echo "GitHub Actions runner is alive."
-          uname -a
+          Write-Host "GitHub Actions runner is alive."
+          $PSVersionTable.PSVersion
           node --version
