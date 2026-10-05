@@ -20,8 +20,8 @@ import {
   type WatchlistGame,
 } from "@/lib/watchlist";
 
-const SUPABASE_URL = "https://zhrfozouzvxhpkylmpwh.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_m5sYdsVZpWMOVRxyMSwblw_dIesP93F";
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://zhrfozouzvxhpkylmpwh.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "sb_publishable_m5sYdsVZpWMOVRxyMSwblw_dIesP93F";
 
 type AuthContextValue = {
   client: AuthClient;
