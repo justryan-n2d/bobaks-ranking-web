@@ -26,7 +26,7 @@ describe("Phase C core product UX", () => {
   it("provides a same-origin search route for browser clients", () => {
     expect(searchRoute).toContain("searchGames");
     expect(searchRoute).toContain("force-dynamic");
-    expect(searchRoute).toContain('"/api/search');
+    expect(searchRoute).toContain('url.searchParams.get("q")');
   });
 
   it("adds live rank and player count to search results", () => {
