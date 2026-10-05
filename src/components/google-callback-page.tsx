@@ -19,18 +19,19 @@ export function GoogleCallbackPage() {
 
     const providerError = params.get("error");
     const code = params.get("code");
+    const state = params.get("state");
 
     if (providerError) {
       setError("Google sign-in was cancelled or rejected.");
       return;
     }
-    if (!code) {
-      setError("The Google callback is missing its authorization code.");
+    if (!code || !state) {
+      setError("The Google callback is missing required authorization data.");
       return;
     }
 
     let cancelled = false;
-    void client.exchangeGoogleAuthCode(code)
+    void client.exchangeGoogleAuthCode(code, state)
       .then(async () => {
         if (cancelled) return;
         await refreshAccount();
