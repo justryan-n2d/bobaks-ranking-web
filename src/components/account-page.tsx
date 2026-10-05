@@ -150,13 +150,11 @@ function AuthForm() {
 
         <div
           className="mt-6 grid grid-cols-2 rounded-xl border border-border bg-muted/60 p-1"
-          role="tablist"
           aria-label="Account access mode"
         >
           <button
             type="button"
-            role="tab"
-            aria-selected={!isSignUp}
+            aria-pressed={!isSignUp}
             className={cn(
               "min-h-10 rounded-lg px-3 text-sm font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
               !isSignUp ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
@@ -167,8 +165,7 @@ function AuthForm() {
           </button>
           <button
             type="button"
-            role="tab"
-            aria-selected={isSignUp}
+            aria-pressed={isSignUp}
             className={cn(
               "min-h-10 rounded-lg px-3 text-sm font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
               isSignUp ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
