@@ -325,6 +325,32 @@ export function createAuthClient({
     }
   }
 
+  async function recoverSessionFromUrl() {
+    if (typeof window === "undefined") return null;
+    const rawHash = window.location.hash.replace(/^#/, "");
+    if (!rawHash) return null;
+    const params = new URLSearchParams(rawHash);
+    const accessToken = params.get("access_token");
+    const refreshToken = params.get("refresh_token");
+    if (!accessToken || !refreshToken) return null;
+
+    try {
+      const { payload } = await send(baseUrl, key, "/auth/v1/user", {}, accessToken);
+      const session = writeStored({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        expires_in: Number(params.get("expires_in") ?? 0),
+        expires_at: Number(params.get("expires_at") ?? 0) || undefined,
+        token_type: params.get("token_type") ?? "bearer",
+        user: payload,
+      });
+      if (session) emit("SIGNED_IN", session);
+      return session;
+    } finally {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  }
+
   async function resendConfirmation(emailValue: string) {
     await send(baseUrl, key, "/auth/v1/resend", {
       method: "POST",
@@ -522,6 +548,7 @@ export function createAuthClient({
     refreshSession,
     getSession,
     getUser,
+    recoverSessionFromUrl,
     getProfile,
     updateProfile,
     getAlerts,
