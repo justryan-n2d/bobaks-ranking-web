@@ -21,6 +21,7 @@ export function GameSelector({ label, value, excludeId, onChange }: GameSelector
   const [results, setResults] = useState<SearchGame[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const [liveByGameId, setLiveByGameId] = useState(new Map<string, { rank: number; players: number }>());
 
   useEffect(() => {
@@ -88,6 +89,10 @@ export function GameSelector({ label, value, excludeId, onChange }: GameSelector
   const filtered = results.filter((game) => String(game.id) !== excludeId).slice(0, 8);
   const chooseLabel = "Choose " + label;
 
+  useEffect(() => {
+    setActiveIndex(filtered.length ? 0 : -1);
+  }, [query, filtered.length]);
+
   return (
     <div ref={rootRef} className="relative">
       <label className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
@@ -139,7 +144,23 @@ export function GameSelector({ label, value, excludeId, onChange }: GameSelector
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 onKeyDown={(event) => {
-                  if (event.key === "Escape") setOpen(false);
+                  if (event.key === "Escape") {
+                    setOpen(false);
+                    return;
+                  }
+                  if (!filtered.length) return;
+                  if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    setActiveIndex((index) => Math.min(filtered.length - 1, index + 1));
+                  } else if (event.key === "ArrowUp") {
+                    event.preventDefault();
+                    setActiveIndex((index) => Math.max(0, index - 1));
+                  } else if (event.key === "Enter" && activeIndex >= 0) {
+                    event.preventDefault();
+                    onChange(filtered[activeIndex]);
+                    setOpen(false);
+                    setQuery("");
+                  }
                 }}
                 placeholder="Game name or creator..."
                 className="h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -162,11 +183,15 @@ export function GameSelector({ label, value, excludeId, onChange }: GameSelector
                 const selected = value && String(value.id) === String(game.id);
                 return (
                   <button
+                    id={listboxId + "-" + String(game.id)}
                     type="button"
                     role="option"
                     aria-selected={Boolean(selected)}
                     key={String(game.id)}
-                    className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
+                    className={cn(
+                      "flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left hover:bg-accent focus-visible:bg-accent focus-visible:outline-none",
+                      activeIndex === filtered.indexOf(game) && "bg-accent",
+                    )}
                     onClick={() => {
                       onChange(game);
                       setOpen(false);
