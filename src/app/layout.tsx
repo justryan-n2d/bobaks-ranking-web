@@ -3,8 +3,6 @@ import { SiteShell } from "@/components/site-shell";
 import { isDemoModeEnabled } from "@/lib/demo-data";
 import "./globals.css";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   metadataBase: new URL("https://bobaksranking.com"),
   title: {
