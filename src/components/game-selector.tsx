@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Check, ChevronDown, LoaderCircle, Search } from "lucide-react";
 
-import type { SearchGame } from "@/lib/api";
+import type { RankingResponse, SearchGame } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 type GameSelectorProps = {
@@ -21,6 +21,7 @@ export function GameSelector({ label, value, excludeId, onChange }: GameSelector
   const [results, setResults] = useState<SearchGame[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [liveByGameId, setLiveByGameId] = useState(new Map<string, { rank: number; players: number }>());
 
   useEffect(() => {
     if (!open || query.trim().length < 2) {
@@ -35,13 +36,31 @@ export function GameSelector({ label, value, excludeId, onChange }: GameSelector
       setLoading(true);
       setError(false);
       try {
-        const response = await fetch("/api/search?q=" + encodeURIComponent(query.trim()), {
-          cache: "no-store",
-          headers: { accept: "application/json" },
-          signal: controller.signal,
-        });
-        if (!response.ok) throw new Error("Search failed");
-        const payload = (await response.json()) as { data?: SearchGame[] };
+        const [searchResponse, liveResponse] = await Promise.all([
+          fetch("/api/search?q=" + encodeURIComponent(query.trim()), {
+            cache: "no-store",
+            headers: { accept: "application/json" },
+            signal: controller.signal,
+          }),
+          fetch("/api/rankings/live", {
+            cache: "no-store",
+            headers: { accept: "application/json" },
+            signal: controller.signal,
+          }),
+        ]);
+        if (!searchResponse.ok) throw new Error("Search failed");
+        const payload = (await searchResponse.json()) as { data?: SearchGame[] };
+        if (liveResponse.ok) {
+          const livePayload = (await liveResponse.json()) as RankingResponse;
+          setLiveByGameId(
+            new Map(
+              (Array.isArray(livePayload.data) ? livePayload.data : []).map((game) => [
+                String(game.gameId),
+                { rank: Number(game.rank), players: Math.max(0, Number(game.score) || 0) },
+              ]),
+            ),
+          );
+        }
         setResults(Array.isArray(payload.data) ? payload.data : []);
       } catch (cause) {
         if (cause instanceof DOMException && cause.name === "AbortError") return;
@@ -162,6 +181,13 @@ export function GameSelector({ label, value, excludeId, onChange }: GameSelector
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-semibold">{game.name || "Unknown experience"}</div>
                       <div className="truncate text-xs text-muted-foreground">{game.creatorName || "Unknown creator"}</div>
+                      {liveByGameId.has(String(game.id)) ? (
+                        <div className="mt-0.5 text-[11px] font-semibold text-muted-foreground">
+                          {new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(liveByGameId.get(String(game.id))!.players)} players · Live #{liveByGameId.get(String(game.id))!.rank}
+                        </div>
+                      ) : (
+                        <div className="mt-0.5 text-[11px] text-muted-foreground">Live ranking unavailable</div>
+                      )}
                     </div>
                     {selected ? <Check className="size-4 text-primary" aria-hidden="true" /> : null}
                   </button>
