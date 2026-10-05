@@ -423,7 +423,7 @@ export function createAuthClient({
     const { payload } = await authenticatedRest("/user_identity_preferences?on_conflict=user_id", {
       method: "POST",
       headers: { prefer: "resolution=merge-duplicates,return=representation" },
-      body: { user_id: user.id, show_roblox_identity: showIdentity, show_roblox_avatar: showAvatar },
+      body: JSON.stringify({ user_id: user.id, show_roblox_identity: showIdentity, show_roblox_avatar: showAvatar }),
     });
     return Array.isArray(payload) ? (payload[0] as IdentityPreferences | undefined) ?? null : null;
   }
