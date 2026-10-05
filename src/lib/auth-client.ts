@@ -150,38 +150,29 @@ function email(value: string): string {
   return normalized;
 }
 
-function browserOAuthStorage(): StorageLike {
-  try {
-    if (typeof window !== "undefined" && window.localStorage) return window.localStorage;
-  } catch {
-    // Browser session storage may be blocked.
+async function send(
+  baseUrl: string,
+  key: string,
+  path: string,
+  init: RequestInit = {},
+  accessToken?: string,
+) {
+  const headers = new Headers(init.headers);
+  headers.set("apikey", key);
+  headers.set("accept", "application/json");
+  if (accessToken) headers.set("authorization", "Bearer " + accessToken);
+  if (init.body !== undefined && !headers.has("content-type")) {
+    headers.set("content-type", "application/json");
   }
-  return createMemoryStorage();
-}
 
-function base64Url(bytes: Uint8Array): string {
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  const response = await fetch(path.startsWith("http") ? path : baseUrl + path, {
+    ...init,
+    headers,
+  });
+  const payload = await readBody(response);
+  if (!response.ok) throw requestError(response, payload);
+  return { response, payload };
 }
-
-function randomToken(byteLength = 32): string {
-  const bytes = new Uint8Array(byteLength);
-  crypto.getRandomValues(bytes);
-  return base64Url(bytes);
-}
-
-async function codeChallenge(verifier: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
-  return base64Url(new Uint8Array(digest));
-}
-
-type GoogleOAuthFlow = {
-  provider: "google";
-  codeVerifier: string;
-  createdAt: number;
-  redirectTo: string;
-};
 
 async function send(
   baseUrl: string,
@@ -333,81 +324,37 @@ export function createAuthClient({
 
   async function signInWithGoogle(): Promise<string> {
     if (typeof window === "undefined") throw new Error("Google sign-in requires a browser.");
-    const codeVerifier = randomToken(32);
-    const challenge = await codeChallenge(codeVerifier);
-    const redirectTo = new URL("/account/google-callback", window.location.origin);
-    const flow: GoogleOAuthFlow = {
-      provider: "google",
-      codeVerifier,
-      createdAt: Date.now(),
-      redirectTo: redirectTo.toString(),
-    };
-
-    googleOAuthStore.setItem(GOOGLE_OAUTH_FLOW_STORAGE_KEY, JSON.stringify(flow));
-
-    const authorizeUrl = new URL(baseUrl + "/auth/v1/authorize");
-    authorizeUrl.searchParams.set("provider", "google");
-    authorizeUrl.searchParams.set("redirect_to", redirectTo.toString());
-    authorizeUrl.searchParams.set("code_challenge", challenge);
-    authorizeUrl.searchParams.set("code_challenge_method", "S256");
-
+    const authorizeUrl = new URL("/api/auth/google/start", window.location.origin);
     window.location.assign(authorizeUrl.toString());
     return authorizeUrl.toString();
   }
 
-  async function exchangeGoogleAuthCode(code: string) {
+  async function exchangeGoogleAuthCode(code: string, state: string) {
     if (typeof window === "undefined") throw new Error("Google sign-in requires a browser.");
     const normalizedCode = String(code ?? "").trim();
-    if (!normalizedCode) throw new Error("Google sign-in callback is incomplete.");
-
-    const rawFlow = googleOAuthStore.getItem(GOOGLE_OAUTH_FLOW_STORAGE_KEY);
-    if (!rawFlow) throw new Error("Google sign-in session is missing. Start Google sign-in again.");
-
-    let flow: GoogleOAuthFlow;
-    try {
-      const parsed = JSON.parse(rawFlow) as Partial<GoogleOAuthFlow>;
-      if (
-        parsed.provider !== "google" ||
-        typeof parsed.codeVerifier !== "string" ||
-        typeof parsed.createdAt !== "number" ||
-        typeof parsed.redirectTo !== "string"
-      ) {
-        throw new Error("invalid flow");
-      }
-      flow = parsed as GoogleOAuthFlow;
-    } catch {
-      googleOAuthStore.removeItem(GOOGLE_OAUTH_FLOW_STORAGE_KEY);
-      throw new Error("Google sign-in session is invalid. Start Google sign-in again.");
+    const normalizedState = String(state ?? "").trim();
+    if (!normalizedCode || !normalizedState) {
+      throw new Error("Google sign-in callback is incomplete.");
     }
 
-    const age = Date.now() - flow.createdAt;
-    if (!Number.isFinite(age) || age < 0 || age > GOOGLE_OAUTH_MAX_AGE_MS) {
-      googleOAuthStore.removeItem(GOOGLE_OAUTH_FLOW_STORAGE_KEY);
-      throw new Error("Google sign-in session expired. Start Google sign-in again.");
-    }
+    const response = await fetch("/api/auth/google/exchange", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      credentials: "same-origin",
+      body: JSON.stringify({ code: normalizedCode, state: normalizedState }),
+      cache: "no-store",
+    });
+    const payload = await readBody(response);
+    if (!response.ok) throw requestError(response, payload);
 
-    const expectedRedirectTo = new URL("/account/google-callback", window.location.origin).toString();
-    if (flow.redirectTo !== expectedRedirectTo) {
-      googleOAuthStore.removeItem(GOOGLE_OAUTH_FLOW_STORAGE_KEY);
-      throw new Error("Google sign-in callback does not match the expected Bobaks redirect.");
-    }
-
-    try {
-      const { payload } = await send(baseUrl, key, "/auth/v1/token?grant_type=pkce", {
-        method: "POST",
-        body: JSON.stringify({
-          auth_code: normalizedCode,
-          code_verifier: flow.codeVerifier,
-        }),
-      });
-      const session = writeStored(payload);
-      if (!session) throw new Error("Google sign-in succeeded but no session was returned.");
-      emit("SIGNED_IN", session);
-      window.dispatchEvent(new Event("bobaks-auth-change"));
-      return session;
-    } finally {
-      googleOAuthStore.removeItem(GOOGLE_OAUTH_FLOW_STORAGE_KEY);
-    }
+    const session = writeStored(payload);
+    if (!session) throw new Error("Google sign-in succeeded but no session was returned.");
+    emit("SIGNED_IN", session);
+    window.dispatchEvent(new Event("bobaks-auth-change"));
+    return session;
   }
 
   async function signUp(values: { email: string; password: string; displayName?: string }) {
