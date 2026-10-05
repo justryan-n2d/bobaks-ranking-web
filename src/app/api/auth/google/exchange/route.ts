@@ -33,8 +33,7 @@ export async function POST(request: Request) {
   } catch {}
 
   const code = typeof body.code === "string" ? body.code.trim() : "";
-  const state = typeof body.state === "string" ? body.state.trim() : "";
-  if (!code || !state) {
+  if (!code) {
     return Response.json({ error: "Google sign-in callback is incomplete." }, {
       status: 400,
       headers: { "cache-control": "no-store" },
@@ -49,13 +48,13 @@ export async function POST(request: Request) {
     });
   }
 
-  let transaction: { state: string; codeVerifier: string; createdAt: number };
+  let transaction: { codeVerifier: string; createdAt: number };
   try {
-    const parsed = JSON.parse(decode(encoded)) as Partial<{ state: string; codeVerifier: string; createdAt: number }>;
-    if (typeof parsed.state !== "string" || typeof parsed.codeVerifier !== "string" || typeof parsed.createdAt !== "number") {
+    const parsed = JSON.parse(decode(encoded)) as Partial<{ codeVerifier: string; createdAt: number }>;
+    if (typeof parsed.codeVerifier !== "string" || typeof parsed.createdAt !== "number") {
       throw new Error("invalid transaction");
     }
-    transaction = parsed as { state: string; codeVerifier: string; createdAt: number };
+    transaction = parsed as { codeVerifier: string; createdAt: number };
   } catch {
     return Response.json({ error: "Google sign-in session is invalid. Start Google sign-in again." }, {
       status: 400,
@@ -66,13 +65,6 @@ export async function POST(request: Request) {
   const age = Date.now() - transaction.createdAt;
   if (!Number.isFinite(age) || age < 0 || age > MAX_AGE_MS) {
     return Response.json({ error: "Google sign-in session expired. Start Google sign-in again." }, {
-      status: 400,
-      headers: { "cache-control": "no-store", "set-cookie": clearCookie() },
-    });
-  }
-
-  if (transaction.state !== state) {
-    return Response.json({ error: "Google sign-in state is invalid. Start Google sign-in again." }, {
       status: 400,
       headers: { "cache-control": "no-store", "set-cookie": clearCookie() },
     });
