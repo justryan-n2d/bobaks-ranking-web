@@ -337,23 +337,23 @@ export function createAuthClient({
     const codeVerifier = randomToken(32);
     const state = randomToken(24);
     const challenge = await codeChallenge(codeVerifier);
-    const redirectTo = window.location.origin + "/account/google-callback";
+    const redirectTo = new URL("/account/google-callback", window.location.origin);
+    redirectTo.searchParams.set("bobaks_state", state);
     const flow: GoogleOAuthFlow = {
       provider: "google",
       state,
       codeVerifier,
       createdAt: Date.now(),
-      redirectTo,
+      redirectTo: redirectTo.toString(),
     };
 
     googleOAuthStore.setItem(GOOGLE_OAUTH_FLOW_STORAGE_KEY, JSON.stringify(flow));
 
     const authorizeUrl = new URL(baseUrl + "/auth/v1/authorize");
     authorizeUrl.searchParams.set("provider", "google");
-    authorizeUrl.searchParams.set("redirect_to", redirectTo);
+    authorizeUrl.searchParams.set("redirect_to", redirectTo.toString());
     authorizeUrl.searchParams.set("code_challenge", challenge);
     authorizeUrl.searchParams.set("code_challenge_method", "S256");
-    authorizeUrl.searchParams.set("state", state);
 
     window.location.assign(authorizeUrl.toString());
     return authorizeUrl.toString();
@@ -396,7 +396,9 @@ export function createAuthClient({
       throw new Error("Google sign-in state validation failed.");
     }
 
-    if (flow.redirectTo !== window.location.origin + "/account/google-callback") {
+    const expectedRedirectTo = new URL("/account/google-callback", window.location.origin);
+    expectedRedirectTo.searchParams.set("bobaks_state", flow.state);
+    if (flow.redirectTo !== expectedRedirectTo.toString()) {
       googleOAuthStore.removeItem(GOOGLE_OAUTH_FLOW_STORAGE_KEY);
       throw new Error("Google sign-in callback does not match the expected Bobaks redirect.");
     }
