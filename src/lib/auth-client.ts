@@ -178,7 +178,6 @@ async function codeChallenge(verifier: string): Promise<string> {
 
 type GoogleOAuthFlow = {
   provider: "google";
-  state: string;
   codeVerifier: string;
   createdAt: number;
   redirectTo: string;
@@ -369,7 +368,6 @@ export function createAuthClient({
       const parsed = JSON.parse(rawFlow) as Partial<GoogleOAuthFlow>;
       if (
         parsed.provider !== "google" ||
-        typeof parsed.state !== "string" ||
         typeof parsed.codeVerifier !== "string" ||
         typeof parsed.createdAt !== "number" ||
         typeof parsed.redirectTo !== "string"
