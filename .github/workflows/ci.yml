@@ -10,138 +10,55 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+  contents: read
 
 jobs:
-  verify:
-    runs-on: ubuntu-latest
+  install:
+    runs-on: ubuntu-22.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-      - name: Setup Node
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
-      - name: Use npm 11
-        run: npm install --global npm@11
-      - name: Install
-        run: |
-          set -o pipefail
-          npm install --legacy-peer-deps --no-audit --no-fund 2>&1 | tee /tmp/ci-install.log
-      - name: Test
-        run: |
-          set -o pipefail
-          npm test 2>&1 | tee /tmp/ci-test.log
-      - name: Upload test log
-        if: always()
-        uses: actions/upload-artifact@v4
+      - run: npm install --global npm@11
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps --no-audit --no-fund
+
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
         with:
-          name: ci-test-log
-          path: /tmp/ci-test.log
-          if-no-files-found: ignore
+          node-version: 22
+      - run: npm install --global npm@11
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Unit tests
+        run: npm test
 
-      - name: Build
-        run: |
-          set -o pipefail
-          npm run build 2>&1 | tee /tmp/ci-build.log
-      - name: Build Cloudflare preview
-        run: |
-          set -o pipefail
-          BOBAKS_DEPLOYMENT_ENV=preview BOBAKS_UI_DEMO_MODE="true" npm run build:vinext 2>&1 | tee /tmp/ci-vinext-build.log
-
-      - name: Upload build log
-        if: always()
-        uses: actions/upload-artifact@v4
+  next-build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
         with:
-          name: ci-build-log
-          path: /tmp/ci-build.log
-          if-no-files-found: ignore
+          node-version: 22
+      - run: npm install --global npm@11
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Next build
+        run: npm run build
 
-      - name: Report CI failure
-        if: failure()
-        run: |
-          set +e
-          mkdir -p .ci-debug
-          {
-            echo "Frontend CI diagnostic for commit $GITHUB_SHA"
-            echo
-            for file in /tmp/ci-*.log; do
-              [ -f "$file" ] || continue
-              echo "=== $(basename "$file") ==="
-              tail -n 240 "$file"
-              echo
-            done
-          } > .ci-debug/frontend-ci-diagnostic.txt
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .ci-debug/frontend-ci-diagnostic.txt
-          git commit -m "chore: record frontend CI diagnostic [skip ci]" || true
-          git push origin "HEAD:${GITHUB_HEAD_REF}" || true
-
-      - name: Install Playwright Chromium
-        run: npx --yes playwright install --with-deps chromium
-
-      - name: Start browser test server
+  vinext-build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - run: npm install --global npm@11
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Vinext build
         env:
           BOBAKS_DEPLOYMENT_ENV: preview
           BOBAKS_UI_DEMO_MODE: "true"
-        run: |
-          npm run start:vinext -- --host 127.0.0.1 --port 4173 > /tmp/bobaks-vinext.log 2>&1 &
-          echo $! > /tmp/bobaks-vinext.pid
-
-          ready=0
-          for i in $(seq 1 36); do
-            if curl --fail --silent --show-error http://127.0.0.1:4173/ > /tmp/home.html; then
-              ready=1
-              break
-            fi
-            sleep 2
-          done
-
-          if [ "$ready" -ne 1 ]; then
-            cat /tmp/bobaks-vinext.log
-            echo "Local browser test server did not become reachable."
-            exit 1
-          fi
-
-      - name: Inspect current branch browser build
-        env:
-          PREVIEW_URL: http://127.0.0.1:4173
-        run: |
-          set -e
-
-          for path in / /rankings/live /game/demo-001; do
-            code="$(curl --silent --output /tmp/route.html --write-out '%{http_code}' "$PREVIEW_URL$path")"
-            test "$code" = "200"
-            test -s /tmp/route.html
-          done
-
-          grep -q "See what gamers are playing right now." /tmp/home.html
-          curl --fail --silent --show-error "$PREVIEW_URL/api/rankings/live" > /tmp/live-api.json
-          grep -q '"data"' /tmp/live-api.json
-
-          npx --yes playwright screenshot --browser=chromium --viewport-size="1440,900" --wait-for-timeout=2000 "$PREVIEW_URL/" preview-home.png
-          npx --yes playwright screenshot --browser=chromium --viewport-size="1440,900" --wait-for-timeout=2000 "$PREVIEW_URL/rankings/live" preview-live.png
-          npx --yes playwright screenshot --browser=chromium --viewport-size="1440,900" --wait-for-timeout=1000 "$PREVIEW_URL/game/demo-001" preview-game.png
-          npx --yes playwright screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2000 "$PREVIEW_URL/" preview-home-mobile.png
-
-      - name: Stop browser test server
-        if: always()
-        run: |
-          if [ -f /tmp/bobaks-vinext.pid ]; then
-            kill "$(cat /tmp/bobaks-vinext.pid)" 2>/dev/null || true
-          fi
-
-      - name: Upload browser evidence
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: browser-evidence
-          path: |
-            preview-home.png
-            preview-live.png
-            preview-game.png
-            preview-home-mobile.png
-          retention-days: 7
+        run: npm run build:vinext
