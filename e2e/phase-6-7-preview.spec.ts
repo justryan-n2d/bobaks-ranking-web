@@ -100,6 +100,15 @@ test.describe("Phase 6.7 Cloudflare preview", () => {
     expect(cookie).toContain("SameSite=Lax");
   });
 
+  test("renders a safe Google callback error in the real browser", async ({ page, request }) => {
+    await previewIsReachable(request);
+    await page.goto(PREVIEW_URL + "/account/google-callback?error=access_denied", { waitUntil: "domcontentloaded" });
+
+    await expect(page.getByRole("heading", { name: "Google sign-in failed" })).toBeVisible();
+    await expect(page.getByText("Google sign-in was cancelled or rejected.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Back to account" })).toBeVisible();
+  });
+
   test("rejects a Google callback exchange when the browser transaction cookie is missing", async ({ request }) => {
     await previewIsReachable(request);
     const response = await request.post(PREVIEW_URL + "/api/auth/google/exchange", {
