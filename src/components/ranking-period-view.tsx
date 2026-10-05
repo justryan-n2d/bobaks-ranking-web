@@ -74,6 +74,11 @@ export function RankingPeriodView({ period, scoreLabel }: { period: RankingPerio
       }
     } catch {
       setError(true);
+      if (period === "live") {
+        const retryAt = Date.now() + 30_000;
+        nextRefreshRef.current = retryAt;
+        setNextRefreshAt(retryAt);
+      }
     } finally {
       inFlight.current = false;
       setLoading(false);
