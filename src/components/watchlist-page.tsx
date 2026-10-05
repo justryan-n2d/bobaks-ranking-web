@@ -55,6 +55,8 @@ export function WatchlistPage() {
     };
   }, [user, watchlistIds]);
 
+  const watchlistKey = watchlistIds.join(",");
+
   useEffect(() => {
     if (!games.length) return;
     let cancelled = false;
@@ -83,7 +85,7 @@ export function WatchlistPage() {
     }
     void refresh();
     return () => { cancelled = true; };
-  }, [games.length, user]);
+  }, [games.length, user, watchlistKey]);
 
   async function remove(id: string) {
     if (user) {
