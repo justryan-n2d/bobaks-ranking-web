@@ -1,6 +1,4 @@
 export const AUTH_SESSION_STORAGE_KEY = "bobaks.auth.session.v1";
-const GOOGLE_OAUTH_FLOW_STORAGE_KEY = "bobaks.auth.google.oauth.v1";
-const GOOGLE_OAUTH_MAX_AGE_MS = 10 * 60 * 1000;
 const REFRESH_BUFFER_SECONDS = 60;
 
 export type AuthUser = {
@@ -174,7 +172,7 @@ async function send(
   return { response, payload };
 }
 
-async function send(
+sync function send(
   baseUrl: string,
   key: string,
   path: string,
@@ -211,7 +209,6 @@ export function createAuthClient({
   const key = publishableKey.trim();
   if (!key) throw new Error("Supabase publishable key is required.");
   const store = storage;
-  const googleOAuthStore = browserOAuthStorage();
   const listeners = new Set<(event: string, session: AuthSession | null) => void>();
   let refreshPromise: Promise<AuthSession | null> | null = null;
 
