@@ -124,7 +124,7 @@ jobs:
           }
           EOF
 
-          LIVE_JSON="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/rankings/live")"           SOCIAL_JSON="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/social/feed?period=live")"           node production-browser-check.mjs
+          LIVE_JSON="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/rankings/live")"           SOCIAL_JSON="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/social/feed?period=live")"           npx --yes -p playwright node production-browser-check.mjs
 
       - name: Upload production evidence
         uses: actions/upload-artifact@v4
