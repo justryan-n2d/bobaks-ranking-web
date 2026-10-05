@@ -13,6 +13,7 @@ export default function UpdatePasswordPage() {
   const router = useRouter();
   const { client } = useAuth();
   const [ready, setReady] = useState(false);
+  const [sessionAvailable, setSessionAvailable] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [busy, setBusy] = useState(false);
@@ -22,6 +23,7 @@ export default function UpdatePasswordPage() {
   useEffect(() => {
     void client.recoverSessionFromUrl()
       .then((session) => {
+        setSessionAvailable(Boolean(session));
         if (!session) setError("This password reset link is missing or has expired.");
       })
       .catch(() => setError("This password reset link is invalid or has expired."))
@@ -65,7 +67,7 @@ export default function UpdatePasswordPage() {
             <h1 className="mt-5 text-2xl font-black">Choose a new password</h1>
             {error ? <div role="alert" className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">{error}</div> : null}
             {message ? <div role="status" className="mt-4 rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm">{message}</div> : null}
-            {!error || ready ? (
+            {sessionAvailable ? (
               <form className="mt-5 space-y-4" onSubmit={submit}>
                 <label className="block">
                   <span className="text-sm font-semibold">New password</span>
