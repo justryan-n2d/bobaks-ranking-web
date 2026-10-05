@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { LEGAL_VERSIONS } from "@/lib/legal";
+import { cn } from "@/lib/utils";
 
 function formatDate(value?: string | null) {
   if (!value) return "Not available";
@@ -532,47 +533,75 @@ function SignedInAccount() {
       {hasCurrentLegal ? (
         <>
         <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="p-5 sm:p-6">
-          <div className="flex items-center gap-3">
-            <UserRound className="size-5" aria-hidden="true" />
-            <div>
-              <h2 className="font-black">Profile</h2>
-              <p className="text-xs text-muted-foreground">Community identity foundation</p>
+        <Card className="overflow-hidden">
+          <div className="p-5 pb-4 sm:p-6 sm:pb-5">
+            <div className="flex items-center gap-3">
+              <UserRound className="size-5 text-muted-foreground" aria-hidden="true" />
+              <div>
+                <h2 className="font-black">Profile</h2>
+                <p className="text-xs text-muted-foreground">Your Bobaks community identity</p>
+              </div>
             </div>
           </div>
-          <label className="mt-5 block">
-            <span className="text-sm font-semibold">Display name</span>
-            <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} maxLength={80} className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
-          </label>
-          <div className="mt-3 rounded-xl border border-border bg-muted/30 px-3 py-2 text-sm">
-            <div className="font-medium">{user?.email}</div>
-            <div className="mt-1 text-xs text-muted-foreground">
-              {user?.email_confirmed_at || user?.confirmed_at ? "Email verified" : "Email confirmation pending"}
+          <div className="border-t border-border">
+            <div className="p-5 sm:p-6">
+              <label className="block">
+                <span className="text-sm font-semibold">Display name</span>
+                <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} maxLength={80} className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+              </label>
+              <div className="mt-3 text-sm">
+                <div className="font-medium">{user?.email}</div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {user?.email_confirmed_at || user?.confirmed_at ? "Email verified" : "Email confirmation pending"}
+                </div>
+              </div>
+            </div>
+            <div className="border-t border-border">
+              <ToggleRow label="Public profile" description="Allow your Bobaks profile to be visible when community profile surfaces are introduced." checked={isPublic} onChange={setIsPublic} />
+            </div>
+            <div className="flex justify-end border-t border-border p-5 sm:p-6">
+              <Button onClick={saveProfile} disabled={busy === "profile"} aria-busy={busy === "profile"}>
+                {busy === "profile" ? "Saving..." : "Save profile"}
+              </Button>
             </div>
           </div>
-          <ToggleRow label="Public profile" description="Allow your Bobaks profile to be visible when community profile surfaces are introduced." checked={isPublic} onChange={setIsPublic} />
-          <Button className="mt-4" onClick={saveProfile} disabled={busy === "profile"}>{busy === "profile" ? "Saving..." : "Save profile"}</Button>
         </Card>
 
-        <Card className="p-5 sm:p-6">
-          <div className="flex items-center gap-3">
-            <ShieldCheck className="size-5" aria-hidden="true" />
-            <div>
-              <h2 className="font-black">Alerts</h2>
-              <p className="text-xs text-muted-foreground">Persistent account preferences</p>
+        <Card className="overflow-hidden">
+          <div className="p-5 pb-4 sm:p-6 sm:pb-5">
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="size-5 text-muted-foreground" aria-hidden="true" />
+              <div>
+                <h2 className="font-black">Alerts</h2>
+                <p className="text-xs text-muted-foreground">Choose which account alerts Bobaks sends</p>
+              </div>
             </div>
           </div>
-          <div className="mt-5 space-y-2">
+          <div className="border-t border-border">
             <ToggleRow label="Enable alerts" description="Master switch for Bobaks account alerts." checked={alertState.alerts_enabled} onChange={(value) => setAlertState((current) => ({ ...current, alerts_enabled: value }))} />
-            <ToggleRow label="Top 10 alerts" description="Alert when a saved game enters the live Top 10." checked={alertState.top10_enabled} onChange={(value) => setAlertState((current) => ({ ...current, top10_enabled: value }))} />
-            <ToggleRow label="New peak alerts" description="Alert when Bobaks records a new peak for a saved game." checked={alertState.new_peak_enabled} onChange={(value) => setAlertState((current) => ({ ...current, new_peak_enabled: value }))} />
-            <ToggleRow label="Rank jump alerts" description={`Alert when a saved game moves by at least ${alertState.rank_jump_threshold} ranks.`} checked={alertState.rank_jump_enabled} onChange={(value) => setAlertState((current) => ({ ...current, rank_jump_enabled: value }))} />
+            <div className="border-t border-border">
+              <ToggleRow label="Top 10 alerts" description="Alert when a saved game enters the live Top 10." checked={alertState.top10_enabled} onChange={(value) => setAlertState((current) => ({ ...current, top10_enabled: value }))} />
+            </div>
+            <div className="border-t border-border">
+              <ToggleRow label="New peak alerts" description="Alert when Bobaks records a new peak for a saved game." checked={alertState.new_peak_enabled} onChange={(value) => setAlertState((current) => ({ ...current, new_peak_enabled: value }))} />
+            </div>
+            <div className="border-t border-border">
+              <ToggleRow label="Rank jump alerts" description={"Alert when a saved game moves by at least " + alertState.rank_jump_threshold + " ranks."} checked={alertState.rank_jump_enabled} onChange={(value) => setAlertState((current) => ({ ...current, rank_jump_enabled: value }))} />
+            </div>
+            <div className="border-t border-border p-5 sm:p-6">
+              <label className="block">
+                <span className="text-sm font-semibold">Rank jump threshold</span>
+                <span className="mt-1 block text-xs leading-5 text-muted-foreground">How many ranks a saved game must move before Bobaks sends a jump alert.</span>
+                <input type="number" min={1} max={100} value={alertState.rank_jump_threshold} onChange={(event) => setAlertState((current) => ({ ...current, rank_jump_threshold: Number(event.target.value) }))} className="mt-2 h-10 w-28 rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+              </label>
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <span className="text-xs text-muted-foreground">Changes are saved when you tap Save alerts.</span>
+                <Button onClick={saveAlerts} disabled={busy === "alerts"} aria-busy={busy === "alerts"}>
+                  {busy === "alerts" ? "Saving..." : "Save alerts"}
+                </Button>
+              </div>
+            </div>
           </div>
-          <label className="mt-3 block">
-            <span className="text-xs font-semibold text-muted-foreground">Rank jump threshold</span>
-            <input type="number" min={1} max={100} value={alertState.rank_jump_threshold} onChange={(event) => setAlertState((current) => ({ ...current, rank_jump_threshold: Number(event.target.value) }))} className="mt-1 h-10 w-28 rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
-          </label>
-          <Button className="mt-4" onClick={saveAlerts} disabled={busy === "alerts"}>{busy === "alerts" ? "Saving..." : "Save alerts"}</Button>
         </Card>
       </div>
 
