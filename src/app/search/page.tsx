@@ -58,7 +58,7 @@ export default async function SearchPage({
       {!query ? (
         <Card className="p-8 text-sm text-muted-foreground">Search by game name or creator name. Results come from the Bobaks API.</Card>
       ) : error ? (
-        <Card className="p-8 text-sm text-red-600">{error}</Card>
+        <Card role="alert" className="border-destructive/25 bg-destructive/5 p-8 text-sm text-destructive">{error}</Card>
       ) : (
         <section aria-labelledby="results-heading" className="space-y-3">
           <div className="flex items-end justify-between gap-4">
