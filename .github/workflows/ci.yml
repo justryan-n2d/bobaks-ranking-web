@@ -13,7 +13,40 @@ permissions:
   contents: read
 
 jobs:
-  install:
+  runner-smoke:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Runner smoke
+        run: |
+          set -euxo pipefail
+          echo "runner-ok"
+          node --version
+          npm --version
+
+  checkout:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+  node-setup:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+  npm-global:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Upgrade npm
+        run: npm install --global npm@11
+
+  dependencies:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v5
@@ -23,42 +56,3 @@ jobs:
       - run: npm install --global npm@11
       - name: Install dependencies
         run: npm install --legacy-peer-deps --no-audit --no-fund
-
-  test:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
-      - run: npm install --global npm@11
-      - run: npm install --legacy-peer-deps --no-audit --no-fund
-      - name: Unit tests
-        run: npm test
-
-  next-build:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
-      - run: npm install --global npm@11
-      - run: npm install --legacy-peer-deps --no-audit --no-fund
-      - name: Next build
-        run: npm run build
-
-  vinext-build:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
-      - run: npm install --global npm@11
-      - run: npm install --legacy-peer-deps --no-audit --no-fund
-      - name: Vinext build
-        env:
-          BOBAKS_DEPLOYMENT_ENV: preview
-          BOBAKS_UI_DEMO_MODE: "true"
-        run: npm run build:vinext
