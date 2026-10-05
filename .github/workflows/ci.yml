@@ -71,14 +71,13 @@ jobs:
           done
 
           grep -q "See what gamers are playing right now." /tmp/home.html
+          curl --fail --silent --show-error "$PREVIEW_URL/api/rankings/live" > /tmp/live-api.json
+          grep -q '"data"' /tmp/live-api.json
 
-          npx --yes playwright screenshot             --browser=chromium             --viewport-size="1440,900"             --wait-for-selector=".bobaks-rank-pill"             "$PREVIEW_URL/" preview-home.png
-
-          npx --yes playwright screenshot             --browser=chromium             --viewport-size="1440,900"             --wait-for-selector=".bobaks-rank-pill"             "$PREVIEW_URL/rankings/live" preview-live.png
-
-          npx --yes playwright screenshot             --browser=chromium             --viewport-size="1440,900"             --wait-for-selector=".bobaks-hero h1"             "$PREVIEW_URL/game/demo-001" preview-game.png
-
-          npx --yes playwright screenshot             --browser=chromium             --viewport-size="390,844"             --wait-for-selector=".bobaks-rank-pill"             "$PREVIEW_URL/" preview-home-mobile.png
+          npx --yes playwright screenshot --browser=chromium --viewport-size="1440,900" --wait-for-timeout=2000 "$PREVIEW_URL/" preview-home.png
+          npx --yes playwright screenshot --browser=chromium --viewport-size="1440,900" --wait-for-timeout=2000 "$PREVIEW_URL/rankings/live" preview-live.png
+          npx --yes playwright screenshot --browser=chromium --viewport-size="1440,900" --wait-for-timeout=1000 "$PREVIEW_URL/game/demo-001" preview-game.png
+          npx --yes playwright screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2000 "$PREVIEW_URL/" preview-home-mobile.png
 
       - name: Stop browser test server
         if: always()
