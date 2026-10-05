@@ -5,24 +5,43 @@ on:
     types: [opened, synchronize, reopened]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   diagnostic:
-    if: github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          node-version: 22
 
-      - name: Write diagnostic
+      - name: Fetch package manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p .ci-debug
-          printf '%s\n' "Diagnostic runner reached this step for commit $GITHUB_SHA" > .ci-debug/harness.txt
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .ci-debug/harness.txt
-          git commit -m "chore: record diagnostic harness [skip ci]"
-          git push origin "HEAD:$GITHUB_HEAD_REF"
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github.raw+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/contents/package.json?ref=$GITHUB_HEAD_REF" \
+            -o package.json
+
+      - name: Capture npm install
+        shell: bash
+        run: |
+          set +e
+          npm install --legacy-peer-deps --no-audit --no-fund > /tmp/npm-install.log 2>&1
+          status=$?
+          echo "$status" > /tmp/npm-install.status
+          exit 0
+
+      - name: Upload npm install log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-install-diagnostic
+          path: /tmp/npm-install.log
+          if-no-files-found: error
+
+      - name: Fail with install status
+        run: test "$(cat /tmp/npm-install.status)" = "0"
