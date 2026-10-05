@@ -64,13 +64,14 @@ export default async function ComparePage({
   const b = rawB?.trim() || "";
 
   if (!a || !b) {
-    const [selected, liveResult] = await Promise.all([
+    const [profileA, profileB, liveResult] = await Promise.all([
       a ? loadProfile(a) : Promise.resolve(null),
+      b ? loadProfile(b) : Promise.resolve(null),
       getRankings("live").catch(() => ({ data: [] as RankingGame[] })),
     ]);
 
     const suggestions = liveResult.data
-      .filter((game) => game.gameId !== a)
+      .filter((game) => game.gameId !== a && game.gameId !== b)
       .slice(0, 8);
 
     return (
@@ -88,33 +89,9 @@ export default async function ComparePage({
         </div>
 
         <ComparePicker
-          initialA={selected ? {
-            id: selected.id,
-            name: selected.name,
-            creatorName: selected.creatorName,
-            iconUrl: selected.iconUrl,
-            placeId: selected.placeId,
-          } : null}
-          initialB={null}
+          initialA={gameToSearchGame(profileA)}
+          initialB={gameToSearchGame(profileB)}
         />
-
-        {selected ? (
-          <Card className="p-5">
-            <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Selected game</div>
-            <div className="mt-3 flex items-center gap-3">
-              {selected.iconUrl ? (
-                <img src={selected.iconUrl} alt="" width={52} height={52} className="size-13 rounded-2xl border border-border object-cover" />
-              ) : (
-                <div className="size-13 rounded-2xl bg-muted" aria-hidden="true" />
-              )}
-              <div className="min-w-0">
-                <div className="truncate font-semibold">{selected.name || `Experience ${a}`}</div>
-                <div className="truncate text-xs text-muted-foreground">{selected.creatorName || "Unknown creator"}</div>
-              </div>
-            </div>
-            <p className="mt-4 text-sm text-muted-foreground">Now choose a second game below.</p>
-          </Card>
-        ) : null}
 
         <section>
           <div className="mb-3 flex items-end justify-between gap-4">
