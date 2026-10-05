@@ -1,4 +1,4 @@
-export const AUTH_SESSION_STORAGE_KEY = "bobaks.auth.session.v2";
+export const AUTH_SESSION_STORAGE_KEY = "bobaks.auth.session.v1";
 const REFRESH_BUFFER_SECONDS = 60;
 
 export type AuthUser = {
