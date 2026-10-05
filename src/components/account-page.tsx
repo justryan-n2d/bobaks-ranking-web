@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Check, ExternalLink, FileText, Link2, LogIn, LogOut, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeft, Check, ExternalLink, FileText, Link2, LogIn, LogOut, ShieldCheck, UserRound } from "lucide-react";
 
 import { useAuth } from "@/components/account-provider";
 import { getGame, type GameProfile } from "@/lib/api";
@@ -185,7 +185,14 @@ function AuthForm() {
             aria-busy={googleBusy}
             onClick={() => void continueWithGoogle()}
           >
-            <span className="flex size-7 items-center justify-center rounded-md border border-border bg-background font-black" aria-hidden="true">G</span>
+            <span className="flex size-7 items-center justify-center" aria-hidden="true">
+              <svg viewBox="0 0 24 24" className="size-6" focusable="false">
+                <path fill="#4285F4" d="M21.35 12.25c0-.71-.06-1.4-.18-2.05H12v3.89h5.22a4.46 4.46 0 0 1-1.93 2.93v2.43h3.12c1.83-1.69 2.94-4.18 2.94-7.2z" />
+                <path fill="#34A853" d="M12 21.9c2.62 0 4.82-.87 6.42-2.36l-3.12-2.43c-.87.58-1.98.92-3.3.92-2.53 0-4.68-1.71-5.45-4.01H3.33v2.51A9.7 9.7 0 0 0 12 21.9z" />
+                <path fill="#FBBC05" d="M6.55 14.02A5.84 5.84 0 0 1 6.25 12c0-.7.12-1.38.3-2.02V7.47H3.33A9.9 9.9 0 0 0 2.25 12c0 1.63.39 3.17 1.08 4.53l3.22-2.51z" />
+                <path fill="#EA4335" d="M12 5.97c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.81 3.01 14.62 2.1 12 2.1a9.7 9.7 0 0 0-8.67 5.37l3.22 2.51c.77-2.3 2.92-4.01 5.45-4.01z" />
+              </svg>
+            </span>
             <span>{googleBusy ? "Redirecting to Google..." : "Continue with Google"}</span>
           </Button>
         </div>
@@ -273,9 +280,6 @@ function AuthForm() {
           </Button>
         </form>
 
-        <p className="mt-5 text-center text-xs leading-5 text-muted-foreground">
-          Accounts are optional. You can keep browsing Bobaks as a guest.
-        </p>
       </div>
     </Card>
   );
@@ -705,10 +709,14 @@ export function AccountPage() {
   return user ? <SignedInAccount /> : (
     <div className="space-y-6">
       <section>
+        <Link href="/" className="mb-3 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="size-4" aria-hidden="true" />
+          Home
+        </Link>
         <div className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Account</div>
-        <h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">Accounts are optional</h1>
+        <h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">Log in or create an account</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-          Browse Bobaks as a guest, or create an account to sync saved games, alerts, comparisons, and future community identity settings across devices.
+          Save games, alerts, comparisons, and preferences across devices.
         </p>
       </section>
       <AuthForm />
