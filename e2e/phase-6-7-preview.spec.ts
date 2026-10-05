@@ -82,6 +82,48 @@ test.describe("Phase 6.7 Cloudflare preview", () => {
     await expect(page.getByText("Guests keep saves on this device.")).toBeVisible();
   });
 
+  test("exchanges a Google callback only once when auth state changes trigger rerenders", async ({ page, request }) => {
+    await previewIsReachable(request);
+
+    let exchangeRequests = 0;
+    await page.route("**/api/auth/google/exchange", async (route) => {
+      exchangeRequests += 1;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          access_token: "browser-test-access",
+          refresh_token: "browser-test-refresh",
+          expires_at: Math.floor(Date.now() / 1000) + 3600,
+          user: { id: "browser-google-user", email: "browser-test@example.com" },
+        }),
+      });
+    });
+
+    await page.route("https://zhrfozouzvxhpkylmpwh.supabase.co/auth/v1/user", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ id: "browser-google-user", email: "browser-test@example.com" }),
+      });
+    });
+
+    await page.route("https://zhrfozouzvxhpkylmpwh.supabase.co/rest/v1/**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: "[]",
+      });
+    });
+
+    await page.goto(PREVIEW_URL + "/account/google-callback?code=browser-test-code&state=test", {
+      waitUntil: "domcontentloaded",
+    });
+
+    await expect(page.getByRole("heading", { name: "Signed in with Google." })).toBeVisible();
+    await expect.poll(() => exchangeRequests).toBe(1);
+  });
+
   test("enforces authentication at the Roblox connection server boundary", async ({ request }) => {
     await previewIsReachable(request);
     const response = await request.post(PREVIEW_URL + "/api/identity/roblox/start");
