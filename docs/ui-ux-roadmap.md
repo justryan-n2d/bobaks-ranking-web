@@ -1,7 +1,7 @@
 # Bobaks Ranking Web UI/UX Roadmap
 
 **Updated:** 2026-10-06  
-**Status:** Phase A implemented on feature branches; QA pending merge
+**Status:** Phase A ready for merge; Phase B implemented on feature branch; QA pending
 
 ## Locked brand decisions
 
@@ -24,10 +24,10 @@
 
 ## Phase B: Account UX
 
-- [ ] Replace native checkboxes with accessible switch controls.
-- [ ] Simplify nested account-card styling for mobile.
-- [ ] Improve login/create-account visual hierarchy.
-- [ ] Refine Google authentication states.
+- [x] Replace native account-setting checkboxes with accessible switch controls.
+- [x] Simplify nested account-card styling for mobile.
+- [x] Improve login/create-account visual hierarchy.
+- [x] Refine Google authentication states.
 
 ## Phase C: Core product UX
 
