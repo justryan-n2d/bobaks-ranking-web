@@ -87,7 +87,7 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           PREVIEW_URL: https://feat-phase-6-7-accounts-identity-20261005-bobaks-ranking-web.ryan-oledan0.workers.dev
-        run: npx --yes playwright test tests/phase-6-7-preview.spec.ts --project=chromium
+        run: npx playwright test e2e/phase-6-7-preview.spec.ts
 
       - name: Stop browser test server
         if: always()
