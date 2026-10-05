@@ -24,6 +24,31 @@ function session(expiresAt = Math.floor(Date.now() / 1000) + 3600) {
 }
 
 describe("account auth client", () => {
+  it("uses the shared Supabase request helper for auth calls", async () => {
+    const store = storage();
+    const originalFetch = globalThis.fetch;
+    let request: { url: string; headers: Headers } | null = null;
+    globalThis.fetch = (async (input: RequestInfo | URL, init: RequestInit = {}) => {
+      request = { url: String(input), headers: new Headers(init.headers) };
+      return new Response(JSON.stringify(session()));
+    }) as typeof fetch;
+
+    try {
+      const client = createAuthClient({
+        supabaseUrl: "https://supabase.example",
+        publishableKey: "sb_publishable_test",
+        storage: store,
+      });
+      await client.signIn({ email: "player@example.com", password: "correct" });
+      expect(request?.url).toBe("https://supabase.example/auth/v1/token?grant_type=password");
+      expect(request?.headers.get("apikey")).toBe("sb_publishable_test");
+      expect(request?.headers.get("accept")).toBe("application/json");
+      expect(request?.headers.get("content-type")).toBe("application/json");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   it("starts Google sign-in through the Bobaks server callback", async () => {
     const assigned: string[] = [];
     const originalWindow = (globalThis as { window?: unknown }).window;
