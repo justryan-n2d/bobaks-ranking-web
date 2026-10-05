@@ -426,6 +426,7 @@ function SignedInAccount() {
       ) : null}
 
       {hasCurrentLegal ? (
+        <>
         <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-5 sm:p-6">
           <div className="flex items-center gap-3">
@@ -559,6 +560,7 @@ function SignedInAccount() {
         <Button variant="outline" onClick={() => void signOut()}><LogOut className="size-4" aria-hidden="true" /> Log out</Button>
       </Card>
         </div>
+        </>
       ) : null}
     </div>
   );
