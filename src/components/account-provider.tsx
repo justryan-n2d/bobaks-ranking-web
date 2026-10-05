@@ -126,14 +126,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let active = true;
-    void client.getSession().then(async (next) => {
-      if (!active) return;
+    void (async () => {
       try {
+        const recovered = await client.recoverSessionFromUrl();
+        const next = recovered ?? await client.getSession();
+        if (!active) return;
         await loadAccount(next, Boolean(next));
       } finally {
         if (active) setLoading(false);
       }
-    });
+    })();
 
     const unsubscribe = client.onAuthStateChange((event, next) => {
       if (!active) return;
