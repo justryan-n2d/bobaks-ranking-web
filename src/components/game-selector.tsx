@@ -163,6 +163,15 @@ export function GameSelector({ label, value, excludeId, onChange }: GameSelector
                   }
                 }}
                 placeholder="Game name or creator..."
+                role="combobox"
+                aria-expanded={open}
+                aria-controls={listboxId}
+                aria-autocomplete="list"
+                aria-activedescendant={
+                  activeIndex >= 0 && filtered[activeIndex]
+                    ? listboxId + "-" + String(filtered[activeIndex].id)
+                    : undefined
+                }
                 className="h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
             </label>
