@@ -200,7 +200,7 @@ export function LiveHomeBoard({
         Number(payload.refreshIntervalSeconds ?? 30) * 1_000,
       );
       const payloadNext = payload.nextRefreshAt ? Date.parse(payload.nextRefreshAt) : Number.NaN;
-      const target = Number.isFinite(payloadNext)
+      const target = Number.isFinite(payloadNext) && payloadNext > Date.now()
         ? payloadNext
         : Date.now() + intervalMs;
       nextRefreshRef.current = target;
