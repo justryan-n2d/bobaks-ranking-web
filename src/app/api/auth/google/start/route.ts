@@ -38,6 +38,7 @@ export async function GET(request: Request) {
 
   const authorizeUrl = new URL(SUPABASE_URL + "/auth/v1/authorize");
   authorizeUrl.searchParams.set("provider", "google");
+  authorizeUrl.searchParams.set("response_type", "code");
   authorizeUrl.searchParams.set("redirect_to", redirectTo);
   authorizeUrl.searchParams.set("code_challenge", challenge);
   authorizeUrl.searchParams.set("code_challenge_method", "S256");
