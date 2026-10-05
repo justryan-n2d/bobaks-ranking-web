@@ -150,9 +150,9 @@ function email(value: string): string {
   return normalized;
 }
 
-function browserSessionStorage(): StorageLike {
+function browserOAuthStorage(): StorageLike {
   try {
-    if (typeof window !== "undefined" && window.sessionStorage) return window.sessionStorage;
+    if (typeof window !== "undefined" && window.localStorage) return window.localStorage;
   } catch {
     // Browser session storage may be blocked.
   }
@@ -220,7 +220,7 @@ export function createAuthClient({
   const key = publishableKey.trim();
   if (!key) throw new Error("Supabase publishable key is required.");
   const store = storage;
-  const googleOAuthStore = browserSessionStorage();
+  const googleOAuthStore = browserOAuthStorage();
   const listeners = new Set<(event: string, session: AuthSession | null) => void>();
   let refreshPromise: Promise<AuthSession | null> | null = null;
 
