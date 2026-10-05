@@ -24,7 +24,7 @@ No Google client secret is stored in this repository.
 
 Before Google sign-in can work for real users, enable the Google provider in the Supabase Auth Providers settings and add the Google OAuth Client ID and Client Secret.
 
-The Google OAuth Client must use the Supabase Auth callback URL shown by the Supabase Dashboard. The application's post-login redirect must be included in Supabase Auth's allowed redirect URLs. For the current Phase 6.7 preview, use `https://feat-phase-6-7-accounts-identity-20261005-bobaks-ranking-web.ryan-oled0.workers.dev/account/google-callback`; production will move to the custom domain when that domain is connected.
+The Google OAuth Client must use the Supabase Auth callback URL shown by the Supabase Dashboard. The application's post-login redirect must be included in Supabase Auth's allowed redirect URLs. For the current Phase 6.7 preview, use `https://feat-phase-6-7-accounts-identity-20261005-bobaks-ranking-web.ryan-oledan0.workers.dev/account/google-callback`; production will move to the custom domain when that domain is connected.
 
 For local development, add the local application origin to Google's Authorized JavaScript origins and the local Supabase Auth callback URL as required by Supabase.
 
