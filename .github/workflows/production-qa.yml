@@ -55,8 +55,8 @@ jobs:
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$PRODUCTION_URL/rankings/live")" = "200"
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$PRODUCTION_URL/about")" = "200"
 
-          live_json="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/rankings/live")"
-          social_json="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/social/feed?period=live")"
+          export LIVE_JSON="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/rankings/live")"
+          export SOCIAL_JSON="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/social/feed?period=live")"
 
           node --input-type=module - <<'EOF'
           const live = JSON.parse(process.env.LIVE_JSON);
