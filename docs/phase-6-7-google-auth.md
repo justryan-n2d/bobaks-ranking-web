@@ -9,7 +9,7 @@ Bobaks supports Google sign-in as a Supabase Auth login method. Google authentic
 3. The verifier is stored in browser session storage.
 4. Supabase Auth manages the provider OAuth state and redirects the user to Google.
 5. After Google authentication, Supabase redirects to the fixed `/account/google-callback` callback with the authorization code.
-6. Bobaks exchanges the code with Supabase Auth using the stored PKCE verifier, stores the resulting normal Bobaks auth session, then redirects to `/account`.
+6. Bobaks validates the state cookie, exchanges the code with Supabase Auth using the stored PKCE verifier, returns the session to the browser, then redirects to `/account`.
 
 The Google OAuth flow does not use the Roblox Cloudflare credentials:
 
