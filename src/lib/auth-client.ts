@@ -148,7 +148,7 @@ function email(value: string): string {
   return normalized;
 }
 
-aexport function createAuthClient({
+export function createAuthClient({
   supabaseUrl,
   publishableKey,
   storage = defaultStorage(),
