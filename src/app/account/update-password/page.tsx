@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 
 export default function UpdatePasswordPage() {
   const router = useRouter();
-  const { client } = useAuth();
+  const { loading, session, client } = useAuth();
   const [ready, setReady] = useState(false);
   const [sessionAvailable, setSessionAvailable] = useState(false);
   const [password, setPassword] = useState("");
@@ -21,14 +21,11 @@ export default function UpdatePasswordPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    void client.recoverSessionFromUrl()
-      .then((session) => {
-        setSessionAvailable(Boolean(session));
-        if (!session) setError("This password reset link is missing or has expired.");
-      })
-      .catch(() => setError("This password reset link is invalid or has expired."))
-      .finally(() => setReady(true));
-  }, [client]);
+    if (loading) return;
+    setSessionAvailable(Boolean(session));
+    if (!session) setError("This password reset link is missing or has expired.");
+    setReady(true);
+  }, [loading, session]);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
