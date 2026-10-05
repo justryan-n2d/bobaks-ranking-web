@@ -1,0 +1,45 @@
+name: Verify Google OAuth
+
+on:
+  push:
+    branches: ["feat/phase-6-7-accounts-identity-20261005"]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify Supabase Google OAuth authorize endpoint
+        env:
+          SUPABASE_URL: https://zhrfozouzvxhpkylmpwh.supabase.co
+          REDIRECT_TO: https://bobaks-ranking-web.ryan-oledan0.workers.dev/account/google-callback
+        run: |
+          set -euo pipefail
+
+          curl --fail --silent --show-error --location-trusted --max-redirs 0             -D /tmp/headers.txt             -o /tmp/body.txt             --get "$SUPABASE_URL/auth/v1/authorize"             --data-urlencode "provider=google"             --data-urlencode "redirect_to=$REDIRECT_TO"             --data-urlencode "skip_http_redirect=true"             || code=$?
+
+          code="${code:-0}"
+
+          echo "HTTP exit code: $code"
+          cat /tmp/headers.txt
+
+          location="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^location:[[:space:]]*/, "", $0); print; exit}' /tmp/headers.txt | tr -d '\r')"
+
+          if [ "$code" -ne 0 ]; then
+            echo "Supabase Google authorize endpoint did not return a redirect."
+            cat /tmp/body.txt
+            exit 1
+          fi
+
+          case "$location" in
+            https://accounts.google.com/*)
+              echo "PASS: Supabase Google provider is enabled and redirects to Google."
+              ;;
+            *)
+              echo "FAIL: unexpected OAuth redirect target: $location"
+              cat /tmp/body.txt
+              exit 1
+              ;;
+          esac
