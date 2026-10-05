@@ -75,7 +75,7 @@ describe("account auth client", () => {
     }
   });
 
-  it("rejects a Google callback when state does not match", async () => {
+  it("rejects a Google callback when the redirect origin does not match", async () => {
     const values = new Map<string, string>();
     const sessionStorage = {
       getItem: (key: string) => values.get(key) ?? null,
@@ -86,7 +86,7 @@ describe("account auth client", () => {
       provider: "google",
       codeVerifier: "verifier",
       createdAt: Date.now(),
-      redirectTo: "https://bobaksranking.com/account/google-callback",
+      redirectTo: "https://other.example/account/google-callback",
     }));
     const originalWindow = (globalThis as { window?: unknown }).window;
     Object.defineProperty(globalThis, "window", {
@@ -112,7 +112,7 @@ describe("account auth client", () => {
         supabaseUrl: "https://supabase.example",
         publishableKey: "sb_publishable_test",
       });
-      await expect(client.exchangeGoogleAuthCode("auth-code")).rejects.toThrow(/Google sign-in session is missing/i);
+      await expect(client.exchangeGoogleAuthCode("auth-code")).rejects.toThrow(/does not match the expected Bobaks redirect/i);
       expect(fetchCalled).toBe(false);
     } finally {
       globalThis.fetch = originalFetch;
