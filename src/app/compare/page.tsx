@@ -105,7 +105,13 @@ export default async function ComparePage({
           <div className="grid gap-3 md:grid-cols-2">
             {suggestions.map((game) => (
               <Link
-                href={`/compare?a=${encodeURIComponent(a || game.gameId)}&b=${encodeURIComponent(a ? game.gameId : "")}`}
+                href={
+                  a
+                    ? `/compare?a=${encodeURIComponent(a)}&b=${encodeURIComponent(game.gameId)}`
+                    : b
+                      ? `/compare?a=${encodeURIComponent(game.gameId)}&b=${encodeURIComponent(b)}`
+                      : `/compare?a=${encodeURIComponent(game.gameId)}`
+                }
                 key={game.gameId}
                 className="group"
               >
