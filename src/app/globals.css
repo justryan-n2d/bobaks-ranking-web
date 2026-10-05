@@ -313,6 +313,16 @@ a {
   }
 }
 
+.bobaks-status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 10%, transparent);
+  animation: bobaks-live-pulse 1.9s infinite;
+}
+
 .bobaks-nav-pending {
   width: 0.55rem;
   height: 0.55rem;
