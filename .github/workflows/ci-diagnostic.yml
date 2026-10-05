@@ -1,0 +1,62 @@
+name: Frontend CI diagnostic
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  diagnostic:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Use npm 11
+        run: npm install --global npm@11
+
+      - name: Install
+        run: npm install --legacy-peer-deps --no-audit --no-fund > /tmp/ci-diagnostic-install.log 2>&1
+
+      - name: Capture test and build diagnostics
+        shell: bash
+        run: |
+          set +e
+          npm test > /tmp/ci-diagnostic-test.log 2>&1
+          test_status=$?
+          npm run build > /tmp/ci-diagnostic-build.log 2>&1
+          build_status=$?
+          mkdir -p .ci-debug
+          {
+            echo "Frontend CI diagnostic for commit $GITHUB_SHA"
+            echo
+            echo "npm test exit: $test_status"
+            echo "npm run build exit: $build_status"
+            echo
+            echo "=== INSTALL ==="
+            tail -n 120 /tmp/ci-diagnostic-install.log 2>/dev/null
+            echo
+            echo "=== TEST ==="
+            tail -n 240 /tmp/ci-diagnostic-test.log 2>/dev/null
+            echo
+            echo "=== BUILD ==="
+            tail -n 240 /tmp/ci-diagnostic-build.log 2>/dev/null
+          } > .ci-debug/frontend-ci-diagnostic.txt
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .ci-debug/frontend-ci-diagnostic.txt
+          git commit -m "chore: record frontend CI diagnostic [skip ci]"
+          git push origin "HEAD:$GITHUB_HEAD_REF"
+
+          exit 0
