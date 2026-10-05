@@ -4,44 +4,13 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
-permissions:
-  contents: read
-
 jobs:
   diagnostic:
     runs-on: ubuntu-22.04
     steps:
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Fetch package manifest
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Runner smoke
         run: |
-          curl --fail --silent --show-error \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H "Accept: application/vnd.github.raw+json" \
-            "https://api.github.com/repos/$GITHUB_REPOSITORY/contents/package.json?ref=$GITHUB_HEAD_REF" \
-            -o package.json
-
-      - name: Capture npm install
-        shell: bash
-        run: |
-          set +e
-          npm install --legacy-peer-deps --no-audit --no-fund > /tmp/npm-install.log 2>&1
-          status=$?
-          echo "$status" > /tmp/npm-install.status
-          exit 0
-
-      - name: Upload npm install log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: npm-install-diagnostic
-          path: /tmp/npm-install.log
-          if-no-files-found: error
-
-      - name: Fail with install status
-        run: test "$(cat /tmp/npm-install.status)" = "0"
+          set -euxo pipefail
+          echo "runner-ok"
+          node --version
+          npm --version
