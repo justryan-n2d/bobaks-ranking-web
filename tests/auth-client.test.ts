@@ -26,7 +26,7 @@ function session(expiresAt = Math.floor(Date.now() / 1000) + 3600) {
 describe("account auth client", () => {
   it("builds a Google OAuth authorization URL with PKCE and a fixed callback", async () => {
     const values = new Map<string, string>();
-    const sessionStorage = {
+    const localStorage = {
       getItem: (key: string) => values.get(key) ?? null,
       setItem: (key: string, value: string) => values.set(key, value),
       removeItem: (key: string) => values.delete(key),
@@ -41,7 +41,7 @@ describe("account auth client", () => {
           origin: "https://bobaksranking.com",
           assign: (url: string) => assigned.push(url),
         },
-        sessionStorage,
+        localStorage,
         localStorage: storage(),
         history: { replaceState: () => undefined },
       },
@@ -77,7 +77,7 @@ describe("account auth client", () => {
 
   it("rejects a Google callback when the redirect origin does not match", async () => {
     const values = new Map<string, string>();
-    const sessionStorage = {
+    const localStorage = {
       getItem: (key: string) => values.get(key) ?? null,
       setItem: (key: string, value: string) => values.set(key, value),
       removeItem: (key: string) => values.delete(key),
@@ -95,7 +95,7 @@ describe("account auth client", () => {
         location: {
           origin: "https://bobaksranking.com",
         },
-        sessionStorage,
+        localStorage,
         dispatchEvent: () => true,
       },
     });
@@ -123,7 +123,7 @@ describe("account auth client", () => {
 
   it("exchanges a Google callback code through Supabase PKCE and stores the returned session", async () => {
     const values = new Map<string, string>();
-    const sessionStorage = {
+    const localStorage = {
       getItem: (key: string) => values.get(key) ?? null,
       setItem: (key: string, value: string) => values.set(key, value),
       removeItem: (key: string) => values.delete(key),
@@ -141,7 +141,7 @@ describe("account auth client", () => {
         location: {
           origin: "https://bobaksranking.com",
         },
-        sessionStorage,
+        localStorage,
         dispatchEvent: () => true,
       },
     });
@@ -170,7 +170,7 @@ describe("account auth client", () => {
       expect(result.user.id).toBe("google-user");
       expect(receivedBody).toContain("auth-code");
       expect(receivedBody).toContain("verifier-1");
-      expect(sessionStorage.getItem("bobaks.auth.google.oauth.v1")).toBeNull();
+      expect(localStorage.getItem("bobaks.auth.google.oauth.v1")).toBeNull();
     } finally {
       globalThis.fetch = originalFetch;
       if (originalWindow === undefined) delete (globalThis as { window?: unknown }).window;
