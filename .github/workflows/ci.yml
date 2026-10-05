@@ -70,15 +70,8 @@ jobs:
 
           for path in / /rankings/live /game/demo-001; do
             code="$(curl --silent --output /tmp/route.html --write-out '%{http_code}' "$PREVIEW_URL$path")"
-            echo "Smoke route $path -> HTTP $code"
-            if [ "$code" != "200" ] || [ ! -s /tmp/route.html ]; then
-              echo "Preview route failed: $path"
-              echo "--- Preview server log ---"
-              cat /tmp/bobaks-vinext.log || true
-              echo "--- Response body ---"
-              cat /tmp/route.html || true
-              exit 1
-            fi
+            test "$code" = "200"
+            test -s /tmp/route.html
           done
 
           grep -q "See what gamers are playing right now." /tmp/home.html
