@@ -37,6 +37,25 @@ test.describe("Phase 6.7 Cloudflare preview", () => {
     await expect(page.getByLabel("Password")).toBeVisible();
   });
 
+  test("stores the Google transaction cookie in the real browser before OAuth", async ({ page, request }) => {
+    await previewIsReachable(request);
+
+    const responsePromise = page.waitForResponse((response) =>
+      response.url().includes("/api/auth/google/start") && response.status() === 302,
+    );
+
+    await page.goto(PREVIEW_URL + "/api/auth/google/start", { waitUntil: "commit" });
+    await responsePromise;
+
+    const cookies = await page.context().cookies(PREVIEW_URL);
+    const transaction = cookies.find((cookie) => cookie.name === "__Host-bobaks-google-tx");
+    expect(transaction).toBeTruthy();
+    expect(transaction?.secure).toBe(true);
+    expect(transaction?.httpOnly).toBe(true);
+    expect(transaction?.sameSite).toBe("Lax");
+    expect(transaction?.path).toBe("/");
+  });
+
   test("sends Google sign-in from the real preview toward Google", async ({ page, request }) => {
     await previewIsReachable(request);
     await page.goto(PREVIEW_URL + "/account", { waitUntil: "domcontentloaded" });
