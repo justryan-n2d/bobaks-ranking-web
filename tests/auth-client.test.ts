@@ -69,7 +69,7 @@ describe("account auth client", () => {
         supabaseUrl: "https://supabase.example",
         publishableKey: "sb_publishable_test",
       });
-      await expect(client.exchangeGoogleAuthCode("auth-code", "")).rejects.toThrow(/callback is incomplete/i);
+      await expect(client.exchangeGoogleAuthCode("")).rejects.toThrow(/callback is incomplete/i);
       expect(called).toBe(false);
     } finally {
       globalThis.fetch = originalFetch;
@@ -108,10 +108,9 @@ describe("account auth client", () => {
         publishableKey: "sb_publishable_test",
         storage: store,
       });
-      const result = await client.exchangeGoogleAuthCode("auth-code", "oauth-state");
+      const result = await client.exchangeGoogleAuthCode("auth-code");
       expect(result.user.id).toBe("google-user");
       expect(receivedBody).toContain('"code":"auth-code"');
-      expect(receivedBody).toContain('"state":"oauth-state"');
       expect(store.getItem(AUTH_SESSION_STORAGE_KEY)).toContain("google-access");
     } finally {
       globalThis.fetch = originalFetch;
