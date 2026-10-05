@@ -37,6 +37,24 @@ test.describe("Phase 6.7 Cloudflare preview", () => {
     await expect(page.getByLabel("Password")).toBeVisible();
   });
 
+  test("sends Google sign-in from the real preview toward Google", async ({ page, request }) => {
+    await previewIsReachable(request);
+    await page.goto(PREVIEW_URL + "/account", { waitUntil: "domcontentloaded" });
+
+    await page.getByRole("button", { name: "Continue with Google" }).click();
+
+    await expect
+      .poll(
+        async () => new URL(page.url()).hostname,
+        {
+          timeout: 30_000,
+          intervals: [500, 1000, 2000],
+          message: "Google sign-in did not reach the Google authorization host",
+        },
+      )
+      .toBe("accounts.google.com");
+  });
+
   test("keeps the guest-first watchlist route usable without an account", async ({ page, request }) => {
     await previewIsReachable(request);
     await page.goto(PREVIEW_URL + "/saved", { waitUntil: "domcontentloaded" });
