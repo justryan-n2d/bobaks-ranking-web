@@ -24,7 +24,7 @@ function session(expiresAt = Math.floor(Date.now() / 1000) + 3600) {
 }
 
 describe("account auth client", () => {
-  it("builds a Google OAuth authorization URL with PKCE and state", async () => {
+  it("builds a Google OAuth authorization URL with PKCE and Bobaks callback state", async () => {
     const values = new Map<string, string>();
     const sessionStorage = {
       getItem: (key: string) => values.get(key) ?? null,
@@ -55,20 +55,21 @@ describe("account auth client", () => {
       const url = await client.signInWithGoogle();
       const parsed = new URL(url);
       expect(parsed.searchParams.get("provider")).toBe("google");
-      expect(parsed.searchParams.get("redirect_to")).toBe(
-        "https://bobaksranking.com/account/google-callback?bobaks_state=" + parsed.searchParams.get("state"),
+      expect(parsed.searchParams.get("redirect_to")).toContain(
+        "https://bobaksranking.com/account/google-callback?bobaks_state=",
       );
       expect(parsed.searchParams.get("code_challenge_method")).toBe("S256");
       expect(parsed.searchParams.get("code_challenge")).toMatch(/^[A-Za-z0-9_-]{43}$/);
       expect(parsed.searchParams.get("state")).toBeNull();
 
       const callbackRedirect = new URL(parsed.searchParams.get("redirect_to")!);
-      expect(callbackRedirect.searchParams.get("bobaks_state")).toMatch(/^[A-Za-z0-9_-]{32}$/);
+      const callbackState = callbackRedirect.searchParams.get("bobaks_state");
+      expect(callbackState).toMatch(/^[A-Za-z0-9_-]{32}$/);
       expect(assigned[0]).toBe(url);
 
       const stored = JSON.parse(values.get("bobaks.auth.google.oauth.v1") ?? "{}");
       expect(stored.provider).toBe("google");
-      expect(stored.state).toBe(parsed.searchParams.get("state"));
+      expect(stored.state).toBe(callbackState);
       expect(stored.codeVerifier).toMatch(/^[A-Za-z0-9_-]{43}$/);
     } finally {
       if (originalWindow === undefined) delete (globalThis as { window?: unknown }).window;
