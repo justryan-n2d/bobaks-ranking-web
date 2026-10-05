@@ -20,6 +20,22 @@ The Google OAuth flow does not use the Roblox Cloudflare credentials:
 
 No Google client secret is stored in this repository.
 
+
+## Redirect configuration for the current preview
+
+Use these exact values for the current Phase 6.7 preview:
+
+- **Google Cloud Authorized JavaScript origin**
+  `https://feat-phase-6-7-accounts-identity-20261005-bobaks-ranking-web.ryan-oledan0.workers.dev`
+- **Google Cloud Authorized redirect URI**
+  `https://zhrfozouzvxhpkylmpwh.supabase.co/auth/v1/callback`
+- **Supabase Auth redirect allowlist**
+  `https://feat-phase-6-7-accounts-identity-20261005-bobaks-ranking-web.ryan-oledan0.workers.dev/account/google-callback`
+- **Bobaks request to Supabase**
+  `redirect_to=https://feat-phase-6-7-accounts-identity-20261005-bobaks-ranking-web.ryan-oledan0.workers.dev/account/google-callback`
+
+The Google redirect URI is the Supabase Auth callback. The Bobaks callback is the post-login redirect configured in Supabase Auth.
+
 ## Supabase configuration
 
 Before Google sign-in can work for real users, enable the Google provider in the Supabase Auth Providers settings and add the Google OAuth Client ID and Client Secret.
