@@ -559,7 +559,6 @@ function SignedInAccount() {
         </div>
         <Button variant="outline" onClick={() => void signOut()}><LogOut className="size-4" aria-hidden="true" /> Log out</Button>
       </Card>
-        </div>
         </>
       ) : null}
     </div>
