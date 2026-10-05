@@ -351,6 +351,37 @@ export function createAuthClient({
     }
   }
 
+  async function resetPasswordForEmail(emailValue: string) {
+    await send(baseUrl, key, "/auth/v1/recover", {
+      method: "POST",
+      body: JSON.stringify({
+        email: email(emailValue),
+        redirect_to: window.location.origin + "/account/update-password",
+      }),
+    });
+  }
+
+  async function updatePassword(password: string) {
+    const normalized = String(password ?? "");
+    if (normalized.length < 8) throw new Error("Password must be at least 8 characters.");
+    let session = await getSession();
+    if (!session) throw new Error("Authentication required.");
+    try {
+      await send(baseUrl, key, "/auth/v1/user", {
+        method: "PUT",
+        body: JSON.stringify({ password: normalized }),
+      }, session.access_token);
+    } catch (error) {
+      if ((error as { status?: number }).status !== 401) throw error;
+      session = await refreshSession();
+      if (!session) throw new Error("Authentication required.");
+      await send(baseUrl, key, "/auth/v1/user", {
+        method: "PUT",
+        body: JSON.stringify({ password: normalized }),
+      }, session.access_token);
+    }
+  }
+
   async function resendConfirmation(emailValue: string) {
     await send(baseUrl, key, "/auth/v1/resend", {
       method: "POST",
@@ -543,6 +574,8 @@ export function createAuthClient({
   return {
     signIn,
     signUp,
+    resetPasswordForEmail,
+    updatePassword,
     signOut,
     resendConfirmation,
     refreshSession,
