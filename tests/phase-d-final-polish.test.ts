@@ -12,6 +12,7 @@ describe("Phase D final polish", () => {
   const selector = readFileSync(resolve(process.cwd(), "src/components/game-selector.tsx"), "utf8");
   const search = readFileSync(resolve(process.cwd(), "src/app/search/page.tsx"), "utf8");
   const watchlist = readFileSync(resolve(process.cwd(), "src/components/watchlist-page.tsx"), "utf8");
+  const account = readFileSync(resolve(process.cwd(), "src/components/account-page.tsx"), "utf8");
 
   it("adds skip navigation, focus visibility, and keyboard-safe mobile drawer behavior", () => {
     expect(shell).toContain('href="#main-content"');
@@ -42,6 +43,18 @@ describe("Phase D final polish", () => {
     expect(selector).toContain('event.key === "ArrowDown"');
     expect(selector).toContain('event.key === "ArrowUp"');
     expect(selector).toContain('event.key === "Enter"');
+  });
+
+  it("refines the logged-out account experience", () => {
+    expect(account).toContain('href="/"');
+    expect(account).toContain("Home");
+    expect(account).toContain("Log in or create an account");
+    expect(account).not.toContain("Accounts are optional");
+    expect(account).not.toContain("You can keep browsing Bobaks as a guest.");
+    expect(account).toContain('fill="#4285F4"');
+    expect(account).toContain('fill="#34A853"');
+    expect(account).toContain('fill="#FBBC05"');
+    expect(account).toContain('fill="#EA4335"');
   });
 
   it("keeps Phase D error styling semantic instead of hard-coded colors", () => {
