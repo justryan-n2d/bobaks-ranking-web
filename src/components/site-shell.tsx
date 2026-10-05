@@ -19,6 +19,8 @@ import {
 import { NAV_ITEMS, type NavItem } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/account-provider";
+import { BobaksBrand } from "@/components/bobaks-brand";
+import { SiteFooter } from "@/components/site-footer";
 
 const ICONS = {
   home: Home,
@@ -75,10 +77,7 @@ function SidebarContent({ close }: { close: () => void }) {
   return (
     <>
       <div className="flex items-center justify-between px-2 pb-5 pt-2">
-        <Link href="/" onClick={close}>
-          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground"><span className="bobaks-live-dot" aria-hidden="true" />Bobaks</div>
-          <div className="text-xl font-black tracking-tight">Ranking</div>
-        </Link>
+        <BobaksBrand close={close} />
         <button
           type="button"
           className="inline-flex size-10 items-center justify-center rounded-xl hover:bg-accent md:hidden"
@@ -100,11 +99,11 @@ function SidebarContent({ close }: { close: () => void }) {
           </div>
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold">
-                {loading ? "Account" : user ? (profile?.display_name || user.email || "Your account") : "Guest"}
-              </div>
-              <div className="truncate text-xs text-muted-foreground">
-                {loading ? "Loading..." : user ? "Signed in · save across devices" : "Sign in to save across devices"}
-              </div>
+              {loading ? "Account" : user ? (profile?.display_name || user.email || "Your account") : "Guest"}
+            </div>
+            <div className="truncate text-xs text-muted-foreground">
+              {loading ? "Loading..." : user ? "Signed in · save across devices" : "Sign in to save across devices"}
+            </div>
           </div>
           <LinkPendingIndicator />
         </div>
@@ -163,7 +162,7 @@ export function SiteShell({
   const close = () => setOpen(false);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
       <div className="fixed inset-x-0 top-0 z-40 flex h-14 items-center border-b border-border bg-background/95 px-4 backdrop-blur md:hidden">
         <button
           type="button"
@@ -175,9 +174,7 @@ export function SiteShell({
         >
           <Menu className="size-5" aria-hidden="true" />
         </button>
-        <Link href="/" className="ml-2 text-sm font-bold tracking-tight">
-          Bobaks Ranking
-        </Link>
+        <BobaksBrand compact close={() => undefined} />
       </div>
 
       {open ? (
@@ -204,17 +201,21 @@ export function SiteShell({
         <SidebarContent close={close} />
       </aside>
 
-      <main className="min-h-screen md:pl-64">
-        <div className="mx-auto w-full max-w-7xl px-4 pb-16 pt-20 sm:px-6 md:px-8 md:pt-10">
-          {demoMode ? (
-            <div
-              role="status"
-              className="mb-6 rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-sm dark:border-amber-400/40 dark:bg-amber-950/30 dark:text-amber-100"
-            >
-              <strong>Preview demo mode:</strong> this branch is using isolated sample data for QA. Production data is not being modified.
-            </div>
-          ) : null}
-          {children}
+      <main className="flex min-h-screen flex-1 flex-col md:pl-64">
+        <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 pb-8 pt-20 sm:px-6 md:px-8 md:pt-10">
+          <div className="flex-1">
+            {demoMode ? (
+              <div
+                role="status"
+                className="mb-6 rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-sm dark:border-amber-400/40 dark:bg-amber-950/30 dark:text-amber-100"
+              >
+                <strong>Preview demo mode:</strong> this branch is using isolated sample data for QA. Production data is not being modified.
+              </div>
+            ) : null}
+            {children}
+          </div>
+
+          <SiteFooter />
         </div>
       </main>
     </div>
