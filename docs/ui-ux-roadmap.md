@@ -1,7 +1,7 @@
 # Bobaks Ranking Web UI/UX Roadmap
 
 **Updated:** 2026-10-06  
-**Status:** Phase A ready for merge; Phase B implemented and QA-passed on feature branch
+**Status:** Phase A ready for merge; Phase B QA-passed; Phase C implemented on feature branch; QA pending
 
 ## Locked brand decisions
 
@@ -31,11 +31,11 @@
 
 ## Phase C: Core product UX
 
-- [ ] Replace Compare game-ID inputs with searchable game selectors.
-- [ ] Add live rank and player count to search results.
-- [ ] Improve live freshness and countdown messaging.
-- [ ] Refine game-profile metric hierarchy.
-- [ ] Verify Recorded Peak and tracking-start wording.
+- [x] Replace Compare game-ID inputs with searchable game selectors.
+- [x] Add live rank and player count to search results.
+- [x] Improve live freshness and countdown messaging.
+- [x] Refine game-profile metric hierarchy.
+- [x] Verify Recorded Peak and tracking-start wording.
 
 ## Phase D: Final polish
 
