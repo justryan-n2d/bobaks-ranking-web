@@ -260,14 +260,31 @@ function AuthForm() {
           <label className="block">
             <span className="text-sm font-semibold">Email</span>
             <input
+              ref={emailRef}
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                clearFieldError("email");
+              }}
               type="email"
               required
+              aria-invalid={Boolean(fieldErrors.email)}
+              aria-describedby={fieldErrors.email ? "account-email-error" : undefined}
               autoComplete="email"
-              className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className={cn(
+                "mt-1 h-11 w-full rounded-xl border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                fieldErrors.email
+                  ? "border-destructive bg-destructive/5 focus-visible:ring-destructive"
+                  : "border-border",
+              )}
               placeholder="you@example.com"
             />
+            {fieldErrors.email ? (
+              <p id="account-email-error" className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-destructive">
+                <AlertCircle className="size-3.5 shrink-0" aria-hidden="true" />
+                {fieldErrors.email}
+              </p>
+            ) : null}
           </label>
 
           <label className="block">
@@ -310,34 +327,36 @@ function AuthForm() {
           </label>
 
           {isSignUp ? (
-            <label className="flex items-start gap-3 rounded-xl border border-border bg-muted/20 p-3 text-xs leading-5 text-muted-foreground">
-              <input
-                ref={legalRef}
-                id="account-legal-consent"
-                type="checkbox"
-                className={cn(
-                  "mt-1 size-4 shrink-0 rounded accent-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  fieldErrors.legal && "outline-2 outline-destructive outline-offset-2",
-                )}
-                checked={legalAccepted}
-                onChange={(event) => {
-                  setLegalAccepted(event.target.checked);
-                  clearFieldError("legal");
-                }}
-                required
-                aria-invalid={Boolean(fieldErrors.legal)}
-                aria-describedby={fieldErrors.legal ? "account-legal-error" : undefined}
-              />
-              <span>
-                I agree to the <Link href="/terms" className="font-semibold text-foreground underline underline-offset-2">Terms and Conditions</Link> and acknowledge the <Link href="/privacy" className="font-semibold text-foreground underline underline-offset-2">Privacy Policy</Link>.
-              </span>
-              {fieldErrors.legal ? (
-                <span id="account-legal-error" className="flex items-center gap-1.5 text-xs font-medium text-destructive">
-                  <AlertCircle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-                  {fieldErrors.legal}
+            <div>
+              <label className={cn(
+                "flex items-start gap-3 rounded-xl border bg-muted/20 p-3 text-xs leading-5 text-muted-foreground",
+                fieldErrors.legal ? "border-destructive bg-destructive/5" : "border-border",
+              )}>
+                <input
+                  ref={legalRef}
+                  id="account-legal-consent"
+                  type="checkbox"
+                  className="mt-1 size-4 shrink-0 rounded accent-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  checked={legalAccepted}
+                  onChange={(event) => {
+                    setLegalAccepted(event.target.checked);
+                    clearFieldError("legal");
+                  }}
+                  required
+                  aria-invalid={Boolean(fieldErrors.legal)}
+                  aria-describedby={fieldErrors.legal ? "account-legal-error" : undefined}
+                />
+                <span className="min-w-0 flex-1">
+                  I agree to the <Link href="/terms" className="font-semibold text-foreground underline underline-offset-2">Terms and Conditions</Link> and acknowledge the <Link href="/privacy" className="font-semibold text-foreground underline underline-offset-2">Privacy Policy</Link>.
                 </span>
+              </label>
+              {fieldErrors.legal ? (
+                <p id="account-legal-error" className="mt-1.5 flex items-center gap-1.5 px-1 text-xs font-medium text-destructive">
+                  <AlertCircle className="size-3.5 shrink-0" aria-hidden="true" />
+                  {fieldErrors.legal}
+                </p>
               ) : null}
-            </label>
+            </div>
           ) : null}
 
           {error ? (
