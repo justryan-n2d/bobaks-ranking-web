@@ -15,8 +15,11 @@ describe("Phase A brand and trust", () => {
     expect(footer).toContain("Not affiliated with Roblox Corporation.");
   });
 
-  it("requires legal acceptance for new email accounts", () => {
-    expect(auth).toContain("legalAccepted");
+  it("keeps legal acceptance available while Google is the only visible auth method", () => {
+    expect(auth).toContain("Continue with Google");
+    expect(auth).not.toContain("or use email");
+    expect(auth).not.toContain('type="email"');
+    expect(auth).not.toContain('type="password"');
     expect(auth).toContain('I agree to the');
     expect(auth).toContain('href="/terms"');
     expect(auth).toContain('href="/privacy"');
