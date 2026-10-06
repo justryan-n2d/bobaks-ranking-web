@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 const PREVIEW_URL =
   process.env.PREVIEW_URL ??
-  "https://feat-phase-6-7-accounts-identity-20261005-bobaks-ranking-web.ryan-oledan0.workers.dev";
+  "https://feat-phase-6-7-accounts-identity-20261005-web.ryan-oledan0.workers.dev";
 
 async function previewIsReachable(request: import("@playwright/test").APIRequestContext) {
   await expect.poll(
