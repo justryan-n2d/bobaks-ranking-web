@@ -31,7 +31,7 @@ jobs:
 
       - name: Wait for production deployment
         env:
-          PRODUCTION_URL: https://bobaks-ranking-web.ryan-oledan0.workers.dev
+          PRODUCTION_URL: https://web.bobaksranking.workers.dev
         run: |
           ready=0
           for i in $(seq 1 36); do
@@ -49,7 +49,7 @@ jobs:
 
       - name: Check production routes APIs and demo isolation
         env:
-          PRODUCTION_URL: https://bobaks-ranking-web.ryan-oledan0.workers.dev
+          PRODUCTION_URL: https://web.bobaksranking.workers.dev
         run: |
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$PRODUCTION_URL/")" = "200"
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$PRODUCTION_URL/rankings/live")" = "200"
@@ -76,7 +76,7 @@ jobs:
 
       - name: Browser QA
         env:
-          PRODUCTION_URL: https://bobaks-ranking-web.ryan-oledan0.workers.dev
+          PRODUCTION_URL: https://web.bobaksranking.workers.dev
         run: |
           npx --yes playwright screenshot             --viewport-size="1440,900"             --wait-for-selector=".bobaks-rank-pill"             "$PRODUCTION_URL/" production-home.png
 
