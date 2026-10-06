@@ -133,9 +133,9 @@ export function GameSelector({ label, value, excludeId, onChange }: GameSelector
           id={listboxId}
           role="listbox"
           aria-label={chooseLabel}
-          className="absolute inset-x-0 z-30 mt-2 overflow-hidden rounded-2xl border border-border bg-card shadow-xl"
+          className="absolute inset-x-0 z-50 mt-2 overflow-hidden rounded-2xl border-2 border-border bg-[var(--card)] shadow-2xl ring-1 ring-black/20"
         >
-          <div className="border-b border-border p-2">
+          <div className="bg-[var(--surface-2)] p-2">
             <label className="relative block">
               <span className="sr-only">Search games</span>
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
@@ -172,21 +172,21 @@ export function GameSelector({ label, value, excludeId, onChange }: GameSelector
                     ? listboxId + "-" + String(filtered[activeIndex].id)
                     : undefined
                 }
-                className="h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="h-11 w-full rounded-xl border border-border bg-[var(--card)] px-3 pl-9 text-sm text-foreground placeholder:text-muted-foreground outline-none shadow-sm focus-visible:ring-2 focus-visible:ring-ring"
               />
             </label>
           </div>
 
-          <div className="max-h-72 overflow-y-auto p-1.5">
+          <div className="max-h-72 overflow-y-auto bg-[var(--card)] p-1.5">
             {query.trim().length < 2 ? (
-              <div className="p-4 text-center text-sm text-muted-foreground">Type at least 2 characters to search.</div>
+              <div className="bg-[var(--card)] p-4 text-center text-sm text-muted-foreground">Type at least 2 characters to search.</div>
             ) : loading ? (
-              <div className="flex items-center justify-center gap-2 p-5 text-sm text-muted-foreground">
+              <div className="flex items-center justify-center gap-2 bg-[var(--card)] p-5 text-sm text-muted-foreground">
                 <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
                 Searching Bobaks...
               </div>
             ) : error ? (
-              <div className="p-4 text-center text-sm text-muted-foreground">Search is temporarily unavailable.</div>
+              <div className="bg-[var(--card)] p-4 text-center text-sm text-muted-foreground">Search is temporarily unavailable.</div>
             ) : filtered.length ? (
               filtered.map((game) => {
                 const selected = value && String(value.id) === String(game.id);
@@ -198,7 +198,7 @@ export function GameSelector({ label, value, excludeId, onChange }: GameSelector
                     aria-selected={Boolean(selected)}
                     key={String(game.id)}
                     className={cn(
-                      "flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left hover:bg-accent focus-visible:bg-accent focus-visible:outline-none",
+                      "flex w-full items-center gap-3 rounded-xl bg-[var(--card)] px-2.5 py-2.5 text-left hover:bg-[var(--accent)] focus-visible:bg-[var(--accent)] focus-visible:outline-none",
                       activeIndex === filtered.indexOf(game) && "bg-accent",
                     )}
                     onClick={() => {
@@ -228,7 +228,7 @@ export function GameSelector({ label, value, excludeId, onChange }: GameSelector
                 );
               })
             ) : (
-              <div className="p-4 text-center text-sm text-muted-foreground">No active games matched that search.</div>
+              <div className="bg-[var(--card)] p-4 text-center text-sm text-muted-foreground">No active games matched that search.</div>
             )}
           </div>
         </div>
