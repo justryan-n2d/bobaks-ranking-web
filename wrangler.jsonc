@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "bobaks-ranking-web",
+  "name": "web",
   "compatibility_date": "2026-10-04",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "main": "vinext/server/fetch-handler",

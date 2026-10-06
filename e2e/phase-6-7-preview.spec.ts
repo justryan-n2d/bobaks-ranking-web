@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 
+// Preview hostname is intentionally kept aligned with Cloudflare preview deployment naming during the account subdomain migration.
+
 const PREVIEW_URL =
   process.env.PREVIEW_URL ??
   "https://feat-phase-6-7-accounts-identity-20261005-bobaks-ranking-web.ryan-oledan0.workers.dev";

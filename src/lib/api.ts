@@ -140,7 +140,7 @@ import {
   searchDemoGames,
 } from "./demo-data";
 
-const DEFAULT_API_ORIGIN = "https://bobaks-ranking-api-service.ryan-oledan0.workers.dev";
+const DEFAULT_API_ORIGIN = "https://bobaks-ranking-api-service.bobaksranking.workers.dev";
 
 function getApiOrigin() {
   return process.env.BOBAKS_API_ORIGIN?.replace(/\/$/, "") || DEFAULT_API_ORIGIN;
