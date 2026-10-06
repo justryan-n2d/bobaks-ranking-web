@@ -517,7 +517,7 @@ export function AccountPage() {
           Home
         </Link>
         <div className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Account</div>
-        <h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">Log in or create an account</h1>
+        <h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">Log in</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
           Save games, alerts, comparisons, and preferences across devices.
         </p>
