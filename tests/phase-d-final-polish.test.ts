@@ -48,7 +48,8 @@ describe("Phase D final polish", () => {
   it("refines the logged-out account experience", () => {
     expect(account).toContain('href="/"');
     expect(account).toContain("Home");
-    expect(account).toContain("Log in or create an account");
+    expect(account).toContain("Log in");
+    expect(account).not.toContain("Log in or create an account");
     expect(account).not.toContain("Accounts are optional");
     expect(account).not.toContain("You can keep browsing Bobaks as a guest.");
     expect(account).toContain('fill="#4285F4"');

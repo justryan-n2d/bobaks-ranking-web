@@ -21,12 +21,14 @@ describe("Phase B account UX", () => {
     expect(account).toContain('type="checkbox"');
   });
 
-  it("uses a clear account access hierarchy", () => {
-    expect(account).toContain('aria-pressed={!isSignUp}');
-    expect(account).toContain('aria-pressed={isSignUp}');
-    expect(account).toContain("or use email");
-    expect(account).toContain("Log in to Bobaks");
-    expect(account).toContain("Create Bobaks account");
+  it("keeps Google as the only account sign-in surface", () => {
+    expect(account).toContain("Continue with Google");
+    expect(account).toContain("Google is the only account sign-in method available right now.");
+    expect(account).not.toContain("or use email");
+    expect(account).not.toContain("Create account");
+    expect(account).not.toContain("Log in to Bobaks");
+    expect(account).not.toContain('name=\"email\"');
+    expect(account).not.toContain('type=\"password\"');
   });
 
   it("provides distinct loading and failure states for Google authentication", () => {
