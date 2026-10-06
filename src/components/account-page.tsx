@@ -137,7 +137,7 @@ function AuthForm() {
           <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Almost there</div>
           <h2 className="mt-1 text-2xl font-black tracking-tight">Check your email</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Bobaks sent a confirmation link to <strong>{email}</strong>. Confirm it, then return to Bobaks and log in.
+            If this address can receive a Bobaks confirmation email, check your inbox shortly. Confirm your email address, then return to Bobaks and log in.
           </p>
         </div>
         <div className="mt-6 grid gap-2 sm:flex">
@@ -154,7 +154,7 @@ function AuthForm() {
               setResendMessage("");
               try {
                 await client.resendConfirmation(email);
-                setResendMessage("A new confirmation email was sent.");
+                setResendMessage("If this address needs confirmation, a new email was requested.");
               } catch (cause) {
                 setResendMessage(cause instanceof Error ? cause.message : "Could not resend the confirmation email.");
               } finally {
@@ -329,9 +329,9 @@ function AuthForm() {
                 onClick={() => setShowPassword((current) => !current)}
               >
                 {showPassword ? (
-                  <EyeOff className="size-4" aria-hidden="true" />
-                ) : (
                   <Eye className="size-4" aria-hidden="true" />
+                ) : (
+                  <EyeOff className="size-4" aria-hidden="true" />
                 )}
               </button>
             </div>
