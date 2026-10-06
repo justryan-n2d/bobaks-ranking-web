@@ -31,6 +31,14 @@ describe("Account inline validation", () => {
     expect(account).toContain('clearFieldError("password")');
   });
 
+  it("adds an accessible password visibility toggle", () => {
+    expect(account).toContain('Eye, EyeOff');
+    expect(account).toContain('type={showPassword ? "text" : "password"}');
+    expect(account).toContain('aria-label={showPassword ? "Hide password" : "Show password"}');
+    expect(account).toContain('aria-pressed={showPassword}');
+    expect(account).toContain('setShowPassword((current) => !current)');
+  });
+
   it("uses custom validation for signup password length and legal consent", () => {
     expect(account).toContain('Password must be at least 8 characters.');
     expect(account).toContain('Please accept the Terms and Privacy Policy.');
