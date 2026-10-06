@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { AlertCircle, ArrowLeft, Check, ExternalLink, FileText, Link2, LogIn, LogOut, ShieldCheck, UserRound } from "lucide-react";
+import { AlertCircle, ArrowLeft, Check, Eye, EyeOff, ExternalLink, FileText, Link2, LogIn, LogOut, ShieldCheck, UserRound } from "lucide-react";
 
 import { useAuth } from "@/components/account-provider";
 import { getGame, type GameProfile } from "@/lib/api";
@@ -35,6 +35,7 @@ function AuthForm() {
   const [resendBusy, setResendBusy] = useState(false);
   const [resendMessage, setResendMessage] = useState("");
   const [legalAccepted, setLegalAccepted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string; legal?: string }>({});
   const emailRef = useRef<HTMLInputElement | null>(null);
   const passwordRef = useRef<HTMLInputElement | null>(null);
@@ -48,6 +49,7 @@ function AuthForm() {
     setMode(nextMode);
     setError("");
     setFieldErrors({});
+    setShowPassword(false);
     setResendMessage("");
   }
 
@@ -298,26 +300,41 @@ function AuthForm() {
                 <span className="text-xs text-muted-foreground">8+ characters</span>
               )}
             </div>
-            <input
-              ref={passwordRef}
-              value={password}
-              onChange={(event) => {
-                setPassword(event.target.value);
-                clearFieldError("password");
-              }}
-              type="password"
-              required
-              minLength={8}
-              aria-invalid={Boolean(fieldErrors.password)}
-              aria-describedby={fieldErrors.password ? "account-password-error" : undefined}
-              autoComplete={isSignUp ? "new-password" : "current-password"}
-              className={cn(
-                "mt-1 h-11 w-full rounded-xl border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                fieldErrors.password
-                  ? "border-[var(--signal-drop)] bg-[color-mix(in_srgb,var(--signal-drop)_5%,transparent)] focus-visible:ring-[var(--signal-drop)]"
-                  : "border-border",
-              )}
-            />
+            <div className="relative mt-1">
+              <input
+                ref={passwordRef}
+                value={password}
+                onChange={(event) => {
+                  setPassword(event.target.value);
+                  clearFieldError("password");
+                }}
+                type={showPassword ? "text" : "password"}
+                required
+                minLength={8}
+                aria-invalid={Boolean(fieldErrors.password)}
+                aria-describedby={fieldErrors.password ? "account-password-error" : undefined}
+                autoComplete={isSignUp ? "new-password" : "current-password"}
+                className={cn(
+                  "h-11 w-full rounded-xl border bg-background px-3 pr-11 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  fieldErrors.password
+                    ? "border-[var(--signal-drop)] bg-[color-mix(in_srgb,var(--signal-drop)_5%,transparent)] focus-visible:ring-[var(--signal-drop)]"
+                    : "border-border",
+                )}
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                onClick={() => setShowPassword((current) => !current)}
+              >
+                {showPassword ? (
+                  <EyeOff className="size-4" aria-hidden="true" />
+                ) : (
+                  <Eye className="size-4" aria-hidden="true" />
+                )}
+              </button>
+            </div>
             {fieldErrors.password ? (
               <p id="account-password-error" className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-[var(--signal-drop)]">
                 <AlertCircle className="size-3.5 shrink-0" aria-hidden="true" />
