@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/account-provider";
 import { BobaksBrand } from "@/components/bobaks-brand";
 import { SiteFooter } from "@/components/site-footer";
+import { AdSlot } from "@/components/ad-slot";
 
 const ICONS = {
   home: Home,
@@ -246,6 +247,7 @@ export function SiteShell({
       <main id="main-content" tabIndex={-1} className="flex min-h-screen min-w-0 flex-1 flex-col outline-none md:pl-64">
         <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 pb-8 pt-20 sm:px-6 md:px-8 md:pt-10">
           <div className="flex-1">
+            <AdSlot slot="content-top" />
             {demoMode ? (
               <div
                 role="status"
