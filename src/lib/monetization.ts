@@ -33,17 +33,22 @@ export const MONETIZATION_CONFIG = {
   },
 } as const;
 
-function readEnv(name: string): string {
+function readPublicAdsEnabled(): string {
   if (typeof process === "undefined") return "";
-  return String(process.env[name] ?? "").trim();
+  return String(process.env.NEXT_PUBLIC_BOBAKS_ADS_ENABLED ?? "").trim();
+}
+
+function readPublicAdProvider(): string {
+  if (typeof process === "undefined") return "";
+  return String(process.env.NEXT_PUBLIC_BOBAKS_AD_PROVIDER ?? "").trim();
 }
 
 export function isAdsEnabled(): boolean {
-  return readEnv(MONETIZATION_CONFIG.ads.enabledEnvVar).toLowerCase() === "true";
+  return readPublicAdsEnabled().toLowerCase() === "true";
 }
 
 export function getAdProvider(): AdProviderId {
-  return readEnv(MONETIZATION_CONFIG.ads.providerEnvVar) || "none";
+  return readPublicAdProvider() || "none";
 }
 
 export function isMonetizationReady(): boolean {
