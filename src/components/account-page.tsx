@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Check, ExternalLink, FileText, Link2, LogIn, LogOut, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeft, Check, ExternalLink, FileText, Link2, LogOut, ShieldCheck, UserRound } from "lucide-react";
 
 import { useAuth } from "@/components/account-provider";
 import { getGame, type GameProfile } from "@/lib/api";
@@ -10,7 +10,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { LEGAL_VERSIONS } from "@/lib/legal";
-import { cn } from "@/lib/utils";
 
 function formatDate(value?: string | null) {
   if (!value) return "Not available";
@@ -23,57 +22,12 @@ function formatDate(value?: string | null) {
 }
 
 function AuthForm() {
-  const { signIn, signInWithGoogle, signUp, loading, client } = useAuth();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const { signInWithGoogle, loading } = useAuth();
   const [error, setError] = useState("");
-  const [confirmation, setConfirmation] = useState(false);
-  const [busy, setBusy] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
-  const [resendBusy, setResendBusy] = useState(false);
-  const [resendMessage, setResendMessage] = useState("");
-  const [legalAccepted, setLegalAccepted] = useState(false);
-
-  function changeMode(nextMode: "signin" | "signup") {
-    setMode(nextMode);
-    setError("");
-    setResendMessage("");
-  }
-
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (busy || googleBusy) return;
-
-    setBusy(true);
-    setError("");
-    setConfirmation(false);
-
-    try {
-      if (mode === "signin") {
-        await signIn(email, password);
-      } else {
-        if (!legalAccepted) {
-          setError("Please agree to the Terms and Conditions and Privacy Policy to create your account.");
-          return;
-        }
-        const result = await signUp(email, password, displayName, true);
-        if (result.needsConfirmation) setConfirmation(true);
-      }
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Authentication failed.");
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function continueWithGoogle() {
-    if (busy || googleBusy) return;
-    if (mode === "signup" && !legalAccepted) {
-      setError("Please agree to the Terms and Conditions and Privacy Policy to create your account.");
-      return;
-    }
+    if (loading || googleBusy) return;
 
     setGoogleBusy(true);
     setError("");
@@ -86,102 +40,25 @@ function AuthForm() {
     }
   }
 
-  if (confirmation) {
-    return (
-      <Card className="mx-auto w-full max-w-lg p-6 sm:p-8">
-        <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <Check className="size-5" aria-hidden="true" />
-        </div>
-        <div className="mt-5">
-          <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Almost there</div>
-          <h2 className="mt-1 text-2xl font-black tracking-tight">Check your email</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Bobaks sent a confirmation link to <strong>{email}</strong>. Confirm it, then return to Bobaks and log in.
-          </p>
-        </div>
-        <div className="mt-6 grid gap-2 sm:flex">
-          <Button className="sm:flex-1" onClick={() => changeMode("signin")}>
-            Back to log in
-          </Button>
-          <Button
-            variant="outline"
-            className="sm:flex-1"
-            disabled={resendBusy}
-            aria-busy={resendBusy}
-            onClick={async () => {
-              setResendBusy(true);
-              setResendMessage("");
-              try {
-                await client.resendConfirmation(email);
-                setResendMessage("A new confirmation email was sent.");
-              } catch (cause) {
-                setResendMessage(cause instanceof Error ? cause.message : "Could not resend the confirmation email.");
-              } finally {
-                setResendBusy(false);
-              }
-            }}
-          >
-            {resendBusy ? "Sending..." : "Resend confirmation"}
-          </Button>
-        </div>
-        {resendMessage ? <p role="status" className="mt-3 text-xs leading-5 text-muted-foreground">{resendMessage}</p> : null}
-      </Card>
-    );
-  }
-
-  const isSignUp = mode === "signup";
-
   return (
     <Card className="mx-auto w-full max-w-lg overflow-hidden">
       <div className="p-5 sm:p-8">
         <div>
           <div className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            {isSignUp ? "New account" : "Welcome back"}
+            Account access
           </div>
-          <h2 className="mt-1 text-2xl font-black tracking-tight">
-            {isSignUp ? "Create your Bobaks account" : "Log in to Bobaks"}
-          </h2>
+          <h2 className="mt-1 text-2xl font-black tracking-tight">Continue with Google</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            {isSignUp
-              ? "Save games, alerts, comparisons, and account preferences across devices."
-              : "Access your saved games, alerts, comparisons, and preferences."}
+            Use your Google account to access Bobaks. New users can create their Bobaks account through Google.
           </p>
         </div>
 
-        <div
-          className="mt-6 grid grid-cols-2 rounded-xl border border-border bg-muted/60 p-1"
-          aria-label="Account access mode"
-        >
-          <button
-            type="button"
-            aria-pressed={!isSignUp}
-            className={cn(
-              "min-h-10 rounded-lg px-3 text-sm font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
-              !isSignUp ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
-            )}
-            onClick={() => changeMode("signin")}
-          >
-            Log in
-          </button>
-          <button
-            type="button"
-            aria-pressed={isSignUp}
-            className={cn(
-              "min-h-10 rounded-lg px-3 text-sm font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
-              isSignUp ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
-            )}
-            onClick={() => changeMode("signup")}
-          >
-            Create account
-          </button>
-        </div>
-
-        <div className="mt-5">
+        <div className="mt-6">
           <Button
             type="button"
             variant="outline"
             className="h-12 w-full justify-center border-border bg-background"
-            disabled={loading || busy || googleBusy}
+            disabled={loading || googleBusy}
             aria-busy={googleBusy}
             onClick={() => void continueWithGoogle()}
           >
@@ -197,89 +74,15 @@ function AuthForm() {
           </Button>
         </div>
 
-        <div className="my-6 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-          <div className="h-px flex-1 bg-border" />
-          <span>or use email</span>
-          <div className="h-px flex-1 bg-border" />
-        </div>
+        {error ? (
+          <div role="alert" className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm leading-5 text-destructive">
+            {error}
+          </div>
+        ) : null}
 
-        <form className="space-y-4" onSubmit={submit} aria-busy={busy}>
-          {isSignUp ? (
-            <label className="block">
-              <span className="text-sm font-semibold">Display name <span className="font-normal text-muted-foreground">(optional)</span></span>
-              <input
-                value={displayName}
-                onChange={(event) => setDisplayName(event.target.value)}
-                maxLength={80}
-                autoComplete="name"
-                className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                placeholder="How should Bobaks show you?"
-              />
-            </label>
-          ) : null}
-
-          <label className="block">
-            <span className="text-sm font-semibold">Email</span>
-            <input
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              type="email"
-              required
-              autoComplete="email"
-              className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              placeholder="you@example.com"
-            />
-          </label>
-
-          <label className="block">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-sm font-semibold">Password</span>
-              {!isSignUp ? (
-                <Link href="/account/reset-password" className="text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline">
-                  Forgot password?
-                </Link>
-              ) : (
-                <span className="text-xs text-muted-foreground">8+ characters</span>
-              )}
-            </div>
-            <input
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              type="password"
-              required
-              minLength={8}
-              autoComplete={isSignUp ? "new-password" : "current-password"}
-              className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
-          </label>
-
-          {isSignUp ? (
-            <label className="flex items-start gap-3 rounded-xl border border-border bg-muted/20 p-3 text-xs leading-5 text-muted-foreground">
-              <input
-                id="account-legal-consent"
-                type="checkbox"
-                className="mt-1 size-4 shrink-0 accent-foreground"
-                checked={legalAccepted}
-                onChange={(event) => setLegalAccepted(event.target.checked)}
-                required
-              />
-              <span>
-                I agree to the <Link href="/terms" className="font-semibold text-foreground underline underline-offset-2">Terms and Conditions</Link> and acknowledge the <Link href="/privacy" className="font-semibold text-foreground underline underline-offset-2">Privacy Policy</Link>.
-              </span>
-            </label>
-          ) : null}
-
-          {error ? (
-            <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm leading-5 text-destructive">
-              {error}
-            </div>
-          ) : null}
-
-          <Button type="submit" className="h-11 w-full" disabled={loading || busy || googleBusy} aria-busy={busy}>
-            {busy ? (isSignUp ? "Creating account..." : "Signing in...") : isSignUp ? "Create Bobaks account" : "Log in to Bobaks"}
-          </Button>
-        </form>
-
+        <p className="mt-5 text-center text-xs leading-5 text-muted-foreground">
+          Google is the only account sign-in method available right now.
+        </p>
       </div>
     </Card>
   );
