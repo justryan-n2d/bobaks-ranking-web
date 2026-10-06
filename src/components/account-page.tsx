@@ -274,13 +274,13 @@ function AuthForm() {
               className={cn(
                 "mt-1 h-11 w-full rounded-xl border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 fieldErrors.email
-                  ? "border-destructive bg-destructive/5 focus-visible:ring-destructive"
+                  ? "border-[var(--signal-drop)] bg-[color-mix(in_srgb,var(--signal-drop)_5%,transparent)] focus-visible:ring-[var(--signal-drop)]"
                   : "border-border",
               )}
               placeholder="you@example.com"
             />
             {fieldErrors.email ? (
-              <p id="account-email-error" className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-destructive">
+              <p id="account-email-error" className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-[var(--signal-drop)]">
                 <AlertCircle className="size-3.5 shrink-0" aria-hidden="true" />
                 {fieldErrors.email}
               </p>
@@ -314,12 +314,12 @@ function AuthForm() {
               className={cn(
                 "mt-1 h-11 w-full rounded-xl border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 fieldErrors.password
-                  ? "border-destructive bg-destructive/5 focus-visible:ring-destructive"
+                  ? "border-[var(--signal-drop)] bg-[color-mix(in_srgb,var(--signal-drop)_5%,transparent)] focus-visible:ring-[var(--signal-drop)]"
                   : "border-border",
               )}
             />
             {fieldErrors.password ? (
-              <p id="account-password-error" className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-destructive">
+              <p id="account-password-error" className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-[var(--signal-drop)]">
                 <AlertCircle className="size-3.5 shrink-0" aria-hidden="true" />
                 {fieldErrors.password}
               </p>
@@ -330,7 +330,7 @@ function AuthForm() {
             <div>
               <label className={cn(
                 "flex items-start gap-3 rounded-xl border bg-muted/20 p-3 text-xs leading-5 text-muted-foreground",
-                fieldErrors.legal ? "border-destructive bg-destructive/5" : "border-border",
+                fieldErrors.legal ? "border-[var(--signal-drop)] bg-[color-mix(in_srgb,var(--signal-drop)_5%,transparent)]" : "border-border",
               )}>
                 <input
                   ref={legalRef}
@@ -351,7 +351,7 @@ function AuthForm() {
                 </span>
               </label>
               {fieldErrors.legal ? (
-                <p id="account-legal-error" className="mt-1.5 flex items-center gap-1.5 px-1 text-xs font-medium text-destructive">
+                <p id="account-legal-error" className="mt-1.5 flex items-center gap-1.5 px-1 text-xs font-medium text-[var(--signal-drop)]">
                   <AlertCircle className="size-3.5 shrink-0" aria-hidden="true" />
                   {fieldErrors.legal}
                 </p>
@@ -360,7 +360,7 @@ function AuthForm() {
           ) : null}
 
           {error ? (
-            <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm leading-5 text-destructive">
+            <div role="alert" className="rounded-xl border border-[color-mix(in_srgb,var(--signal-drop)_35%,var(--border))] bg-[color-mix(in_srgb,var(--signal-drop)_5%,transparent)] px-3 py-2.5 text-sm leading-5 text-[var(--signal-drop)]">
               {error}
             </div>
           ) : null}
@@ -576,7 +576,7 @@ function SignedInAccount() {
         </p>
       </section>
 
-      {error ? <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">{error}</div> : null}
+      {error ? <div role="alert" className="rounded-xl border border-[color-mix(in_srgb,var(--signal-drop)_35%,var(--border))] bg-[color-mix(in_srgb,var(--signal-drop)_5%,transparent)] px-4 py-3 text-sm text-[var(--signal-drop)]">{error}</div> : null}
       {saved ? <div role="status" className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm">{saved}</div> : null}
 
       {!hasCurrentLegal ? (
