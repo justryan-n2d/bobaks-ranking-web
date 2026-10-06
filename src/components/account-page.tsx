@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { ArrowLeft, Check, ExternalLink, FileText, Link2, LogIn, LogOut, ShieldCheck, UserRound } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { AlertCircle, ArrowLeft, Check, ExternalLink, FileText, Link2, LogIn, LogOut, ShieldCheck, UserRound } from "lucide-react";
 
 import { useAuth } from "@/components/account-provider";
 import { getGame, type GameProfile } from "@/lib/api";
@@ -35,16 +35,59 @@ function AuthForm() {
   const [resendBusy, setResendBusy] = useState(false);
   const [resendMessage, setResendMessage] = useState("");
   const [legalAccepted, setLegalAccepted] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string; legal?: string }>({});
+  const emailRef = useRef<HTMLInputElement | null>(null);
+  const passwordRef = useRef<HTMLInputElement | null>(null);
+  const legalRef = useRef<HTMLInputElement | null>(null);
+
+  function clearFieldError(field: "email" | "password" | "legal") {
+    setFieldErrors((current) => ({ ...current, [field]: undefined }));
+  }
 
   function changeMode(nextMode: "signin" | "signup") {
     setMode(nextMode);
     setError("");
+    setFieldErrors({});
     setResendMessage("");
+  }
+
+  function validateForm() {
+    const nextErrors: { email?: string; password?: string; legal?: string } = {};
+    const normalizedEmail = email.trim();
+
+    if (!normalizedEmail) {
+      nextErrors.email = "Email is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      nextErrors.email = "Enter a valid email address.";
+    }
+
+    if (!password) {
+      nextErrors.password = "Password is required.";
+    } else if (isSignUp && password.length < 8) {
+      nextErrors.password = "Password must be at least 8 characters.";
+    }
+
+    if (isSignUp && !legalAccepted) {
+      nextErrors.legal = "Please accept the Terms and Privacy Policy.";
+    }
+
+    setFieldErrors(nextErrors);
+
+    if (nextErrors.email) {
+      emailRef.current?.focus();
+    } else if (nextErrors.password) {
+      passwordRef.current?.focus();
+    } else if (nextErrors.legal) {
+      legalRef.current?.focus();
+    }
+
+    return Object.keys(nextErrors).length === 0;
   }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy || googleBusy) return;
+    if (!validateForm()) return;
 
     setBusy(true);
     setError("");
@@ -52,13 +95,9 @@ function AuthForm() {
 
     try {
       if (mode === "signin") {
-        await signIn(email, password);
+        await signIn(email.trim(), password);
       } else {
-        if (!legalAccepted) {
-          setError("Please agree to the Terms and Conditions and Privacy Policy to create your account.");
-          return;
-        }
-        const result = await signUp(email, password, displayName, true);
+        const result = await signUp(email.trim(), password, displayName, true);
         if (result.needsConfirmation) setConfirmation(true);
       }
     } catch (cause) {
@@ -203,7 +242,7 @@ function AuthForm() {
           <div className="h-px flex-1 bg-border" />
         </div>
 
-        <form className="space-y-4" onSubmit={submit} aria-busy={busy}>
+        <form className="space-y-4" onSubmit={submit} noValidate aria-busy={busy}>
           {isSignUp ? (
             <label className="block">
               <span className="text-sm font-semibold">Display name <span className="font-normal text-muted-foreground">(optional)</span></span>
@@ -243,29 +282,61 @@ function AuthForm() {
               )}
             </div>
             <input
+              ref={passwordRef}
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                clearFieldError("password");
+              }}
               type="password"
               required
               minLength={8}
+              aria-invalid={Boolean(fieldErrors.password)}
+              aria-describedby={fieldErrors.password ? "account-password-error" : undefined}
               autoComplete={isSignUp ? "new-password" : "current-password"}
-              className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className={cn(
+                "mt-1 h-11 w-full rounded-xl border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                fieldErrors.password
+                  ? "border-destructive bg-destructive/5 focus-visible:ring-destructive"
+                  : "border-border",
+              )}
             />
+            {fieldErrors.password ? (
+              <p id="account-password-error" className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-destructive">
+                <AlertCircle className="size-3.5 shrink-0" aria-hidden="true" />
+                {fieldErrors.password}
+              </p>
+            ) : null}
           </label>
 
           {isSignUp ? (
             <label className="flex items-start gap-3 rounded-xl border border-border bg-muted/20 p-3 text-xs leading-5 text-muted-foreground">
               <input
+                ref={legalRef}
                 id="account-legal-consent"
                 type="checkbox"
-                className="mt-1 size-4 shrink-0 accent-foreground"
+                className={cn(
+                  "mt-1 size-4 shrink-0 rounded accent-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  fieldErrors.legal && "outline-2 outline-destructive outline-offset-2",
+                )}
                 checked={legalAccepted}
-                onChange={(event) => setLegalAccepted(event.target.checked)}
+                onChange={(event) => {
+                  setLegalAccepted(event.target.checked);
+                  clearFieldError("legal");
+                }}
                 required
+                aria-invalid={Boolean(fieldErrors.legal)}
+                aria-describedby={fieldErrors.legal ? "account-legal-error" : undefined}
               />
               <span>
                 I agree to the <Link href="/terms" className="font-semibold text-foreground underline underline-offset-2">Terms and Conditions</Link> and acknowledge the <Link href="/privacy" className="font-semibold text-foreground underline underline-offset-2">Privacy Policy</Link>.
               </span>
+              {fieldErrors.legal ? (
+                <span id="account-legal-error" className="flex items-center gap-1.5 text-xs font-medium text-destructive">
+                  <AlertCircle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+                  {fieldErrors.legal}
+                </span>
+              ) : null}
             </label>
           ) : null}
 
