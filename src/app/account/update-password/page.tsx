@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LoaderCircle, Save } from "lucide-react";
+import { Eye, EyeOff, LoaderCircle, Save } from "lucide-react";
 
 import { useAuth } from "@/components/account-provider";
 import { Card } from "@/components/ui/card";
@@ -19,6 +19,8 @@ export default function UpdatePasswordPage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -68,11 +70,21 @@ export default function UpdatePasswordPage() {
               <form className="mt-5 space-y-4" onSubmit={submit}>
                 <label className="block">
                   <span className="text-sm font-semibold">New password</span>
-                  <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" minLength={8} required autoComplete="new-password" className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+                  <div className="relative mt-1">
+                    <input value={password} onChange={(event) => setPassword(event.target.value)} type={showPassword ? "text" : "password"} minLength={8} required autoComplete="new-password" className="h-11 w-full rounded-xl border border-border bg-background px-3 pr-11 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+                    <button type="button" className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring" aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword} onClick={() => setShowPassword((current) => !current)}>
+                      {showPassword ? <Eye className="size-4" aria-hidden="true" /> : <EyeOff className="size-4" aria-hidden="true" />}
+                    </button>
+                  </div>
                 </label>
                 <label className="block">
                   <span className="text-sm font-semibold">Confirm new password</span>
-                  <input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} type="password" minLength={8} required autoComplete="new-password" className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+                  <div className="relative mt-1">
+                    <input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} type={showConfirmation ? "text" : "password"} minLength={8} required autoComplete="new-password" className="h-11 w-full rounded-xl border border-border bg-background px-3 pr-11 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+                    <button type="button" className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring" aria-label={showConfirmation ? "Hide confirmation password" : "Show confirmation password"} aria-pressed={showConfirmation} onClick={() => setShowConfirmation((current) => !current)}>
+                      {showConfirmation ? <Eye className="size-4" aria-hidden="true" /> : <EyeOff className="size-4" aria-hidden="true" />}
+                    </button>
+                  </div>
                 </label>
                 <Button type="submit" className="w-full" disabled={busy || Boolean(message)}>{busy ? "Saving..." : "Update password"}</Button>
               </form>
