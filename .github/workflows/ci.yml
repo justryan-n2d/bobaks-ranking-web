@@ -86,7 +86,7 @@ jobs:
       - name: Verify Cloudflare Phase 6.7 preview in Chromium
         if: github.event_name == 'pull_request'
         env:
-          PREVIEW_URL: https://feat-phase-6-7-accounts-identity-20261005-bobaks-ranking-web.ryan-oledan0.workers.dev
+          PREVIEW_URL: https://feat-phase-6-7-accounts-identity-20261005-web.ryan-oledan0.workers.dev
         run: npx playwright test e2e/phase-6-7-preview.spec.ts
 
       - name: Stop browser test server
