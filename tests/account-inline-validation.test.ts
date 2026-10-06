@@ -15,7 +15,7 @@ describe("Account inline validation", () => {
   it("provides inline email and password error states", () => {
     expect(account).toContain('Email is required.');
     expect(account).toContain('Password is required.');
-    expect(account).toContain('border-destructive bg-destructive/5');
+    expect(account).toContain("border-[var(--signal-drop)] bg-[color-mix(in_srgb,var(--signal-drop)_5%,transparent)]");
     expect(account).toContain('aria-invalid={Boolean(fieldErrors.email)}');
     expect(account).toContain('aria-invalid={Boolean(fieldErrors.password)}');
     expect(account).toContain('account-email-error');
@@ -35,6 +35,6 @@ describe("Account inline validation", () => {
     expect(account).toContain('Password must be at least 8 characters.');
     expect(account).toContain('Please accept the Terms and Privacy Policy.');
     expect(account).toContain('aria-invalid={Boolean(fieldErrors.legal)}');
-    expect(account).toContain('border-destructive bg-destructive/5');
+    expect(account).toContain("border-[var(--signal-drop)] bg-[color-mix(in_srgb,var(--signal-drop)_5%,transparent)]");
   });
 });
