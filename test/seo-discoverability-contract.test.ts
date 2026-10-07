@@ -11,6 +11,7 @@ describe("SEO discoverability contract", () => {
     expect(sitemap).toMatch(/\/rankings\/monthly/);
     expect(sitemap).toMatch(/\/rankings\/yearly/);
     expect(sitemap).toMatch(/\/game\//);
+    expect(sitemap).toMatch(/\/community/);
     expect(sitemap).toMatch(/web\.bobaksranking\.workers\.dev/);
     expect(sitemap).toMatch(/Promise\.allSettled/);
     expect(sitemap).toMatch(/revalidate = 600/);
@@ -27,5 +28,13 @@ describe("SEO discoverability contract", () => {
     expect(robots).not.toMatch(/disallow:[\s\S]*\/search/);
     expect(robots).toMatch(/sitemap[\s\S]*sitemap\.xml/);
     expect(robots).toMatch(/IS_PREVIEW/);
+  });
+
+  test("public pages expose default social metadata", () => {
+    const layout = readFileSync("src/app/layout.tsx", "utf8");
+
+    expect(layout).toMatch(/openGraph:\s*\{/);
+    expect(layout).toMatch(/twitter:\s*\{/);
+    expect(layout).toMatch(/siteName: "Bobaks Ranking"/);
   });
 });
