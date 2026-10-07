@@ -6,7 +6,6 @@ import "./globals.css";
 
 const SITE_ORIGIN = (process.env.BOBAKS_SITE_ORIGIN || "https://web.bobaksranking.workers.dev").replace(/\/$/, "");
 const IS_PREVIEW = process.env.BOBAKS_DEPLOYMENT_ENV === "preview";
-const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION?.trim() || "sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA";
 const BING_SITE_VERIFICATION = process.env.BING_SITE_VERIFICATION?.trim();
 
 export const metadata: Metadata = {
@@ -37,13 +36,10 @@ export const metadata: Metadata = {
     index: !IS_PREVIEW,
     follow: !IS_PREVIEW,
   },
-  ...(!IS_PREVIEW && (GOOGLE_SITE_VERIFICATION || BING_SITE_VERIFICATION)
+  ...(!IS_PREVIEW && BING_SITE_VERIFICATION
     ? {
         verification: {
-          ...(GOOGLE_SITE_VERIFICATION ? { google: GOOGLE_SITE_VERIFICATION } : {}),
-          ...(BING_SITE_VERIFICATION
-            ? { other: { "msvalidate.01": BING_SITE_VERIFICATION } }
-            : {}),
+          other: { "msvalidate.01": BING_SITE_VERIFICATION },
         },
       }
     : {}),
@@ -52,14 +48,6 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <head>
-        {!IS_PREVIEW ? (
-          <meta
-            name="google-site-verification"
-            content="sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA"
-          />
-        ) : null}
-      </head>
       <body>
         <AuthProvider>
           <SiteShell demoMode={isDemoModeEnabled()}>{children}</SiteShell>
