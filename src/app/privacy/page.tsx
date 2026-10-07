@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CONTACT_EMAIL, LEGAL_VERSIONS } from "@/lib/legal";
 
 export const metadata = {
+  alternates: { canonical: "/privacy" },
   title: "Privacy",
   description: "Bobaks Ranking Privacy Policy.",
 };
