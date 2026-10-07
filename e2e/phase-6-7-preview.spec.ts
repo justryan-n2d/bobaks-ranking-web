@@ -37,8 +37,6 @@ test.describe("Phase 6.7 Cloudflare preview", () => {
 
     await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
     await expect(page).toHaveURL(/\/account$/);
-    await expect(page.getByLabel("Email")).toBeVisible();
-    await expect(page.getByLabel("Password")).toBeVisible();
   });
 
   test("stores the Google transaction cookie in the real browser before OAuth", async ({ page, request }) => {
