@@ -115,7 +115,7 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
           ["Weekly rank", weekly?.rank ? `#${weekly.rank}` : "Not ranked", weekly?.calculatedAt ? <>Calculated · <LocalDateTime value={weekly.calculatedAt} /></> : "No weekly rank"],
         ].map(([label, value, note]) => (
           <Card
-            key={label}
+            key={String(label)}
             data-state={label === "Current players" ? "live" : label === "Recorded Peak" ? "peak" : label === "Live rank" ? "rank" : undefined}
             className={`bobaks-metric p-5 ${label === "Current players" || label === "Live rank" ? "sm:p-6" : ""}`}
           >
@@ -175,7 +175,7 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
             ["This Year", yearly?.rank ? `#${yearly.rank}` : "Not ranked"],
             ["Oldest available record", oldestRecordedAt ? <LocalDateTime value={oldestRecordedAt} /> : "Unavailable"],
           ].map(([label, value]) => (
-            <div key={label} className="rounded-xl border border-border bg-background p-4">
+            <div key={String(label)} className="rounded-xl border border-border bg-background p-4">
               <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</div>
               <div className="mt-1 text-xl font-black">{value}</div>
             </div>
