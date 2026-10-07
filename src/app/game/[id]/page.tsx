@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { notFound } from "next/navigation";
@@ -16,24 +17,63 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 
+const SITE_ORIGIN = (
+  process.env.BOBAKS_SITE_ORIGIN || "https://web.bobaksranking.workers.dev"
+).replace(/\/$/, "");
+
 function formatPlayers(value: number | null | undefined) {
+
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.max(0, Number(value) || 0));
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
+  const canonicalPath = "/game/" + encodeURIComponent(id);
+
   try {
     const game = await getGame(id);
     const name = game.name || `Experience ${id}`;
+    const description = `Current players, Bobaks rank, peak, and historical trends for ${name}.`;
+    const image = game.iconUrl
+      ? [{ url: game.iconUrl, alt: `${name} icon` }]
+      : undefined;
+
     return {
       title: name,
-      description: `Current players, Bobaks rank, peak, and historical trends for ${name}.`,
-      alternates: { canonical: "/game/" + encodeURIComponent(id) },
+      description,
+      alternates: { canonical: canonicalPath },
+      openGraph: {
+        type: "website",
+        siteName: "Bobaks Ranking",
+        title: name,
+        description,
+        url: canonicalPath,
+        ...(image ? { images: image } : {}),
+      },
+      twitter: {
+        card: image ? "summary_large_image" : "summary",
+        title: name,
+        description,
+        ...(image ? { images: image.map((item) => item.url) } : {}),
+      },
     };
   } catch {
     return {
       title: `Experience ${id}`,
-      alternates: { canonical: "/game/" + encodeURIComponent(id) },
+      description: "Bobaks Ranking experience profile.",
+      alternates: { canonical: canonicalPath },
+      openGraph: {
+        type: "website",
+        siteName: "Bobaks Ranking",
+        title: `Experience ${id}`,
+        description: "Bobaks Ranking experience profile.",
+        url: canonicalPath,
+      },
+      twitter: {
+        card: "summary",
+        title: `Experience ${id}`,
+        description: "Bobaks Ranking experience profile.",
+      },
     };
   }
 }
@@ -82,8 +122,60 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
     iconUrl: game.iconUrl || null,
   };
 
+  const canonicalPath = "/game/" + encodeURIComponent(id);
+  const canonicalUrl = SITE_ORIGIN + canonicalPath;
+  const experienceName = game.name || `Experience ${id}`;
+  const experienceDescription =
+    game.description?.trim() ||
+    `Current players, Bobaks rank, peak, and historical trends for ${experienceName}.`;
+  const robloxUrl = `https://www.roblox.com/games/${encodeURIComponent(String(game.placeId || id))}`;
+  const gameJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: experienceName,
+    description: experienceDescription,
+    url: canonicalUrl,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "Bobaks Ranking",
+      url: SITE_ORIGIN,
+    },
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: SITE_ORIGIN + "/",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: experienceName,
+          item: canonicalUrl,
+        },
+      ],
+    },
+    mainEntity: {
+      "@type": "VideoGame",
+      name: experienceName,
+      url: robloxUrl,
+      ...(game.iconUrl ? { image: game.iconUrl } : {}),
+      ...(game.creatorName
+        ? { creator: { "@type": "Organization", name: game.creatorName } }
+        : {}),
+    },
+  };
+
   return (
     <div className="space-y-6">
+      <nav aria-label="Related ranking pages" className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+        <Link href="/rankings/live" className="font-semibold hover:underline">Live rankings</Link>
+        <Link href="/rankings/weekly" className="font-semibold hover:underline">This Week</Link>
+        <Link href="/rankings/monthly" className="font-semibold hover:underline">This Month</Link>
+        <Link href="/rankings/yearly" className="font-semibold hover:underline">This Year</Link>
+      </nav>
       <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4" aria-hidden="true" />
         Home
@@ -190,6 +282,15 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
       <p className="text-xs leading-5 text-muted-foreground">
         <strong>Recorded Peak</strong> is the highest player count Bobaks has stored for this experience. The oldest available record shown here is limited to the history window returned by Bobaks, so it is not presented as the game's original creation date or guaranteed first-ever observation.
       </p>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(gameJsonLd)
+            .replace(/</g, "\\u003c")
+            .replace(/>/g, "\\u003e")
+            .replace(/&/g, "\\u0026"),
+        }}
+      />
     </div>
   );
 }
