@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ChevronRight } from "lucide-react";
@@ -5,19 +6,41 @@ import { RankingPeriodView } from "@/components/ranking-period-view";
 import type { RankingPeriod } from "@/lib/api";
 import { RANKING_PERIOD_META, RANKING_PERIODS } from "@/lib/ranking";
 
-export async function generateMetadata({ params }: { params: Promise<{ period: string }> }) {
+const SITE_ORIGIN = (
+  process.env.BOBAKS_SITE_ORIGIN || "https://web.bobaksranking.workers.dev"
+).replace(/\/$/, "");
+
+export async function generateMetadata({ params }: { params: Promise<{ period: string }> }): Promise<Metadata> {
   const { period } = await params;
   const meta = RANKING_PERIOD_META[period as RankingPeriod];
-  return meta
-    ? {
-        title: meta.label + " Roblox Game Rankings",
-        description: meta.description + " Bobaks Ranking.",
-        alternates: { canonical: "/rankings/" + period },
-      }
-    : {
-        title: "Rankings",
-        robots: { index: false, follow: false },
-      };
+  if (!meta) {
+    return {
+      title: "Rankings",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const title = meta.label + " Roblox Game Rankings";
+  const description = meta.description + " Bobaks Ranking.";
+  const canonicalPath = "/rankings/" + period;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: canonicalPath },
+    openGraph: {
+      type: "website",
+      siteName: "Bobaks Ranking",
+      title,
+      description,
+      url: canonicalPath,
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+    },
+  };
 }
 
 export default async function RankingPeriodPage({ params }: { params: Promise<{ period: string }> }) {
@@ -27,6 +50,43 @@ export default async function RankingPeriodPage({ params }: { params: Promise<{ 
   }
   const period = rawPeriod as RankingPeriod;
   const meta = RANKING_PERIOD_META[period];
+  const canonicalPath = "/rankings/" + period;
+  const canonicalUrl = SITE_ORIGIN + canonicalPath;
+  const rankingJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: meta.label + " Roblox Game Rankings",
+    description: meta.description + " Bobaks Ranking.",
+    url: canonicalUrl,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "Bobaks Ranking",
+      url: SITE_ORIGIN,
+    },
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: SITE_ORIGIN + "/",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Rankings",
+          item: SITE_ORIGIN + "/rankings/live",
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: meta.label,
+          item: canonicalUrl,
+        },
+      ],
+    },
+  };
   return (
     <div className="space-y-6">
       <div>
@@ -47,6 +107,15 @@ export default async function RankingPeriodPage({ params }: { params: Promise<{ 
         <Link href="/methodology" className="font-semibold hover:underline">How rankings work</Link>
       </div>
       <RankingPeriodView period={period} scoreLabel={meta.scoreLabel} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(rankingJsonLd)
+            .replace(/</g, "\\u003c")
+            .replace(/>/g, "\\u003e")
+            .replace(/&/g, "\\u0026"),
+        }}
+      />
     </div>
   );
 }
