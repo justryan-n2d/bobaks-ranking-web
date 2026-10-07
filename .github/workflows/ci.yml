@@ -64,7 +64,7 @@ jobs:
 
       - name: Inspect current branch browser build
         env:
-          PREVIEW_URL: http://127.0.0.1:4173
+          PREVIEW_URL: http://localhost:4173
         run: |
           set -e
 
