@@ -1,4 +1,19 @@
 import handler from "vinext/server/fetch-handler";
+import type { ExecutionContext } from "@cloudflare/workers-types";
+
+type HeadElement = {
+  append(content: string, options: { html: true }): unknown;
+};
+
+type HTMLRewriterInstance = {
+  on(
+    selector: string,
+    handler: { element(element: HeadElement): void },
+  ): HTMLRewriterInstance;
+  transform(response: Response): Response;
+};
+
+declare const HTMLRewriter: new () => HTMLRewriterInstance;
 
 const GOOGLE_VERIFICATION_TAG =
   '<meta name="google-site-verification" content="sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA">';
