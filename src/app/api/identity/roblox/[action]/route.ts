@@ -13,6 +13,12 @@ export async function POST(
 
   const headers = new Headers();
   const authorization = request.headers.get("authorization");
+  if (!authorization) {
+    return Response.json(
+      { error: "Authentication required." },
+      { status: 401, headers: { "cache-control": "no-store" } },
+    );
+  }
   const cookie = request.headers.get("cookie");
   const contentType = request.headers.get("content-type");
   if (authorization) headers.set("authorization", authorization);
