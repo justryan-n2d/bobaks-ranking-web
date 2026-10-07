@@ -26,11 +26,14 @@ describe("route SEO metadata contract", () => {
     }
   });
 
-  test("Google Search Console verification tag remains configured", () => {
-    const layout = readFileSync("src/app/layout.tsx", "utf8");
+  test("Google Search Console verification is injected at the Worker boundary", () => {
+    const worker = readFileSync("worker.ts", "utf8");
 
-    expect(layout).toContain('name="google-site-verification"');
-    expect(layout).toContain("sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA");
+    expect(worker).toContain('name="google-site-verification"');
+    expect(worker).toContain("sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA");
+    expect(worker).toContain('url.pathname === "/"');
+    expect(worker).toContain('new HTMLRewriter()');
+    expect(worker).toContain('.on("head"');
   });
 
   test("utility and account surfaces are not indexable", () => {
