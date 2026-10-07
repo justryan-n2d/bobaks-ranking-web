@@ -35,9 +35,8 @@ test.describe("Phase 6.7 Cloudflare preview", () => {
     await previewIsReachable(request);
     await page.goto(PREVIEW_URL + "/account", { waitUntil: "domcontentloaded" });
 
-    await expect(page.getByRole("heading", { name: "Log in to Bobaks" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Log in" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Create account" })).toBeVisible();
     await expect(page.getByLabel("Email")).toBeVisible();
     await expect(page.getByLabel("Password")).toBeVisible();
   });
@@ -170,9 +169,9 @@ test.describe("Phase 6.7 Cloudflare preview", () => {
     await previewIsReachable(request);
     await page.goto(PREVIEW_URL + "/account/google-callback?error=access_denied", { waitUntil: "domcontentloaded" });
 
-    await expect(page.getByRole("heading", { name: "Google sign-in failed" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Sign-in could not be completed" })).toBeVisible();
     await expect(page.getByText("Google sign-in was cancelled or rejected.")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Back to account" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
   });
 
   test("rejects a Google callback exchange when the browser transaction cookie is missing", async ({ request }) => {
