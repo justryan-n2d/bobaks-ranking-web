@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const metadata = {
+  alternates: { canonical: "/methodology" },
   title: "Methodology",
   description: "How Bobaks Ranking calculates and qualifies rankings.",
 };
