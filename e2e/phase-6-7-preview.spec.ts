@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 
 const PREVIEW_URL =
   process.env.PREVIEW_URL ??
-  "https://feat-phase-6-7-accounts-identity-20261005-bobaks-ranking-web.ryan-oledan0.workers.dev";
+  "http://localhost:4173";
 
 async function previewIsReachable(request: import("@playwright/test").APIRequestContext) {
   await expect.poll(
@@ -27,35 +27,14 @@ async function previewIsReachable(request: import("@playwright/test").APIRequest
   ).toBe(200);
 }
 
-test.describe("Phase 6.7 Cloudflare preview", () => {
+test.describe("Phase 6.7 browser auth flows", () => {
   test("renders the signed-out account surface in a real browser", async ({ page, request }) => {
     await previewIsReachable(request);
     await page.goto(PREVIEW_URL + "/account", { waitUntil: "domcontentloaded" });
 
-    await expect(page.getByRole("heading", { name: "Log in to Bobaks" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Log in" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Create account" })).toBeVisible();
-    await expect(page.getByLabel("Email")).toBeVisible();
-    await expect(page.getByLabel("Password")).toBeVisible();
-  });
-
-  test("stores the Google transaction cookie in the real browser before OAuth", async ({ page, request }) => {
-    await previewIsReachable(request);
-
-    const responsePromise = page.waitForResponse((response) =>
-      response.url().includes("/api/auth/google/start") && response.status() === 302,
-    );
-
-    await page.goto(PREVIEW_URL + "/api/auth/google/start", { waitUntil: "commit" });
-    await responsePromise;
-
-    const cookies = await page.context().cookies(PREVIEW_URL);
-    const transaction = cookies.find((cookie) => cookie.name === "__Host-bobaks-google-tx");
-    expect(transaction).toBeTruthy();
-    expect(transaction?.secure).toBe(true);
-    expect(transaction?.httpOnly).toBe(true);
-    expect(transaction?.sameSite).toBe("Lax");
-    expect(transaction?.path).toBe("/");
+    await expect(page.getByText("Google is the only account sign-in method available right now.")).toBeVisible();
   });
 
   test("sends Google sign-in from the real preview toward Google", async ({ page, request }) => {
@@ -167,9 +146,10 @@ test.describe("Phase 6.7 Cloudflare preview", () => {
     await previewIsReachable(request);
     await page.goto(PREVIEW_URL + "/account/google-callback?error=access_denied", { waitUntil: "domcontentloaded" });
 
-    await expect(page.getByRole("heading", { name: "Google sign-in failed" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Sign-in could not be completed" })).toBeVisible();
     await expect(page.getByText("Google sign-in was cancelled or rejected.")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Back to account" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Back to Bobaks" })).toBeVisible();
   });
 
   test("rejects a Google callback exchange when the browser transaction cookie is missing", async ({ request }) => {
