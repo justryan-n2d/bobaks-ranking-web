@@ -6,6 +6,8 @@ import "./globals.css";
 
 const SITE_ORIGIN = (process.env.BOBAKS_SITE_ORIGIN || "https://web.bobaksranking.workers.dev").replace(/\/$/, "");
 const IS_PREVIEW = process.env.BOBAKS_DEPLOYMENT_ENV === "preview";
+const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION?.trim();
+const BING_SITE_VERIFICATION = process.env.BING_SITE_VERIFICATION?.trim();
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
@@ -35,6 +37,16 @@ export const metadata: Metadata = {
     index: !IS_PREVIEW,
     follow: !IS_PREVIEW,
   },
+  ...(!IS_PREVIEW && (GOOGLE_SITE_VERIFICATION || BING_SITE_VERIFICATION)
+    ? {
+        verification: {
+          ...(GOOGLE_SITE_VERIFICATION ? { google: GOOGLE_SITE_VERIFICATION } : {}),
+          ...(BING_SITE_VERIFICATION
+            ? { other: { "msvalidate.01": BING_SITE_VERIFICATION } }
+            : {}),
+        },
+      }
+    : {}),
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
