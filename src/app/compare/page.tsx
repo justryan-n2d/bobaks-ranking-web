@@ -8,6 +8,12 @@ import { ComparePicker } from "@/components/compare-picker";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Compare",
+  description: "Compare Roblox experiences using Bobaks Ranking data.",
+  robots: { index: false, follow: false },
+};
+
 function formatPlayers(value: number | null | undefined) {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.max(0, Number(value) || 0));
 }
