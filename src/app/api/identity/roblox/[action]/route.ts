@@ -11,6 +11,13 @@ export async function POST(
     return Response.json({ error: "Not found." }, { status: 404 });
   }
 
+  if (!request.headers.get("authorization") && !request.headers.get("cookie")) {
+    return Response.json({ error: "Authentication required." }, {
+      status: 401,
+      headers: { "cache-control": "no-store" },
+    });
+  }
+
   const headers = new Headers();
   const authorization = request.headers.get("authorization");
   const cookie = request.headers.get("cookie");
