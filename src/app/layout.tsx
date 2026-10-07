@@ -4,8 +4,14 @@ import { SiteShell } from "@/components/site-shell";
 import { isDemoModeEnabled } from "@/lib/demo-data";
 import "./globals.css";
 
+const SITE_ORIGIN = (process.env.BOBAKS_SITE_ORIGIN || "https://web.bobaksranking.workers.dev").replace(/\/$/, "");
+const IS_PREVIEW = process.env.BOBAKS_DEPLOYMENT_ENV === "preview";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://bobaksranking.com"),
+  metadataBase: new URL(SITE_ORIGIN),
+  alternates: {
+    canonical: "/",
+  },
   title: {
     default: "Bobaks Ranking",
     template: "%s | Bobaks Ranking",
@@ -15,8 +21,8 @@ export const metadata: Metadata = {
     icon: "/icon.svg",
   },
   robots: {
-    index: true,
-    follow: true,
+    index: !IS_PREVIEW,
+    follow: !IS_PREVIEW,
   },
 };
 
