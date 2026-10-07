@@ -29,8 +29,7 @@ describe("route SEO metadata contract", () => {
   test("Google Search Console verification tag remains configured", () => {
     const layout = readFileSync("src/app/layout.tsx", "utf8");
 
-    expect(layout).toContain("verification:");
-    expect(layout).toContain("google: GOOGLE_SITE_VERIFICATION");
+    expect(layout).toContain('name="google-site-verification"');
     expect(layout).toContain("sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA");
   });
 
