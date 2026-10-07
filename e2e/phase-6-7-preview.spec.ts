@@ -2,9 +2,12 @@ import { test, expect } from "@playwright/test";
 
 // Preview hostname is intentionally kept aligned with Cloudflare preview deployment naming during the account subdomain migration.
 
+const previewBranch = (process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || "fix-sitemap-route-final2-20261007")
+  .replace(/\\//g, "-");
+
 const PREVIEW_URL =
   process.env.PREVIEW_URL ??
-  "https://feat-phase-6-7-accounts-identity-20261005-bobaks-ranking-web.bobaksranking.workers.dev";
+  `https://${previewBranch}-bobaks-ranking-web.bobaksranking.workers.dev`;
 
 async function previewIsReachable(request: import("@playwright/test").APIRequestContext) {
   await expect.poll(
