@@ -32,11 +32,9 @@ test.describe("Phase 6.7 Cloudflare preview", () => {
     await previewIsReachable(request);
     await page.goto(PREVIEW_URL + "/account", { waitUntil: "domcontentloaded" });
 
-    await expect(page.getByRole("heading", { name: "Log in to Bobaks" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Log in" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Create account" })).toBeVisible();
-    await expect(page.getByLabel("Email")).toBeVisible();
-    await expect(page.getByLabel("Password")).toBeVisible();
+    await expect(page.getByText("Google is the only account sign-in method available right now.")).toBeVisible();
   });
 
   test("stores the Google transaction cookie in the real browser before OAuth", async ({ page, request }) => {
