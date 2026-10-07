@@ -7,7 +7,8 @@
   "preview_urls": true,
   "vars": {
     "BOBAKS_DEPLOYMENT_ENV": "production",
-    "BOBAKS_UI_DEMO_MODE": "false"
+    "BOBAKS_UI_DEMO_MODE": "false",
+    "BOBAKS_SITE_ORIGIN": "https://web.bobaksranking.workers.dev"
   },
   "assets": {
     "directory": "dist/client",
@@ -17,7 +18,8 @@
   "previews": {
     "vars": {
       "BOBAKS_DEPLOYMENT_ENV": "preview",
-      "BOBAKS_UI_DEMO_MODE": "true"
+      "BOBAKS_UI_DEMO_MODE": "true",
+      "BOBAKS_SITE_ORIGIN": "https://web.bobaksranking.workers.dev"
     }
   }
 }
