@@ -24,6 +24,8 @@ const RANKING_PERIODS: readonly RankingPeriod[] = [
   "yearly",
 ];
 
+export const revalidate = 600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticEntries: MetadataRoute.Sitemap = INDEXABLE_ROUTES.map((path) => ({
     url: SITE_ORIGIN + path,
