@@ -1,13 +1,15 @@
-import assert from "node:assert/strict";
+import { describe, test, expect } from "vitest";
 import { readFileSync } from "node:fs";
 
-const layout = readFileSync("src/app/layout.tsx", "utf8");
-const wrangler = readFileSync("wrangler.jsonc", "utf8");
+describe("production metadata contract", () => {
+  test("uses the current Cloudflare site origin and keeps previews out of indexes", () => {
+    const layout = readFileSync("src/app/layout.tsx", "utf8");
+    const wrangler = readFileSync("wrangler.jsonc", "utf8");
 
-assert.match(layout, /web\.bobaksranking\.workers\.dev/);
-assert.match(layout, /canonical:\s*"\/"|canonical:\s*["']\//);
-assert.match(layout, /index:\s*!IS_PREVIEW/);
-assert.match(wrangler, /"BOBAKS_SITE_ORIGIN":\s*"https:\/\/web\.bobaksranking\.workers\.dev"/);
-assert.match(wrangler, /"BOBAKS_DEPLOYMENT_ENV":\s*"preview"/);
-
-console.log("Production metadata uses the current Cloudflare site origin and previews are non-indexable.");
+    expect(layout).toMatch(/web\.bobaksranking\.workers\.dev/);
+    expect(layout).toMatch(/canonical:\s*["']\/["']/);
+    expect(layout).toMatch(/index:\s*!IS_PREVIEW/);
+    expect(wrangler).toMatch(/"BOBAKS_SITE_ORIGIN":\s*"https:\/\/web\.bobaksranking\.workers\.dev"/);
+    expect(wrangler).toMatch(/"BOBAKS_DEPLOYMENT_ENV":\s*"preview"/);
+  });
+});
