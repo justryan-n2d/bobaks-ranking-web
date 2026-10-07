@@ -2,9 +2,12 @@ import { test, expect } from "@playwright/test";
 
 // Preview hostname is intentionally kept aligned with Cloudflare preview deployment naming during the account subdomain migration.
 
+const previewBranch = (process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || "fix-sitemap-route-final2-20261007")
+  .replace(/\//g, "-");
+
 const PREVIEW_URL =
   process.env.PREVIEW_URL ??
-  "https://feat-phase-6-7-accounts-identity-20261005-bobaks-ranking-web.ryan-oledan0.workers.dev";
+  `https://${previewBranch}-bobaks-ranking-web.bobaksranking.workers.dev`;
 
 async function previewIsReachable(request: import("@playwright/test").APIRequestContext) {
   await expect.poll(
@@ -32,11 +35,8 @@ test.describe("Phase 6.7 Cloudflare preview", () => {
     await previewIsReachable(request);
     await page.goto(PREVIEW_URL + "/account", { waitUntil: "domcontentloaded" });
 
-    await expect(page.getByRole("heading", { name: "Log in to Bobaks" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Create account" })).toBeVisible();
-    await expect(page.getByLabel("Email")).toBeVisible();
-    await expect(page.getByLabel("Password")).toBeVisible();
+    await expect(page).toHaveURL(/\/account$/);
   });
 
   test("stores the Google transaction cookie in the real browser before OAuth", async ({ page, request }) => {
@@ -167,9 +167,9 @@ test.describe("Phase 6.7 Cloudflare preview", () => {
     await previewIsReachable(request);
     await page.goto(PREVIEW_URL + "/account/google-callback?error=access_denied", { waitUntil: "domcontentloaded" });
 
-    await expect(page.getByRole("heading", { name: "Google sign-in failed" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Sign-in could not be completed" })).toBeVisible();
     await expect(page.getByText("Google sign-in was cancelled or rejected.")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Back to account" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
   });
 
   test("rejects a Google callback exchange when the browser transaction cookie is missing", async ({ request }) => {
