@@ -36,14 +36,16 @@ jobs:
           ready=0
           for i in $(seq 1 36); do
             if body="$(curl --fail --silent --show-error "$PRODUCTION_URL/")"; then
-              ready=1
-              printf '%s' "$body" > production-home.html
-              break
+              if printf '%s' "$body" | grep -Eq '<meta[^>]+name="google-site-verification"[^>]+content="sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA"'; then
+                ready=1
+                printf '%s' "$body" > production-home.html
+                break
+              fi
             fi
             sleep 10
           done
           if [ "$ready" -ne 1 ]; then
-            echo "Production Worker did not become reachable: $PRODUCTION_URL"
+            echo "Production Worker did not expose the expected Google verification tag yet: $PRODUCTION_URL"
             exit 1
           fi
 
