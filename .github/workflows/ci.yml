@@ -87,7 +87,13 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           PREVIEW_URL: http://127.0.0.1:4173
-        run: npx playwright test e2e/phase-6-7-preview.spec.ts
+        run: |
+          set +e
+          set -o pipefail
+          npx playwright test e2e/phase-6-7-preview.spec.ts 2>&1 | tee playwright-e2e.log
+          status=${PIPESTATUS[0]}
+          set -e
+          exit "$status"
 
       - name: Stop browser test server
         if: always()
@@ -106,4 +112,5 @@ jobs:
             preview-live.png
             preview-game.png
             preview-home-mobile.png
+            playwright-e2e.log
           retention-days: 7
