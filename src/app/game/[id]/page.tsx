@@ -10,6 +10,7 @@ import {
   getGameRankHistory,
 } from "@/lib/api";
 import { PlayerHistoryChart, RankHistoryChart } from "@/components/history-charts";
+import { LocalDateTime } from "@/components/local-date-time";
 import { WatchlistButton } from "@/components/watchlist-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -17,14 +18,6 @@ export const dynamic = "force-dynamic";
 
 function formatPlayers(value: number | null | undefined) {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.max(0, Number(value) || 0));
-}
-
-function formatDate(value: string | null | undefined) {
-  if (!value) return "Unavailable";
-  const timestamp = Date.parse(value);
-  return Number.isFinite(timestamp)
-    ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(timestamp))
-    : "Unavailable";
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -116,10 +109,10 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Current game statistics">
         {[
-          ["Current players", formatPlayers(game.currentPlayers), game.currentSnapshotAt ? `Latest sample · ${formatDate(game.currentSnapshotAt)}` : "Latest player count unavailable"],
-          ["Live rank", live?.rank ? `#${live.rank}` : "Not ranked", live?.calculatedAt ? `Calculated · ${formatDate(live.calculatedAt)}` : "No live rank"],
-          ["Recorded Peak", peak ? formatPlayers(peak.peakPlayers) : "Unavailable", peak ? `Peak recorded · ${formatDate(peak.peakAt)}` : "Peak data unavailable"],
-          ["Weekly rank", weekly?.rank ? `#${weekly.rank}` : "Not ranked", weekly?.calculatedAt ? `Calculated · ${formatDate(weekly.calculatedAt)}` : "No weekly rank"],
+          ["Current players", formatPlayers(game.currentPlayers), game.currentSnapshotAt ? <>Latest sample · <LocalDateTime value={game.currentSnapshotAt} /></> : "Latest player count unavailable"],
+          ["Live rank", live?.rank ? `#${live.rank}` : "Not ranked", live?.calculatedAt ? <>Calculated · <LocalDateTime value={live.calculatedAt} /></> : "No live rank"],
+          ["Recorded Peak", peak ? formatPlayers(peak.peakPlayers) : "Unavailable", peak ? <>Peak recorded · <LocalDateTime value={peak.peakAt} /></> : "Peak data unavailable"],
+          ["Weekly rank", weekly?.rank ? `#${weekly.rank}` : "Not ranked", weekly?.calculatedAt ? <>Calculated · <LocalDateTime value={weekly.calculatedAt} /></> : "No weekly rank"],
         ].map(([label, value, note]) => (
           <Card
             key={label}
@@ -180,7 +173,7 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
           {[
             ["This Month", monthly?.rank ? `#${monthly.rank}` : "Not ranked"],
             ["This Year", yearly?.rank ? `#${yearly.rank}` : "Not ranked"],
-            ["Oldest available record", oldestRecordedAt ? formatDate(oldestRecordedAt) : "Unavailable"],
+            ["Oldest available record", oldestRecordedAt ? <LocalDateTime value={oldestRecordedAt} /> : "Unavailable"],
           ].map(([label, value]) => (
             <div key={label} className="rounded-xl border border-border bg-background p-4">
               <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</div>
