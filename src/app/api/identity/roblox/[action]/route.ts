@@ -1,4 +1,4 @@
-const API_ORIGIN = "https://bobaks-ranking-api-service.ryan-oledan0.workers.dev";
+const API_ORIGIN = process.env.BOBAKS_API_ORIGIN?.replace(/\/$/, "") || "https://bobaks-ranking-api-service.bobaksranking.workers.dev";
 
 export const dynamic = "force-dynamic";
 
