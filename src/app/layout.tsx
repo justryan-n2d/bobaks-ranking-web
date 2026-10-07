@@ -17,6 +17,17 @@ export const metadata: Metadata = {
     template: "%s | Bobaks Ranking",
   },
   description: "Live rankings and historical trends for Roblox experiences.",
+  openGraph: {
+    type: "website",
+    siteName: "Bobaks Ranking",
+    title: "Bobaks Ranking",
+    description: "Live rankings and historical trends for Roblox experiences.",
+  },
+  twitter: {
+    card: "summary",
+    title: "Bobaks Ranking",
+    description: "Live rankings and historical trends for Roblox experiences.",
+  },
   icons: {
     icon: "/icon.svg",
   },
