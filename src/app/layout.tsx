@@ -52,6 +52,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
+      <head>
+        {!IS_PREVIEW ? (
+          <meta
+            name="google-site-verification"
+            content="sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA"
+          />
+        ) : null}
+      </head>
       <body>
         <AuthProvider>
           <SiteShell demoMode={isDemoModeEnabled()}>{children}</SiteShell>
