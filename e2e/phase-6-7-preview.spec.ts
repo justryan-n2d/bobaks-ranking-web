@@ -35,8 +35,10 @@ test.describe("Phase 6.7 Cloudflare preview", () => {
     await previewIsReachable(request);
     await page.goto(PREVIEW_URL + "/account", { waitUntil: "domcontentloaded" });
 
-    await expect(page.getByText("Account access", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
+    await expect(
+      page.getByText("Google is the only account sign-in method available right now.", { exact: true }),
+    ).toBeVisible();
     await expect(page.getByLabel("Email")).toBeVisible();
     await expect(page.getByLabel("Password")).toBeVisible();
   });
