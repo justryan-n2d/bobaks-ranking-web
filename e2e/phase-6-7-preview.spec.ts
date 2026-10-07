@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 
 const PREVIEW_URL =
   process.env.PREVIEW_URL ??
-  "http://127.0.0.1:4173";
+  "http://localhost:4173";
 
 async function previewIsReachable(request: import("@playwright/test").APIRequestContext) {
   await expect.poll(
@@ -165,9 +165,10 @@ test.describe("Phase 6.7 browser auth flows", () => {
     await previewIsReachable(request);
     await page.goto(PREVIEW_URL + "/account/google-callback?error=access_denied", { waitUntil: "domcontentloaded" });
 
-    await expect(page.getByRole("heading", { name: "Google sign-in failed" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Sign-in could not be completed" })).toBeVisible();
     await expect(page.getByText("Google sign-in was cancelled or rejected.")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Back to account" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Back to Bobaks" })).toBeVisible();
   });
 
   test("rejects a Google callback exchange when the browser transaction cookie is missing", async ({ request }) => {
