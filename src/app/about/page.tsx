@@ -1,6 +1,7 @@
 import { PagePlaceholder } from "@/components/page-placeholder";
 
 export const metadata = {
+  alternates: { canonical: "/about" },
   title: "About",
   description: "About Bobaks Ranking.",
 };
