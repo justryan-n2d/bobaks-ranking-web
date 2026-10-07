@@ -76,7 +76,7 @@ jobs:
             exit 1
           fi
 
-          grep -Fq '<meta name="google-site-verification" content="sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA" />' production-home.html
+          grep -Eq '<meta[^>]+name="google-site-verification"[^>]+content="sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA"' production-home.html
 
 
       - name: Browser QA
