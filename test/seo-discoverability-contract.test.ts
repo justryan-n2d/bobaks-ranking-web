@@ -13,6 +13,7 @@ describe("SEO discoverability contract", () => {
     expect(sitemap).toMatch(/\/game\//);
     expect(sitemap).toMatch(/web\.bobaksranking\.workers\.dev/);
     expect(sitemap).toMatch(/Promise\.allSettled/);
+    expect(sitemap).toMatch(/revalidate = 600/);
   });
 
   test("allows public crawling while blocking private or query-driven surfaces", () => {
@@ -20,10 +21,10 @@ describe("SEO discoverability contract", () => {
 
     expect(robots).toMatch(/allow:\s*["']\/["']/);
     expect(robots).toMatch(/\/api\//);
-    expect(robots).toMatch(/\/account/);
-    expect(robots).toMatch(/\/saved/);
-    expect(robots).toMatch(/\/compare/);
-    expect(robots).toMatch(/\/search/);
+    expect(robots).not.toMatch(/disallow:[\s\S]*\/account/);
+    expect(robots).not.toMatch(/disallow:[\s\S]*\/saved/);
+    expect(robots).not.toMatch(/disallow:[\s\S]*\/compare/);
+    expect(robots).not.toMatch(/disallow:[\s\S]*\/search/);
     expect(robots).toMatch(/sitemap[\s\S]*sitemap\.xml/);
     expect(robots).toMatch(/IS_PREVIEW/);
   });

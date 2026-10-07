@@ -4,6 +4,7 @@ import { WatchlistPage } from "@/components/watchlist-page";
 export const metadata = {
   title: "Watchlist",
   description: "Your saved Bobaks Ranking games.",
+  robots: { index: false, follow: false },
 };
 
 export default function SavedPage() {

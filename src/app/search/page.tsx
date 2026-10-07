@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 export const metadata = {
   title: "Search",
   description: "Search Roblox experiences and creators on Bobaks Ranking.",
+  robots: { index: false, follow: true },
 };
 
 export default async function SearchPage({

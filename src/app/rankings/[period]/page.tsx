@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { RankingPeriodView } from "@/components/ranking-period-view";
 import type { RankingPeriod } from "@/lib/api";
@@ -8,14 +9,21 @@ export async function generateMetadata({ params }: { params: Promise<{ period: s
   const { period } = await params;
   const meta = RANKING_PERIOD_META[period as RankingPeriod];
   return meta
-    ? { title: meta.label + " Roblox Game Rankings", description: meta.description + " Bobaks Ranking." }
-    : { title: "Rankings" };
+    ? {
+        title: meta.label + " Roblox Game Rankings",
+        description: meta.description + " Bobaks Ranking.",
+        alternates: { canonical: "/rankings/" + period },
+      }
+    : {
+        title: "Rankings",
+        robots: { index: false, follow: false },
+      };
 }
 
 export default async function RankingPeriodPage({ params }: { params: Promise<{ period: string }> }) {
   const { period: rawPeriod } = await params;
   if (!RANKING_PERIODS.includes(rawPeriod as RankingPeriod)) {
-    return <div className="mx-auto max-w-xl py-20 text-center"><h1 className="text-2xl font-black">Ranking period not found</h1><p className="mt-2 text-sm text-muted-foreground">Choose Live, This Week, This Month, or This Year.</p></div>;
+    notFound();
   }
   const period = rawPeriod as RankingPeriod;
   const meta = RANKING_PERIOD_META[period];

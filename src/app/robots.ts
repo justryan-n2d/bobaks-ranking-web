@@ -22,10 +22,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: [
         "/api/",
-        "/account",
-        "/saved",
-        "/compare",
-        "/search",
       ],
     },
     sitemap: SITE_ORIGIN + "/sitemap.xml",
