@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ period: s
     ? {
         title: meta.label + " Roblox Game Rankings",
         description: meta.description + " Bobaks Ranking.",
-        alternates: { canonical: "/rankings/" + rawPeriod },
+        alternates: { canonical: "/rankings/" + period },
       }
     : {
         title: "Rankings",
