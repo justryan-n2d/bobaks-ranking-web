@@ -4,6 +4,7 @@ import { MessageCircle, ShieldCheck, Sparkles, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 export const metadata = {
+  alternates: { canonical: "/community" },
   title: "Community",
   description: "The Bobaks Ranking community hub.",
 };
