@@ -5,7 +5,7 @@ describe("route SEO metadata contract", () => {
   test("ranking pages have period-specific canonicals and real 404 behavior", () => {
     const page = readFileSync("src/app/rankings/[period]/page.tsx", "utf8");
 
-    expect(page).toMatch(/alternates:\s*\{ canonical: "\/rankings\/" \+ rawPeriod \}/);
+    expect(page).toMatch(/alternates:\s*\{ canonical: "\/rankings\/" \+ period \}/);
     expect(page).toMatch(/robots:\s*\{ index: false, follow: false \}/);
     expect(page).toMatch(/notFound\(\)/);
   });
