@@ -24,7 +24,7 @@ describe("SEO discoverability contract", () => {
     expect(robots).toMatch(/\/saved/);
     expect(robots).toMatch(/\/compare/);
     expect(robots).toMatch(/\/search/);
-    expect(robots).toMatch(/sitemap.*sitemap\.xml/s);
+    expect(robots).toMatch(/sitemap[\s\S]*sitemap\.xml/);
     expect(robots).toMatch(/IS_PREVIEW/);
   });
 });
