@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 
 const PREVIEW_URL =
   process.env.PREVIEW_URL ??
-  "https://feat-phase-6-7-accounts-identity-20261005-bobaks-ranking-web.ryan-oledan0.workers.dev";
+  "http://127.0.0.1:4173";
 
 async function previewIsReachable(request: import("@playwright/test").APIRequestContext) {
   await expect.poll(
@@ -27,7 +27,7 @@ async function previewIsReachable(request: import("@playwright/test").APIRequest
   ).toBe(200);
 }
 
-test.describe("Phase 6.7 Cloudflare preview", () => {
+test.describe("Phase 6.7 browser auth flows", () => {
   test("renders the signed-out account surface in a real browser", async ({ page, request }) => {
     await previewIsReachable(request);
     await page.goto(PREVIEW_URL + "/account", { waitUntil: "domcontentloaded" });
