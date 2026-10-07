@@ -28,9 +28,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     return {
       title: name,
       description: `Current players, Bobaks rank, peak, and historical trends for ${name}.`,
+      alternates: { canonical: "/game/" + encodeURIComponent(id) },
     };
   } catch {
-    return { title: `Experience ${id}` };
+    return {
+      title: `Experience ${id}`,
+      alternates: { canonical: "/game/" + encodeURIComponent(id) },
+    };
   }
 }
 
