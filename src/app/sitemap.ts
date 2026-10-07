@@ -13,6 +13,7 @@ const INDEXABLE_ROUTES = [
   "/rankings/yearly",
   "/about",
   "/methodology",
+  "/community",
   "/privacy",
   "/terms",
 ] as const;
