@@ -11,5 +11,6 @@ describe("production metadata contract", () => {
     expect(layout).toMatch(/index:\s*!IS_PREVIEW/);
     expect(wrangler).toMatch(/"BOBAKS_SITE_ORIGIN":\s*"https:\/\/web\.bobaksranking\.workers\.dev"/);
     expect(wrangler).toMatch(/"BOBAKS_DEPLOYMENT_ENV":\s*"preview"/);
+    expect(wrangler).toMatch(/"main":\s*"dist\/server\/index\.js"/);
   });
 });
