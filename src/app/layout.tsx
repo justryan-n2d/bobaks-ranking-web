@@ -7,6 +7,7 @@ import "./globals.css";
 const SITE_ORIGIN = (process.env.BOBAKS_SITE_ORIGIN || "https://web.bobaksranking.workers.dev").replace(/\/$/, "");
 const IS_PREVIEW = process.env.BOBAKS_DEPLOYMENT_ENV === "preview";
 const BING_SITE_VERIFICATION = process.env.BING_SITE_VERIFICATION?.trim();
+const GOOGLE_SITE_VERIFICATION = "sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
@@ -36,10 +37,13 @@ export const metadata: Metadata = {
     index: !IS_PREVIEW,
     follow: !IS_PREVIEW,
   },
-  ...(!IS_PREVIEW && BING_SITE_VERIFICATION
+  ...(!IS_PREVIEW
     ? {
         verification: {
-          other: { "msvalidate.01": BING_SITE_VERIFICATION },
+          google: GOOGLE_SITE_VERIFICATION,
+          ...(BING_SITE_VERIFICATION
+            ? { other: { "msvalidate.01": BING_SITE_VERIFICATION } }
+            : {}),
         },
       }
     : {}),
