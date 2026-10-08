@@ -32,6 +32,10 @@ describe("route SEO metadata contract", () => {
     expect(layout).toContain("GOOGLE_SITE_VERIFICATION");
     expect(layout).toMatch(/google:\s*GOOGLE_SITE_VERIFICATION/);
     expect(layout).toContain("sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA");
+    expect(layout).toContain('<meta');
+    expect(layout).not.toContain("<html");
+    expect(layout).not.toContain("<head");
+    expect(layout).not.toContain("<body");
   });
 
   test("utility and account surfaces are not indexable", () => {
