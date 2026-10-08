@@ -1,4 +1,4 @@
-import handler from "vinext/server/fetch-handler";
+import handler from "vinext/server/app-router-entry";
 import type { ExecutionContext } from "@cloudflare/workers-types";
 
 type HeadElement = {
