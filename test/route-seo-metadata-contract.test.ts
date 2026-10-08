@@ -26,15 +26,12 @@ describe("route SEO metadata contract", () => {
     }
   });
 
-  test("Google Search Console verification is injected at the Worker boundary", () => {
-    const worker = readFileSync("worker.ts", "utf8");
+  test("Google Search Console verification is configured in root metadata", () => {
+    const layout = readFileSync("src/app/layout.tsx", "utf8");
 
-    expect(worker).toContain('name="google-site-verification"');
-    expect(worker).toContain("sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA");
-    expect(worker).toContain('url.pathname === "/"');
-    expect(worker).toContain('new HTMLRewriter()');
-    expect(worker).toContain('.on("head"');
-    expect(worker).toContain('vinext/server/app-router-entry');
+    expect(layout).toContain("GOOGLE_SITE_VERIFICATION");
+    expect(layout).toMatch(/google:\s*GOOGLE_SITE_VERIFICATION/);
+    expect(layout).toContain("sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA");
   });
 
   test("utility and account surfaces are not indexable", () => {
