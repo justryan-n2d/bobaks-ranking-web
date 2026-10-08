@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Head from "next/head";
 import { AuthProvider } from "@/components/account-provider";
 import { SiteShell } from "@/components/site-shell";
 import { isDemoModeEnabled } from "@/lib/demo-data";
@@ -52,6 +53,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
+      <Head>
+        {!IS_PREVIEW ? (
+          <meta
+            name="google-site-verification"
+            content="sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA"
+          />
+        ) : null}
+      </Head>
       <body>
         <AuthProvider>
           <SiteShell demoMode={isDemoModeEnabled()}>{children}</SiteShell>
