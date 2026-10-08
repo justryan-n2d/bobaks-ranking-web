@@ -1,4 +1,4 @@
-import handler from "vinext/server/fetch-handler";
+import handler from "vinext/server/app-router-entry";
 import type { ExecutionContext } from "@cloudflare/workers-types";
 
 type HeadElement = {
@@ -20,6 +20,9 @@ const GOOGLE_VERIFICATION_TAG =
 
 interface WorkerEnv {
   BOBAKS_DEPLOYMENT_ENV?: string;
+  ASSETS?: {
+    fetch(request: Request): Promise<Response> | Response;
+  };
 }
 
 export default {
