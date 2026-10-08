@@ -38,6 +38,12 @@ describe("route SEO metadata contract", () => {
     expect(layout).not.toContain("<body");
   });
 
+  test("Vinext blocks streamed metadata so verification stays in head", () => {
+    const config = readFileSync("next.config.ts", "utf8");
+
+    expect(config).toContain("htmlLimitedBots: /.*/");
+  });
+
   test("utility and account surfaces are not indexable", () => {
     for (const path of [
       "src/app/search/page.tsx",
