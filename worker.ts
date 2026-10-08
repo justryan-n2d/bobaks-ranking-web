@@ -20,6 +20,9 @@ const GOOGLE_VERIFICATION_TAG =
 
 interface WorkerEnv {
   BOBAKS_DEPLOYMENT_ENV?: string;
+  ASSETS?: {
+    fetch(request: Request): Promise<Response> | Response;
+  };
 }
 
 export default {
