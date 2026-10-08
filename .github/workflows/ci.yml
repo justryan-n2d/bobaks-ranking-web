@@ -44,6 +44,12 @@ jobs:
           if (config.main !== "index.js") {
             throw new Error(`Unexpected generated Worker entrypoint: ${config.main}`);
           }
+
+          const entry = readFileSync(new URL(`./${config.main}`, new URL("file:///home/runner/work/bobaks-ranking-web/bobaks-ranking-web/dist/server/")).pathname, "utf8");
+          if (!entry.includes("sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA")) {
+            throw new Error("Generated Worker entry does not contain the Google verification token");
+          }
+
           console.log(`Verified generated Worker entrypoint: ${config.main}`);
           EOF
 
