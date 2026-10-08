@@ -3,7 +3,7 @@
   "name": "web",
   "compatibility_date": "2026-10-04",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
-  "main": "worker.ts",
+  "main": "vinext/server/fetch-handler",
   "preview_urls": true,
   "vars": {
     "BOBAKS_DEPLOYMENT_ENV": "production",

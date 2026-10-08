@@ -36,24 +36,14 @@ jobs:
           BOBAKS_UI_DEMO_MODE: "true"
         run: npm run build:vinext
 
-      - name: Verify generated Cloudflare Worker entrypoint
+      - name: Verify generated Cloudflare Worker configuration
         run: |
           node --input-type=module - <<'EOF'
           import { readFileSync } from "node:fs";
-          import { resolve } from "node:path";
-
           const config = JSON.parse(readFileSync("dist/server/wrangler.json", "utf8"));
-          const main = resolve("dist/server", config.main);
-          const entry = readFileSync(main, "utf8");
-
-          if (!entry.includes("sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA")) {
-            throw new Error(`Generated Worker entry does not contain the Google verification token: ${config.main}`);
+          if (config.main !== "index.js") {
+            throw new Error(`Unexpected generated Worker entrypoint: ${config.main}`);
           }
-
-          if (!entry.includes("HTMLRewriter")) {
-            throw new Error(`Generated Worker entry does not contain the verification wrapper: ${config.main}`);
-          }
-
           console.log(`Verified generated Worker entrypoint: ${config.main}`);
           EOF
 
