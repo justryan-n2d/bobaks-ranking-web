@@ -36,7 +36,7 @@ jobs:
           ready=0
           for i in $(seq 1 36); do
             if body="$(curl --fail --silent --show-error "$PRODUCTION_URL/")"; then
-              if printf '%s' "$body" | grep -Eq '<meta[^>]+name="google-site-verification"[^>]+content="sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA"'; then
+              if printf '%s' "$body" | grep -Eq '<meta[^>]+name="google-site-verification"[^>]+content="95wMN3wqzeI4-1F8c8l3s_bXFlXtjj1kXK1oGR7aT1o"'; then
                 ready=1
                 printf '%s' "$body" > production-home.html
                 break
@@ -76,7 +76,7 @@ jobs:
             exit 1
           fi
 
-          grep -Eq '<meta[^>]+name="google-site-verification"[^>]+content="sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA"' production-home.html
+          grep -Eq '<meta[^>]+name="google-site-verification"[^>]+content="95wMN3wqzeI4-1F8c8l3s_bXFlXtjj1kXK1oGR7aT1o"' production-home.html
 
 
       - name: Browser QA
