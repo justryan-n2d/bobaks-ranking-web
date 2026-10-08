@@ -37,7 +37,7 @@ describe("SEO discoverability contract", () => {
     expect(layout).toMatch(/twitter:\s*\{/);
     expect(layout).toMatch(/siteName: "Bobaks Ranking"/);
     expect(layout).toMatch(/GOOGLE_SITE_VERIFICATION/);
-    expect(layout).toMatch(/google:s*GOOGLE_SITE_VERIFICATION/);
+    expect(layout).toMatch(/google:\s*GOOGLE_SITE_VERIFICATION/);
     expect(layout).toContain("sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA");
     expect(layout).toMatch(/BING_SITE_VERIFICATION/);
     expect(layout).toMatch(/msvalidate\.01/);
