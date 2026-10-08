@@ -34,6 +34,7 @@ describe("route SEO metadata contract", () => {
     expect(worker).toContain('url.pathname === "/"');
     expect(worker).toContain('new HTMLRewriter()');
     expect(worker).toContain('.on("head"');
+    expect(worker).toContain('vinext/server/app-router-entry');
   });
 
   test("utility and account surfaces are not indexable", () => {
