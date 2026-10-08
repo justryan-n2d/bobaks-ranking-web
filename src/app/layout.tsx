@@ -7,7 +7,7 @@ import "./globals.css";
 const SITE_ORIGIN = (process.env.BOBAKS_SITE_ORIGIN || "https://web.bobaksranking.workers.dev").replace(/\/$/, "");
 const IS_PREVIEW = process.env.BOBAKS_DEPLOYMENT_ENV === "preview";
 const BING_SITE_VERIFICATION = process.env.BING_SITE_VERIFICATION?.trim();
-const GOOGLE_SITE_VERIFICATION = "sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA";
+const GOOGLE_SITE_VERIFICATION = "95wMN3wqzeI4-1F8c8l3s_bXFlXtjj1kXK1oGR7aT1o";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
