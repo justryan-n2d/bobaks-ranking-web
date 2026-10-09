@@ -8,6 +8,7 @@
     "dev:vinext": "vite dev --port 3001",
     "build": "next build",
     "build:vinext": "vite build",
+    "deploy:vinext": "wrangler deploy --config dist/server/wrangler.json",
     "start": "next start",
     "start:vinext": "vite preview",
     "test": "vitest run",
