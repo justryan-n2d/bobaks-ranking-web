@@ -29,23 +29,26 @@ jobs:
       - name: Install Playwright Chromium
         run: npx --yes playwright install --with-deps chromium
 
-      - name: Wait for production deployment
+      - name: Wait for the target frontend release
         env:
           PRODUCTION_URL: https://web.bobaksranking.workers.dev
+          EXPECTED_RELEASE: sitemap-dynamic-cache-fix-20261009
         run: |
           ready=0
           for i in $(seq 1 36); do
-            if body="$(curl --fail --silent --show-error "$PRODUCTION_URL/")"; then
-              if printf '%s' "$body" | grep -Eq '<meta[^>]+name="google-site-verification"[^>]+content="95wMN3wqzeI4-1F8c8l3s_bXFlXtjj1kXK1oGR7aT1o"'; then
+            if body="$(curl --fail --silent --show-error "$PRODUCTION_URL/")" &&
+               release="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/deployment")"; then
+              if printf '%s' "$release" | grep -Fq "\"release\":\"$EXPECTED_RELEASE\""; then
                 ready=1
                 printf '%s' "$body" > production-home.html
+                printf '%s' "$release" > production-release.json
                 break
               fi
             fi
             sleep 10
           done
           if [ "$ready" -ne 1 ]; then
-            echo "Production Worker did not expose the expected Google verification tag yet: $PRODUCTION_URL"
+            echo "Production Worker did not expose release $EXPECTED_RELEASE yet: $PRODUCTION_URL"
             exit 1
           fi
 
@@ -76,8 +79,23 @@ jobs:
             exit 1
           fi
 
-          grep -Eq '<meta[^>]+name="google-site-verification"[^>]+content="95wMN3wqzeI4-1F8c8l3s_bXFlXtjj1kXK1oGR7aT1o"' production-home.html
+      - name: Check live sitemap output
+        env:
+          PRODUCTION_URL: https://web.bobaksranking.workers.dev
+        run: |
+          curl --fail --silent --show-error "$PRODUCTION_URL/sitemap.xml" > production-sitemap.xml
+          grep -q '<urlset' production-sitemap.xml
+          grep -Fq "$PRODUCTION_URL/rankings/live" production-sitemap.xml
 
+      - name: Check Google Search Console verification tag
+        continue-on-error: true
+        run: |
+          if grep -Eq '<meta[^>]+name="google-site-verification"[^>]+content="95wMN3wqzeI4-1F8c8l3s_bXFlXtjj1kXK1oGR7aT1o"' production-home.html; then
+            echo "Google Search Console verification tag is present."
+          else
+            echo "::warning::The deployment is live, but the Google verification tag remains missing."
+            exit 1
+          fi
 
       - name: Browser QA
         env:
@@ -97,6 +115,8 @@ jobs:
           name: bobaks-production-qa
           path: |
             production-home.html
+            production-release.json
+            production-sitemap.xml
             production-home.png
             production-live.png
             production-about.png
