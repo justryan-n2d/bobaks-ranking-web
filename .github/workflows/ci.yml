@@ -47,6 +47,93 @@ jobs:
           console.log(`Verified generated Worker entrypoint: ${config.main}`);
           EOF
 
+      - name: Test generated Cloudflare Worker routes
+        run: |
+          echo "Generated Wrangler config:"
+          cat dist/server/wrangler.json
+          echo "Generated Worker entrypoint:"
+          ls -l dist/server/index.js
+
+          npx wrangler dev --config dist/server/wrangler.json --local --ip 127.0.0.1 --port 4174 --log-level debug > /tmp/bobaks-worker.log 2>&1 &
+          echo $! > /tmp/bobaks-worker.pid
+          trap 'status=$?; if [ "$status" -ne 0 ]; then echo "Worker runtime log:"; cat /tmp/bobaks-worker.log; fi; kill "$(cat /tmp/bobaks-worker.pid)" 2>/dev/null || true; exit "$status"' EXIT
+
+          WORKER_URL=http://127.0.0.1:4174
+          ready=0
+          for i in $(seq 1 30); do
+            code="$(curl --silent --output /tmp/worker-home.html --write-out '%{http_code}' "$WORKER_URL/" 2>/dev/null || true)"
+            if [ "$code" = "200" ]; then
+              ready=1
+              break
+            fi
+            if ! kill -0 "$(cat /tmp/bobaks-worker.pid)" 2>/dev/null; then
+              echo "Wrangler dev exited before becoming ready (last HTTP code: $code)."
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            echo "Generated Cloudflare Worker did not become reachable."
+            exit 1
+          fi
+
+          failures=0
+          code="$(curl --silent --output /tmp/worker-deployment.json --write-out '%{http_code}' "$WORKER_URL/api/deployment" 2>/dev/null || true)"
+          if [ "$code" != "200" ]; then
+            echo "Deployment marker returned HTTP $code."
+            cat /tmp/worker-deployment.json 2>/dev/null || true
+            failures=1
+          else
+            node --input-type=module - <<'EOF'
+          import { readFileSync } from "node:fs";
+          const payload = JSON.parse(readFileSync("/tmp/worker-deployment.json", "utf8"));
+          if (payload.release !== "sitemap-dynamic-cache-fix-20261009") {
+            throw new Error(`Unexpected Worker deployment marker: ${JSON.stringify(payload)}`);
+          }
+          console.log("Generated Worker deployment marker verified.");
+          EOF
+          fi
+
+          code="$(curl --silent --output /tmp/worker-sitemap.xml --write-out '%{http_code}' "$WORKER_URL/sitemap.xml" 2>/dev/null || true)"
+          if [ "$code" != "200" ] || ! grep -q '<urlset' /tmp/worker-sitemap.xml; then
+            echo "Generated Worker sitemap check failed with HTTP $code."
+            head -c 1000 /tmp/worker-sitemap.xml 2>/dev/null || true
+            failures=1
+          else
+            SITE_ORIGIN="$(node --input-type=module - <<'EOF'
+          import { readFileSync } from "node:fs";
+          const config = JSON.parse(readFileSync("dist/server/wrangler.json", "utf8"));
+          process.stdout.write(String(config.vars?.BOBAKS_SITE_ORIGIN || "https://web.bobaksranking.workers.dev").replace(/\/$/, ""));
+          EOF
+          )"
+            if ! grep -Fq "$SITE_ORIGIN/rankings/live" /tmp/worker-sitemap.xml; then
+              echo "Generated Worker sitemap is missing $SITE_ORIGIN/rankings/live."
+              failures=1
+            else
+              echo "Generated Worker sitemap verified."
+            fi
+          fi
+
+          code="$(curl --silent --output /tmp/worker-live-api.json --write-out '%{http_code}' "$WORKER_URL/api/rankings/live" 2>/dev/null || true)"
+          if [ "$code" != "200" ]; then
+            echo "Generated Worker live ranking API returned HTTP $code."
+            cat /tmp/worker-live-api.json 2>/dev/null || true
+            failures=1
+          elif ! node --input-type=module - <<'EOF'
+          import { readFileSync } from "node:fs";
+          const payload = JSON.parse(readFileSync("/tmp/worker-live-api.json", "utf8"));
+          if (payload.period !== "live" || !Array.isArray(payload.data) || payload.data.length === 0) {
+            throw new Error("Built Worker live ranking API returned an invalid or empty payload.");
+          }
+          console.log(`Generated Worker live ranking API returned ${payload.data.length} rows.`);
+          EOF
+          then
+            failures=1
+          fi
+
+          exit "$failures"
+
       - name: Install Playwright Chromium
         run: npx --yes playwright install --with-deps chromium
 
