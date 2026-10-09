@@ -100,11 +100,19 @@ jobs:
             echo "Generated Worker sitemap check failed with HTTP $code."
             head -c 1000 /tmp/worker-sitemap.xml 2>/dev/null || true
             failures=1
-          elif ! grep -Fq "$WORKER_URL/rankings/live" /tmp/worker-sitemap.xml; then
-            echo "Generated Worker sitemap is missing /rankings/live."
-            failures=1
           else
-            echo "Generated Worker sitemap verified."
+            SITE_ORIGIN="$(node --input-type=module - <<'EOF'
+          import { readFileSync } from "node:fs";
+          const config = JSON.parse(readFileSync("dist/server/wrangler.json", "utf8"));
+          process.stdout.write(String(config.vars?.BOBAKS_SITE_ORIGIN || "https://web.bobaksranking.workers.dev").replace(/\/$/, ""));
+          EOF
+          )"
+            if ! grep -Fq "$SITE_ORIGIN/rankings/live" /tmp/worker-sitemap.xml; then
+              echo "Generated Worker sitemap is missing $SITE_ORIGIN/rankings/live."
+              failures=1
+            else
+              echo "Generated Worker sitemap verified."
+            fi
           fi
 
           code="$(curl --silent --output /tmp/worker-live-api.json --write-out '%{http_code}' "$WORKER_URL/api/rankings/live" 2>/dev/null || true)"
