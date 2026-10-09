@@ -47,6 +47,54 @@ jobs:
           console.log(`Verified generated Worker entrypoint: ${config.main}`);
           EOF
 
+      - name: Test generated Cloudflare Worker routes
+        run: |
+          npx wrangler dev --config dist/server/wrangler.json --local --ip 127.0.0.1 --port 4174 > /tmp/bobaks-worker.log 2>&1 &
+          echo $! > /tmp/bobaks-worker.pid
+
+          ready=0
+          for i in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:4174/ > /tmp/worker-home.html; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            cat /tmp/bobaks-worker.log
+            echo "Generated Cloudflare Worker did not become reachable."
+            exit 1
+          fi
+
+          WORKER_URL=http://127.0.0.1:4174
+          curl --fail --silent --show-error "$WORKER_URL/api/deployment" > /tmp/worker-deployment.json
+          node --input-type=module - <<'EOF'
+          import { readFileSync } from "node:fs";
+          const payload = JSON.parse(readFileSync("/tmp/worker-deployment.json", "utf8"));
+          if (payload.release !== "sitemap-dynamic-cache-fix-20261009") {
+            throw new Error(`Unexpected Worker deployment marker: ${JSON.stringify(payload)}`);
+          }
+          EOF
+
+          curl --fail --silent --show-error "$WORKER_URL/sitemap.xml" > /tmp/worker-sitemap.xml
+          grep -q '<urlset' /tmp/worker-sitemap.xml
+          grep -Fq "$WORKER_URL/rankings/live" /tmp/worker-sitemap.xml
+
+          curl --fail --silent --show-error "$WORKER_URL/api/rankings/live" > /tmp/worker-live-api.json
+          node --input-type=module - <<'EOF'
+          import { readFileSync } from "node:fs";
+          const payload = JSON.parse(readFileSync("/tmp/worker-live-api.json", "utf8"));
+          if (payload.period !== "live" || !Array.isArray(payload.data) || payload.data.length === 0) {
+            throw new Error("Built Worker live ranking API returned an invalid or empty payload.");
+          }
+          console.log(`Generated Worker live ranking API returned ${payload.data.length} rows.`);
+          EOF
+
+          if [ -f /tmp/bobaks-worker.pid ]; then
+            kill "$(cat /tmp/bobaks-worker.pid)" 2>/dev/null || true
+          fi
+
       - name: Install Playwright Chromium
         run: npx --yes playwright install --with-deps chromium
 
