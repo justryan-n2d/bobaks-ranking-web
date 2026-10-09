@@ -16,6 +16,10 @@ This repository contains only the web application. The production API, collector
 - Recharts
 - Cloudflare Workers as the target deployment environment
 
+## Cloudflare production deployment
+
+See [Cloudflare production deployment settings](docs/cloudflare-production-deploy.md) for the required Workers Builds configuration. The deployment command must target the generated `dist/server/wrangler.json` produced by `npm run build:vinext`.
+
 ## Development
 
 Install and run locally with `npm install` and `npm run dev`. Verify with `npm test` and `npm run build`.
