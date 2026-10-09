@@ -48,6 +48,10 @@ jobs:
           EOF
 
       - name: Install Playwright Chromium
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
         run: npx --yes playwright install --with-deps chromium
 
       - name: Start browser test server
@@ -88,6 +92,28 @@ jobs:
           grep -q "See what gamers are playing right now." /tmp/home.html
           curl --fail --silent --show-error "$PREVIEW_URL/api/rankings/live" > /tmp/live-api.json
           grep -q '"data"' /tmp/live-api.json
+
+          # Verify the new static App Router endpoint through the built Cloudflare/Vinext server.
+          # A unit test of GET() alone cannot catch a route missing from the runtime route graph.
+          curl --fail --silent --show-error "$PREVIEW_URL/api/deployment" > /tmp/deployment-api.json
+          node --input-type=module - <<'EOF'
+          import { readFileSync } from "node:fs";
+          const payload = JSON.parse(readFileSync("/tmp/deployment-api.json", "utf8"));
+          if (payload.release !== "sitemap-dynamic-cache-fix-20261009") {
+            throw new Error(`Unexpected deployment marker payload: ${JSON.stringify(payload)}`);
+          }
+          console.log("Verified /api/deployment through the built Cloudflare/Vinext server.");
+          EOF
+
+          curl --fail --silent --show-error "$PREVIEW_URL/api/social/feed?period=live" > /tmp/social-api.json
+          node --input-type=module - <<'EOF'
+          import { readFileSync } from "node:fs";
+          const payload = JSON.parse(readFileSync("/tmp/social-api.json", "utf8"));
+          if (!Array.isArray(payload.trending?.items) || !Array.isArray(payload.peaks?.items)) {
+            throw new Error("Social feed endpoint returned an invalid payload.");
+          }
+          console.log("Verified same-origin social feed API.");
+          EOF
 
           npx --yes playwright screenshot --browser=chromium --viewport-size="1440,900" --wait-for-timeout=2000 "$PREVIEW_URL/" preview-home.png
           npx --yes playwright screenshot --browser=chromium --viewport-size="1440,900" --wait-for-timeout=2000 "$PREVIEW_URL/rankings/live" preview-live.png
