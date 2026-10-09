@@ -33,7 +33,7 @@ jobs:
         id: wait_release
         env:
           PRODUCTION_URL: https://web.bobaksranking.workers.dev
-          EXPECTED_RELEASE: sitemap-dynamic-cache-fix-20261009
+          EXPECTED_RELEASE: cloudflare-generated-worker-deploy-20261009-v2
         run: |
           ready=0
           for i in $(seq 1 12); do
