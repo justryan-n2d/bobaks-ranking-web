@@ -48,10 +48,6 @@ jobs:
           EOF
 
       - name: Install Playwright Chromium
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-      - name: Install Playwright Chromium
         run: npx --yes playwright install --with-deps chromium
 
       - name: Start browser test server
