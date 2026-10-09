@@ -30,64 +30,127 @@ jobs:
         run: npx --yes playwright install --with-deps chromium
 
       - name: Wait for the target frontend release
+        id: wait_release
         env:
           PRODUCTION_URL: https://web.bobaksranking.workers.dev
           EXPECTED_RELEASE: sitemap-dynamic-cache-fix-20261009
         run: |
           ready=0
-          for i in $(seq 1 36); do
-            if body="$(curl --fail --silent --show-error "$PRODUCTION_URL/")" &&
-               release="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/deployment")"; then
-              if printf '%s' "$release" | grep -Fq "\"release\":\"$EXPECTED_RELEASE\""; then
+          for i in $(seq 1 12); do
+            home_code="$(curl --silent --show-error --output production-home.html --write-out '%{http_code}' "$PRODUCTION_URL/" || true)"
+            if [ "$home_code" = "200" ]; then
+              release_code="$(curl --silent --show-error --output /tmp/production-release-response.json --write-out '%{http_code}' "$PRODUCTION_URL/api/deployment" || true)"
+              if [ "$release_code" = "200" ] && grep -Fq "\"release\":\"$EXPECTED_RELEASE\"" /tmp/production-release-response.json; then
                 ready=1
-                printf '%s' "$body" > production-home.html
-                printf '%s' "$release" > production-release.json
+                cp /tmp/production-release-response.json production-release.json
                 break
               fi
             fi
-            sleep 10
+            sleep 5
           done
+
+          echo "ready=$ready" >> "$GITHUB_OUTPUT"
           if [ "$ready" -ne 1 ]; then
-            echo "Production Worker did not expose release $EXPECTED_RELEASE yet: $PRODUCTION_URL"
-            exit 1
+            if [ -f /tmp/production-release-response.json ]; then
+              cp /tmp/production-release-response.json production-release-response.txt
+            fi
+            printf '{"release":null}\n' > production-release.json
+            echo "::warning::Production Worker did not expose release $EXPECTED_RELEASE yet: $PRODUCTION_URL. Continuing all route, API, sitemap, and browser checks."
+          else
+            echo "Verified production release: $EXPECTED_RELEASE"
           fi
 
       - name: Check production routes APIs and demo isolation
         env:
           PRODUCTION_URL: https://web.bobaksranking.workers.dev
         run: |
-          test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$PRODUCTION_URL/")" = "200"
-          test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$PRODUCTION_URL/rankings/live")" = "200"
-          test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$PRODUCTION_URL/about")" = "200"
+          failures=0
 
-          export LIVE_JSON="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/rankings/live")"
-          export SOCIAL_JSON="$(curl --fail --silent --show-error "$PRODUCTION_URL/api/social/feed?period=live")"
+          check_http() {
+            path="$1"
+            expected="$2"
+            output="$3"
+            code="$(curl --silent --show-error --output "$output" --write-out '%{http_code}' "$PRODUCTION_URL$path" || true)"
+            if [ "$code" != "$expected" ]; then
+              echo "::error::Expected HTTP $expected for $path, received $code"
+              failures=1
+            else
+              echo "HTTP $code $path"
+            fi
+          }
 
-          node --input-type=module - <<'EOF'
-          const live = JSON.parse(process.env.LIVE_JSON);
-          const social = JSON.parse(process.env.SOCIAL_JSON);
+          check_http "/" "200" production-home.html
+          check_http "/rankings/live" "200" production-live.html
+          check_http "/about" "200" production-about.html
+          check_http "/api/rankings/live" "200" production-live-api.json
+          live_code="$(curl --silent --show-error --output production-live-api.json --write-out '%{http_code}' "$PRODUCTION_URL/api/rankings/live" || true)"
+          if [ "$live_code" = "200" ]; then
+            if ! node --input-type=module - <<'EOF'
+          import { readFileSync } from "node:fs";
+          const live = JSON.parse(readFileSync("production-live-api.json", "utf8"));
           if (live.period !== "live" || !Array.isArray(live.data) || live.data.length === 0) {
-            throw new Error("same-origin live rankings API returned an invalid or empty payload");
+            throw new Error("Same-origin live rankings API returned an invalid or empty payload.");
           }
-          if (!Array.isArray(social.trending?.items) || !Array.isArray(social.peaks?.items)) {
-            throw new Error("same-origin social feed API returned an invalid payload");
-          }
+          console.log(`Live rankings API verified with ${live.data.length} rows.`);
           EOF
-
-          if grep -qiE 'BOBAKS_UI_DEMO_MODE|preview-demo|Filipino Hangout' production-home.html; then
-            echo "Preview/demo data leaked into production HTML."
-            exit 1
+            then
+              echo "::error::Live rankings API payload validation failed."
+              failures=1
+            fi
+          else
+            echo "::error::Live rankings API returned HTTP $live_code"
+            failures=1
           fi
 
+          social_code="$(curl --silent --show-error --output production-social-api.json --write-out '%{http_code}' "$PRODUCTION_URL/api/social/feed?period=live" || true)"
+          if [ "$social_code" = "200" ]; then
+            if ! node --input-type=module - <<'EOF'
+          import { readFileSync } from "node:fs";
+          const social = JSON.parse(readFileSync("production-social-api.json", "utf8"));
+          if (!Array.isArray(social.trending?.items) || !Array.isArray(social.peaks?.items)) {
+            throw new Error("Social feed API returned an invalid payload.");
+          }
+          console.log("Social feed API verified.");
+          EOF
+            then
+              echo "::error::Social feed API payload validation failed."
+              failures=1
+            fi
+          else
+            echo "::error::Social feed API returned HTTP $social_code"
+            failures=1
+          fi
+
+          if [ -s production-home.html ] && grep -qiE 'BOBAKS_UI_DEMO_MODE|preview-demo|Filipino Hangout' production-home.html; then
+            echo "::error::Preview/demo data leaked into production HTML."
+            failures=1
+          fi
+
+          exit "$failures"
+
       - name: Check live sitemap output
+        if: always()
         env:
           PRODUCTION_URL: https://web.bobaksranking.workers.dev
         run: |
-          curl --fail --silent --show-error "$PRODUCTION_URL/sitemap.xml" > production-sitemap.xml
-          grep -q '<urlset' production-sitemap.xml
-          grep -Fq "$PRODUCTION_URL/rankings/live" production-sitemap.xml
+          failures=0
+          code="$(curl --silent --show-error --output production-sitemap.xml --write-out '%{http_code}' "$PRODUCTION_URL/sitemap.xml" || true)"
+          if [ "$code" != "200" ]; then
+            echo "::error::Sitemap returned HTTP $code"
+            failures=1
+          fi
+          if ! grep -q '<urlset' production-sitemap.xml; then
+            echo "::error::Sitemap response did not contain a urlset."
+            failures=1
+          fi
+          if ! grep -Fq "$PRODUCTION_URL/rankings/live" production-sitemap.xml; then
+            echo "::error::Sitemap is missing the live rankings URL."
+            failures=1
+          fi
+          exit "$failures"
 
       - name: Check Google Search Console verification tag
+        if: always()
         continue-on-error: true
         run: |
           if grep -Eq '<meta[^>]+name="google-site-verification"[^>]+content="95wMN3wqzeI4-1F8c8l3s_bXFlXtjj1kXK1oGR7aT1o"' production-home.html; then
@@ -98,27 +161,45 @@ jobs:
           fi
 
       - name: Browser QA
+        if: always()
         env:
           PRODUCTION_URL: https://web.bobaksranking.workers.dev
         run: |
-          npx --yes playwright screenshot             --viewport-size="1440,900"             --wait-for-selector=".bobaks-rank-pill"             "$PRODUCTION_URL/" production-home.png
+          failures=0
 
-          npx --yes playwright screenshot             --viewport-size="1440,900"             --wait-for-selector='a[href^="/game/"]'             "$PRODUCTION_URL/rankings/live" production-live.png
+          npx --yes playwright screenshot --viewport-size="1440,900" --wait-for-selector=".bobaks-rank-pill" "$PRODUCTION_URL/" production-home.png || failures=1
+          npx --yes playwright screenshot --viewport-size="1440,900" --wait-for-selector='a[href^="/game/"]' "$PRODUCTION_URL/rankings/live" production-live.png || failures=1
+          npx --yes playwright screenshot --viewport-size="1440,900" "$PRODUCTION_URL/about" production-about.png || failures=1
+          npx --yes playwright screenshot --viewport-size="390,844" --wait-for-selector=".bobaks-rank-pill" "$PRODUCTION_URL/" production-home-mobile.png || failures=1
 
-          npx --yes playwright screenshot             --viewport-size="1440,900"             "$PRODUCTION_URL/about" production-about.png
-
-          npx --yes playwright screenshot             --viewport-size="390,844"             --wait-for-selector=".bobaks-rank-pill"             "$PRODUCTION_URL/" production-home-mobile.png
+          exit "$failures"
 
       - name: Upload production evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: bobaks-production-qa
           path: |
             production-home.html
             production-release.json
+            production-release-response.txt
+            production-live.html
+            production-about.html
+            production-live-api.json
+            production-social-api.json
             production-sitemap.xml
             production-home.png
             production-live.png
             production-about.png
             production-home-mobile.png
           retention-days: 14
+
+      - name: Require target frontend release marker
+        if: always()
+        env:
+          RELEASE_READY: ${{ steps.wait_release.outputs.ready }}
+        run: |
+          if [ "$RELEASE_READY" != "1" ]; then
+            echo "::error::Production release marker was not verified. See the earlier checks for route/API diagnosis."
+            exit 1
+          fi
