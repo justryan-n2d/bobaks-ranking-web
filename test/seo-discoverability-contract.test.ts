@@ -15,7 +15,7 @@ describe("SEO discoverability contract", () => {
     expect(sitemap).toMatch(/web\.bobaksranking\.workers\.dev/);
     expect(sitemap).toMatch(/Promise\.allSettled/);
     expect(sitemap).toMatch(/dynamic = "force-dynamic"/);
-    expect(sitemap).not.toMatch(/revalidate\\s*=/);
+    expect(sitemap).not.toMatch(/revalidate *=/);
   });
 
   test("allows public crawling while blocking private or query-driven surfaces", () => {
