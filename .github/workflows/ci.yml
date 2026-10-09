@@ -88,7 +88,7 @@ jobs:
             node --input-type=module - <<'EOF'
           import { readFileSync } from "node:fs";
           const payload = JSON.parse(readFileSync("/tmp/worker-deployment.json", "utf8"));
-          if (payload.release !== "sitemap-dynamic-cache-fix-20261009") {
+          if (payload.release !== "cloudflare-generated-worker-deploy-20261009-v2") {
             throw new Error(`Unexpected Worker deployment marker: ${JSON.stringify(payload)}`);
           }
           console.log("Generated Worker deployment marker verified.");
@@ -182,7 +182,7 @@ jobs:
           node --input-type=module - <<'EOF'
           import { readFileSync } from "node:fs";
           const payload = JSON.parse(readFileSync("/tmp/deployment-api.json", "utf8"));
-          if (payload.release !== "sitemap-dynamic-cache-fix-20261009") {
+          if (payload.release !== "cloudflare-generated-worker-deploy-20261009-v2") {
             throw new Error(`Unexpected deployment marker payload: ${JSON.stringify(payload)}`);
           }
           console.log("Verified /api/deployment through the built Cloudflare/Vinext server.");

@@ -7,7 +7,7 @@ describe("deployment marker route", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
     await expect(response.json()).resolves.toEqual({
-      release: "sitemap-dynamic-cache-fix-20261009",
+      release: "cloudflare-generated-worker-deploy-20261009-v2",
     });
   });
 });
