@@ -82,8 +82,21 @@ jobs:
           check_http "/" "200" production-home.html
           check_http "/rankings/live" "200" production-live.html
           check_http "/about" "200" production-about.html
-          check_http "/api/rankings/live" "200" production-live-api.json
-          live_code="$(curl --silent --show-error --output production-live-api.json --write-out '%{http_code}' "$PRODUCTION_URL/api/rankings/live" || true)"
+
+          # The upstream API can briefly return 502 during worker/database warm-up.
+          # Retry the same probe instead of recording a one-shot failure and then making a duplicate request.
+          live_code=""
+          for attempt in 1 2 3; do
+            live_code="$(curl --silent --show-error --output production-live-api.json --write-out '%{http_code}' "$PRODUCTION_URL/api/rankings/live" || true)"
+            if [ "$live_code" = "200" ]; then
+              break
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "::warning::Live rankings API returned HTTP $live_code on attempt $attempt/3; retrying."
+              sleep "$attempt"
+            fi
+          done
+
           if [ "$live_code" = "200" ]; then
             if ! node --input-type=module - <<'EOF'
           import { readFileSync } from "node:fs";
