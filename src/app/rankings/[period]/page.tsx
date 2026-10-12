@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { RankingPeriodView } from "@/components/ranking-period-view";
-import type { RankingPeriod } from "@/lib/api";
+import { getRankings, type RankingPeriod, type RankingResponse } from "@/lib/api";
 import { RANKING_PERIOD_META, RANKING_PERIODS } from "@/lib/ranking";
 
 const SITE_ORIGIN = (
@@ -50,6 +50,13 @@ export default async function RankingPeriodPage({ params }: { params: Promise<{ 
   }
   const period = rawPeriod as RankingPeriod;
   const meta = RANKING_PERIOD_META[period];
+  let initialResponse: RankingResponse | null = null;
+  try {
+    initialResponse = await getRankings(period);
+  } catch {
+    // Keep the public route available if live data is temporarily unavailable.
+    // The client will retry after hydration.
+  }
   const canonicalPath = "/rankings/" + period;
   const canonicalUrl = SITE_ORIGIN + canonicalPath;
   const rankingJsonLd = {
@@ -103,10 +110,10 @@ export default async function RankingPeriodPage({ params }: { params: Promise<{ 
         })}
       </nav>
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-sm">
-        <div><span className="font-semibold">Top 100</span><span className="ml-2 text-muted-foreground">Live data loads after the page opens</span></div>
+        <div><span className="font-semibold">Top 100</span><span className="ml-2 text-muted-foreground">Rankings refresh automatically</span></div>
         <Link href="/methodology" className="font-semibold hover:underline">How rankings work</Link>
       </div>
-      <RankingPeriodView period={period} scoreLabel={meta.scoreLabel} />
+      <RankingPeriodView period={period} scoreLabel={meta.scoreLabel} initialResponse={initialResponse} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
