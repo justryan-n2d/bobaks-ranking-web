@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-const RELEASE_ID = "seo-server-rendered-content-20261013-v1";
+const RELEASE_ID = "cloudflare-generated-worker-deploy-20261009-v2";
 
 export function GET() {
   return Response.json(
