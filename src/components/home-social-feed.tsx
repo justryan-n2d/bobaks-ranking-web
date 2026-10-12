@@ -15,7 +15,7 @@ function formatUpdated(value: string | null | undefined) {
   if (!value) return "Freshness unavailable";
   const timestamp = Date.parse(value);
   if (!Number.isFinite(timestamp)) return "Freshness unavailable";
-  return new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(timestamp));
+  return new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(timestamp));
 }
 
 function SocialItem({
@@ -60,9 +60,9 @@ function SocialItem({
   );
 }
 
-export function HomeSocialFeed() {
-  const [feed, setFeed] = useState<SocialFeed | null>(null);
-  const [loading, setLoading] = useState(true);
+export function HomeSocialFeed({ initialFeed = null }: { initialFeed?: SocialFeed | null }) {
+  const [feed, setFeed] = useState<SocialFeed | null>(initialFeed);
+  const [loading, setLoading] = useState(!initialFeed);
   const [error, setError] = useState(false);
 
   useEffect(() => {
@@ -156,7 +156,7 @@ export function HomeSocialFeed() {
       </section>
 
       <div className="text-xs text-muted-foreground">
-        {feed ? `Discovery data refreshed ${formatUpdated(feed.generatedAt)}` : "Discovery data is loading."}
+        {feed ? `Discovery data refreshed ${formatUpdated(feed.generatedAt)} UTC` : "Discovery data is loading."}
       </div>
     </>
   );
