@@ -166,7 +166,7 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
-          if grep -Eq '<meta[^>]+name="google-site-verification"[^>]+content="95wMN3wqzeI4-1F8c8l3s_bXFlXtjj1kXK1oGR7aT1o"' production-home.html; then
+          if grep -Eq '<meta[^>]+name="google-site-verification"[^>]+content="sUJWU9x32VR0FEnIqkOXVa76kUGKqjTllt-_0ZLiSOA"' production-home.html; then
             echo "Google Search Console verification tag is present."
           else
             echo "::warning::The deployment is live, but the Google verification tag remains missing."
