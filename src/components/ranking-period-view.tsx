@@ -39,11 +39,11 @@ function formatAge(value: string | null | undefined, now: number) {
   return Math.floor(minutes / 60) + "h ago";
 }
 
-export function RankingPeriodView({ period, scoreLabel }: { period: RankingPeriod; scoreLabel: string }) {
-  const [response, setResponse] = useState<RankingResponse | null>(null);
+export function RankingPeriodView({ period, scoreLabel, initialResponse = null }: { period: RankingPeriod; scoreLabel: string; initialResponse?: RankingResponse | null }) {
+  const [response, setResponse] = useState<RankingResponse | null>(initialResponse);
   const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [now, setNow] = useState(Date.now());
+  const [loading, setLoading] = useState(!initialResponse);
+  const [now, setNow] = useState(0);
   const [nextRefreshAt, setNextRefreshAt] = useState<number | null>(null);
   const inFlight = useRef(false);
   const nextRefreshRef = useRef<number | null>(null);
@@ -86,6 +86,7 @@ export function RankingPeriodView({ period, scoreLabel }: { period: RankingPerio
   }, [period]);
 
   useEffect(() => {
+    setNow((current) => current || new Date().valueOf());
     void load();
 
     if (period !== "live") return;
@@ -116,7 +117,7 @@ export function RankingPeriodView({ period, scoreLabel }: { period: RankingPerio
 
   if (loading && !response) return <LoadingSkeleton />;
 
-  if (error || !response) {
+  if (!response) {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-muted/40 px-5 py-8 text-center">
         <div className="text-sm font-semibold">Rankings could not be loaded.</div>

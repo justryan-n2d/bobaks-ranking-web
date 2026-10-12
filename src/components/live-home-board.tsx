@@ -164,7 +164,7 @@ export function LiveHomeBoard({
 }) {
   const [games, setGames] = useState(initialGames);
   const [updatedAt, setUpdatedAt] = useState(initialUpdatedAt ?? null);
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(false);
   const [changedIds, setChangedIds] = useState<string[]>([]);

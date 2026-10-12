@@ -31,6 +31,24 @@ describe("SEO discoverability contract", () => {
     expect(robots).toMatch(/IS_PREVIEW/);
   });
 
+  test("server-renders public discovery data while keeping helper APIs disallowed", () => {
+    const homePage = readFileSync("src/app/page.tsx", "utf8");
+    const homeDiscovery = readFileSync("src/components/home-discovery.tsx", "utf8");
+    const rankingPage = readFileSync("src/app/rankings/[period]/page.tsx", "utf8");
+    const rankingView = readFileSync("src/components/ranking-period-view.tsx", "utf8");
+    const robots = readFileSync("src/app/robots.ts", "utf8");
+
+    expect(homePage).toMatch(/Promise\.allSettled/);
+    expect(homePage).toContain('getRankings("live")');
+    expect(homePage).toContain('getSocialFeed("live")');
+    expect(homeDiscovery).toContain("initialGames={initialResponse?.data ?? []}");
+    expect(homeDiscovery).toContain("<HomeSocialFeed initialFeed={initialFeed} />");
+    expect(rankingPage).toMatch(/await getRankings\(period\)/);
+    expect(rankingPage).toContain("initialResponse={initialResponse}");
+    expect(rankingView).toMatch(/useState<RankingResponse \| null>\(initialResponse\)/);
+    expect(robots).toMatch(/disallow:[\s\S]*["']\/api\/["']/);
+  });
+
   test("public pages expose default social metadata", () => {
     const layout = readFileSync("src/app/layout.tsx", "utf8");
 

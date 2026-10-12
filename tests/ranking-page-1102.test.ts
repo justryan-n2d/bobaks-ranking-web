@@ -8,9 +8,11 @@ describe("ranking page 1102 hardening", () => {
   const loading = readFileSync(resolve(process.cwd(), "src/app/rankings/[period]/loading.tsx"), "utf8");
   const api = readFileSync(resolve(process.cwd(), "src/app/api/rankings/[period]/route.ts"), "utf8");
 
-  it("keeps the ranking page server render lightweight", () => {
-    expect(page).not.toContain("getRankings");
+  it("server-renders initial ranking data and still supports client refresh", () => {
+    expect(page).toContain("await getRankings(period)");
     expect(page).toContain("<RankingPeriodView");
+    expect(page).toContain("initialResponse={initialResponse}");
+    expect(view).toContain("useState<RankingResponse | null>(initialResponse)");
   });
 
   it("loads ranking data after hydration with a visible loading state", () => {
