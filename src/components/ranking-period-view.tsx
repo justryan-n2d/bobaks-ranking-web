@@ -86,6 +86,7 @@ export function RankingPeriodView({ period, scoreLabel, initialResponse = null }
   }, [period]);
 
   useEffect(() => {
+    setNow((current) => current || new Date().valueOf());
     void load();
 
     if (period !== "live") return;
