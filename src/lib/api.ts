@@ -158,20 +158,52 @@ async function readJson(response: Response): Promise<unknown> {
   return payload;
 }
 
-async function fetchJson(path: string): Promise<Record<string, unknown>> {
-  const response = await fetch(apiUrl(path), {
-    headers: { accept: "application/json" },
-    cache: "no-store",
-  });
+const MAX_UPSTREAM_ATTEMPTS = 3;
+const RETRYABLE_UPSTREAM_STATUSES = new Set([502, 503, 504]);
+const UPSTREAM_RETRY_DELAYS_MS = [100, 250];
 
-  if (!response.ok) {
+function waitForUpstreamRetry(delayMs: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, delayMs));
+}
+
+async function fetchJson(path: string): Promise<Record<string, unknown>> {
+  for (let attempt = 0; attempt < MAX_UPSTREAM_ATTEMPTS; attempt += 1) {
+    let response: Response;
+
+    try {
+      response = await fetch(apiUrl(path), {
+        headers: { accept: "application/json" },
+        cache: "no-store",
+      });
+    } catch (error) {
+      if (attempt === MAX_UPSTREAM_ATTEMPTS - 1) {
+        throw error;
+      }
+
+      await waitForUpstreamRetry(UPSTREAM_RETRY_DELAYS_MS[attempt] ?? 250);
+      continue;
+    }
+
+    if (response.ok) {
+      const payload = await readJson(response);
+      return payload as Record<string, unknown>;
+    }
+
     const error = new Error(`Bobaks API returned HTTP ${response.status}`);
     (error as Error & { status?: number }).status = response.status;
-    throw error;
+
+    if (
+      !RETRYABLE_UPSTREAM_STATUSES.has(response.status) ||
+      attempt === MAX_UPSTREAM_ATTEMPTS - 1
+    ) {
+      throw error;
+    }
+
+    await response.body?.cancel().catch(() => undefined);
+    await waitForUpstreamRetry(UPSTREAM_RETRY_DELAYS_MS[attempt] ?? 250);
   }
 
-  const payload = await readJson(response);
-  return payload as Record<string, unknown>;
+  throw new Error(`Bobaks API request failed after ${MAX_UPSTREAM_ATTEMPTS} attempts`);
 }
 
 const RANKING_PATHS: Record<RankingPeriod, string> = {
