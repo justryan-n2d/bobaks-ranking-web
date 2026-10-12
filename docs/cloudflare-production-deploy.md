@@ -36,3 +36,15 @@ The Frontend CI workflow tests these routes in the generated Wrangler Worker, wh
 ## Safety boundary
 
 This deployment procedure only changes how the frontend Worker bundle is built and deployed. The ranking engine, collector, API backend, historical database, and retention logic remain in `bobaks-ranking-api` and are not changed by frontend deploys.
+
+## After connecting an existing Worker to Git
+
+Connecting a Git repository does not by itself prove that the existing Worker has deployed the current `main` commit. After connecting or changing the Build configuration:
+
+1. Confirm the build appears under the intended Worker (`web`), not only under another Worker using the same repository.
+2. Confirm its build output reports the expected Worker name and a new version ID.
+3. Verify `https://web.bobaksranking.workers.dev/api/deployment` returns the release in `src/app/api/deployment/route.ts`.
+4. Verify `https://web.bobaksranking.workers.dev/sitemap.xml` returns HTTP 200 and contains a `urlset`.
+5. Check `/api/rankings/live` for HTTP 200 and a non-empty `data` array.
+
+If no new build appears after the repository has been connected, push a new commit to the configured production branch or start a build from the Workers Builds UI. Do not assume a successful build for a similarly named Worker means `web` was deployed.
