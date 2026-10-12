@@ -48,3 +48,7 @@ Connecting a Git repository does not by itself prove that the existing Worker ha
 5. Check `/api/rankings/live` for HTTP 200 and a non-empty `data` array.
 
 If no new build appears after the repository has been connected, push a new commit to the configured production branch or start a build from the Workers Builds UI. Do not assume a successful build for a similarly named Worker means `web` was deployed.
+
+## Canonical public hostname
+
+The canonical public website is `https://web.bobaksranking.workers.dev`. Keep `wrangler.jsonc`'s Worker name set to `web`, and keep `BOBAKS_SITE_ORIGIN` set to that hostname. The Git repository name `bobaks-ranking-web` is not the public hostname. After connecting this repository to the existing `web` Worker in Workers Builds, a new push to `main` should create a build for that Worker. Confirm the Cloudflare build record names `web` and verify the release marker and sitemap at the canonical hostname before declaring deployment successful.
