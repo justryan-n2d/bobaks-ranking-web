@@ -7,8 +7,15 @@ import {
 
 import { HomeSocialFeed } from "@/components/home-social-feed";
 import { LiveHomeBoard } from "@/components/live-home-board";
+import type { RankingResponse, SocialFeed } from "@/lib/api";
 
-export function HomeDiscovery() {
+export function HomeDiscovery({
+  initialResponse,
+  initialFeed,
+}: {
+  initialResponse: RankingResponse | null;
+  initialFeed: SocialFeed | null;
+}) {
   return (
     <div className="space-y-8">
       <section className="bobaks-hero rounded-[2rem] border p-5 shadow-sm sm:p-8 lg:p-10">
@@ -64,8 +71,11 @@ export function HomeDiscovery() {
         </div>
       </section>
 
-      <LiveHomeBoard />
-      <HomeSocialFeed />
+      <LiveHomeBoard
+        initialGames={initialResponse?.data ?? []}
+        initialUpdatedAt={initialResponse?.updatedAt ?? null}
+      />
+      <HomeSocialFeed initialFeed={initialFeed} />
 
       <section className="grid gap-4 sm:grid-cols-3">
         <Link
