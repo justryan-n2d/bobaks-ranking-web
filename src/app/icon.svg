@@ -1,9 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <circle cx="256" cy="256" r="236" fill="#0b2f66"/>
-  <path fill="#fff" d="M151 119h126c61 0 104 34 104 83 0 30-17 55-46 68 36 11 61 38 61 76 0 57-48 99-117 99H151V119Zm55 50v80h68c30 0 51-14 51-39 0-26-21-41-51-41h-68Zm0 129v97h72c35 0 60-17 60-48 0-32-25-49-60-49h-72Z"/>
-  <g fill="#129ef5">
-    <path d="M174 349h42v96h-42z"/>
-    <path d="M232 316h42v129h-42z"/>
-    <path d="M290 279h42v166h-42z"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="1536" viewBox="0 0 1536 1536" role="img" aria-labelledby="logo-title logo-description">
+  <title id="logo-title">Bobaks Ranking master logo</title>
+  <desc id="logo-description">A white geometric B with two cyan-blue bars inside a deep navy oval-circle. The area outside the circular mark is transparent.</desc>
+  <ellipse cx="763" cy="777" rx="668" ry="684" fill="#022359"/>
+  <path fill="#FCFCFC" fill-rule="evenodd" d="M 411 361 L 919 361 C 1035 361 1130 441 1130 557 C 1130 646 1085 714 1019 747 C 1127 776 1197 873 1197 995 C 1197 1127 1114 1231 992 1240 L 992 846 C 992 816 968 793 938 793 C 921 793 910 797 894 805 L 520 995 C 518 997 518 1008 518 1020 L 518 1240 L 410 1240 L 410 362 Z M 557 819 L 557 507 Q 557 505 562 505 L 878 505 C 921 505 951 531 951 567 C 951 601 935 622 908 637 L 572 814 Q 557 822 557 819 Z"/>
+  <path fill="#019EFB" d="M 930 854 L 779 926 L 779 1240 L 930 1240 Z M 724 953 L 575 1024 L 575 1240 L 724 1240 Z"/>
 </svg>
