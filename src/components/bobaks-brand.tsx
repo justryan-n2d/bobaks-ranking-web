@@ -9,7 +9,7 @@ export function BobaksBrand({ close, compact = false }: { close?: () => void; co
       className="inline-flex items-center gap-2.5 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <img
-        src="/brand/bobaks-mark.svg"
+        src="/brand/bobaks-ranking-master-logo.svg"
         alt=""
         width={36}
         height={36}
