@@ -31,7 +31,10 @@ export const metadata: Metadata = {
     description: "Live rankings and historical trends for Roblox experiences.",
   },
   icons: {
-    icon: "/icon.svg",
+    icon: [
+      { url: "/favicon.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
   },
   robots: {
     index: !IS_PREVIEW,
