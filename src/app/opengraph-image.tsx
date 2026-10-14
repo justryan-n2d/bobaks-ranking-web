@@ -128,7 +128,7 @@ export default function OpenGraphImage() {
                   marginTop: 8,
                   fontSize: 14,
                   fontWeight: 700,
-                  letterSpacing: 2,
+                  letterSpacing: "2px",
                   color: "#55c2ff",
                 }}
               >
@@ -145,7 +145,7 @@ export default function OpenGraphImage() {
               fontSize: 51,
               fontWeight: 800,
               lineHeight: 1.08,
-              letterSpacing: -1.8,
+              letterSpacing: "-1.8px",
             }}
           >
             <div style={{ display: "flex" }}>Roblox rankings.</div>
@@ -247,7 +247,7 @@ export default function OpenGraphImage() {
               style={{
                 fontSize: 16,
                 fontWeight: 800,
-                letterSpacing: 1.1,
+                letterSpacing: "1.1px",
                 color: "#e5efff",
               }}
             >
@@ -321,15 +321,43 @@ export default function OpenGraphImage() {
                   <div
                     style={{
                       position: "absolute",
-                      left: 4,
-                      bottom: 8,
-                      width: 39,
-                      height: 22,
+                      left: 5,
+                      bottom: 7,
+                      width: 37,
+                      height: 31,
                       display: "flex",
-                      background: "rgba(255,255,255,0.76)",
-                      clipPath: "polygon(0 100%, 28% 22%, 53% 74%, 76% 8%, 100% 100%)",
+                      alignItems: "flex-end",
+                      gap: 3,
                     }}
-                  />
+                  >
+                    <div
+                      style={{
+                        width: 8,
+                        height: 14,
+                        borderRadius: 2,
+                        display: "flex",
+                        background: "rgba(255,255,255,0.76)",
+                      }}
+                    />
+                    <div
+                      style={{
+                        width: 8,
+                        height: 25,
+                        borderRadius: 2,
+                        display: "flex",
+                        background: "rgba(255,255,255,0.9)",
+                      }}
+                    />
+                    <div
+                      style={{
+                        width: 8,
+                        height: 19,
+                        borderRadius: 2,
+                        display: "flex",
+                        background: "rgba(255,255,255,0.76)",
+                      }}
+                    />
+                  </div>
                   <div
                     style={{
                       display: "flex",
