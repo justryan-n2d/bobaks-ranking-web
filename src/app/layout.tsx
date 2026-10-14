@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     description: "Live rankings and historical trends for Roblox experiences.",
     images: [
       {
-        url: "/opengraph-image.png",
+        url: "/opengraph-image",
         width: 1200,
         height: 630,
         alt: "Bobaks Ranking: live rankings and historical trends for Roblox experiences.",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Bobaks Ranking",
     description: "Live rankings and historical trends for Roblox experiences.",
-    images: ["/opengraph-image.png"],
+    images: ["/opengraph-image"],
   },
   icons: {
     icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
