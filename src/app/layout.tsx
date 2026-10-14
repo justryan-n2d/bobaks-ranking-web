@@ -24,11 +24,20 @@ export const metadata: Metadata = {
     siteName: "Bobaks Ranking",
     title: "Bobaks Ranking",
     description: "Live rankings and historical trends for Roblox experiences.",
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Bobaks Ranking: live rankings and historical trends for Roblox experiences.",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Bobaks Ranking",
     description: "Live rankings and historical trends for Roblox experiences.",
+    images: ["/opengraph-image.png"],
   },
   icons: {
     icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
