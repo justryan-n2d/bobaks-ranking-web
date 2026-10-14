@@ -176,6 +176,25 @@ jobs:
           curl --fail --silent --show-error "$PREVIEW_URL/api/rankings/live" > /tmp/live-api.json
           grep -q '"data"' /tmp/live-api.json
 
+          # Verify Discord/Open Graph metadata and the generated PNG share card.
+          grep -q 'og:image' /tmp/home.html
+          grep -q 'summary_large_image' /tmp/home.html
+          curl --fail --silent --show-error "$PREVIEW_URL/opengraph-image.png" -o /tmp/opengraph-image.png
+          node --input-type=module - <<'EOF'
+          import { readFileSync } from "node:fs";
+          const image = readFileSync("/tmp/opengraph-image.png");
+          const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+          if (!image.subarray(0, 8).equals(pngSignature)) {
+            throw new Error("Generated Open Graph preview is not a PNG image.");
+          }
+          const width = image.readUInt32BE(16);
+          const height = image.readUInt32BE(20);
+          if (width !== 1200 || height !== 630) {
+            throw new Error(`Unexpected Open Graph image dimensions: ${width}x${height}`);
+          }
+          console.log("Verified 1200x630 Open Graph preview and rich-share metadata.");
+          EOF
+
           # Verify the new static App Router endpoint through the built Cloudflare/Vinext server.
           # A unit test of GET() alone cannot catch a route missing from the runtime route graph.
           curl --fail --silent --show-error "$PREVIEW_URL/api/deployment" > /tmp/deployment-api.json
