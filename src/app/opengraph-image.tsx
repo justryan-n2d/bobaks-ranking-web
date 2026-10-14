@@ -120,7 +120,7 @@ export default function OpenGraphImage() {
               />
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: 38, fontWeight: 800, letterSpacing: -1 }}>
+              <div style={{ fontSize: 38, fontWeight: 800, letterSpacing: "-1px" }}>
                 Bobaks Ranking
               </div>
               <div
