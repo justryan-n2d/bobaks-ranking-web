@@ -179,7 +179,7 @@ jobs:
           # Verify Discord/Open Graph metadata and the generated PNG share card.
           grep -q 'og:image' /tmp/home.html
           grep -q 'summary_large_image' /tmp/home.html
-          curl --fail --silent --show-error "$PREVIEW_URL/opengraph-image.png" -o /tmp/opengraph-image.png
+          curl --fail --silent --show-error "$PREVIEW_URL/opengraph-image" -o /tmp/opengraph-image.png
           node --input-type=module - <<'EOF'
           import { readFileSync } from "node:fs";
           const image = readFileSync("/tmp/opengraph-image.png");
