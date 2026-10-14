@@ -432,7 +432,7 @@ export default function OpenGraphImage() {
               color: "#b4ddff",
               fontSize: 11,
               fontWeight: 800,
-              letterSpacing: 1.1,
+              letterSpacing: "1.1px",
             }}
           >
             LIVE  •  WEEKLY  •  MONTHLY  •  YEARLY
